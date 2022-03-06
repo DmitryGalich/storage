@@ -1,0 +1,3 @@
+#define console_app_VERSION_MAJOR @console_app_VERSION_MAJOR@
+#define console_app_VERSION_MINOR @console_app_VERSION_MINOR@
+#define console_app_VERSION_PATCH @console_app_VERSION_PATCH@
