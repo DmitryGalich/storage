@@ -1,1 +1,2 @@
 add_subdirectory(lib_logger)
+add_subdirectory(lib_network)

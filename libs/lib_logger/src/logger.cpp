@@ -1,5 +1,6 @@
 #include "logger.h"
 
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <mutex>
@@ -7,14 +8,15 @@
 namespace {
 
 std::string get_time() {
-  static char buffer[20];
-  struct tm* time_struct;
+  const uint kTimeArrayBufferSize(20);
+  std::array<char, kTimeArrayBufferSize> buffer{};
+  struct tm *time_struct = nullptr;
 
-  time_t now = time(0);
+  time_t now = time(nullptr);
   time_struct = localtime(&now);
-  strftime(buffer, sizeof(buffer), "%d-%m-%Y_%H-%M-%S", time_struct);
+  strftime(buffer.data(), buffer.size(), "%d-%m-%Y_%H-%M-%S", time_struct);
 
-  return buffer;
+  return buffer.data();
 }
 
 std::string get_thread_id() {
@@ -26,41 +28,48 @@ std::string get_thread_id() {
   return oss.str();
 }
 
-}  // namespace
+} // namespace
 
 namespace log {
 
 class Logger {
- public:
-  static Logger& get_instance() {
+public:
+  Logger(const Logger &) = delete;
+  Logger(Logger &&) = delete;
+  Logger &operator=(Logger &) = delete;
+  Logger &operator=(Logger &&) = delete;
+
+  static Logger &get_instance() {
     static Logger instance;
     return instance;
   }
 
-  void set_path(const std::filesystem::path& path) {
+  void set_path(const std::filesystem::path &path) {
     std::lock_guard<std::mutex> lock(mutex_);
     path_ = path;
   }
 
-  void write_info(const std::string& message,
-                  const std::string& function_prefix) {
+  void clear_path() { path_.clear(); }
+
+  void write_info(const std::string &message,
+                  const std::string &function_prefix) {
     do_writing(get_time() + " [info] (" + function_prefix + ") (" +
                get_thread_id() + ") " + message + "\n");
   }
 
-  void write_warning(const std::string& message,
-                     const std::string& function_prefix) {
+  void write_warning(const std::string &message,
+                     const std::string &function_prefix) {
     do_writing(get_time() + " [warning] (" + function_prefix + ") (" +
                get_thread_id() + ") " + message + "\n");
   }
 
-  void write_error(const std::string& message,
-                   const std::string& function_prefix) {
+  void write_error(const std::string &message,
+                   const std::string &function_prefix) {
     do_writing(get_time() + " [error] (" + function_prefix + ") (" +
                get_thread_id() + ") " + message + "\n");
   }
 
- private:
+private:
   Logger() = default;
   ~Logger() {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -69,11 +78,7 @@ class Logger {
       file_.close();
   }
 
-  Logger(const Logger&) = delete;
-  Logger(Logger&&) = delete;
-  Logger& operator=(Logger&) = delete;
-
-  void do_writing(const std::string& message) {
+  void do_writing(const std::string &message) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     std::cout << message << std::flush;
@@ -98,7 +103,7 @@ class Logger {
     }
   }
 
- private:
+private:
   std::mutex mutex_;
 
   std::string file_creating_time_;
@@ -106,20 +111,22 @@ class Logger {
   std::fstream file_;
 };
 
-void info(const std::string& message, const std::string function_prefix) {
+void info(const std::string &message, const std::string function_prefix) {
   Logger::get_instance().write_info(message, function_prefix);
 }
 
-void warning(const std::string& message, const std::string function_prefix) {
+void warning(const std::string &message, const std::string function_prefix) {
   Logger::get_instance().write_warning(message, function_prefix);
 }
 
-void error(const std::string& message, const std::string function_prefix) {
+void error(const std::string &message, const std::string function_prefix) {
   Logger::get_instance().write_error(message, function_prefix);
 }
 
-void set_path(const std::filesystem::path& path) {
+void set_path(const std::filesystem::path &path) {
   Logger::get_instance().set_path(path);
 }
 
-}  // namespace log
+void clear_path() { Logger::get_instance().clear_path(); }
+
+} // namespace log

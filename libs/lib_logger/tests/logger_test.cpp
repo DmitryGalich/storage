@@ -1,12 +1,13 @@
-#include "gtest/gtest.h"
+#include "logger.h"
 
 #include <chrono>
 #include <thread>
+#include <unistd.h>
 
-#include "logger.h"
+#include "gtest/gtest.h"
 
 class LogTests : public ::testing::Test {
- protected:
+protected:
   void SetUp() override {
     if (std::filesystem::is_directory(kTestsFolderPath_))
       std::filesystem::remove_all(kTestsFolderPath_);
@@ -16,13 +17,12 @@ class LogTests : public ::testing::Test {
                                std::string(kTestsFolderPath_) + "\"");
   };
   void TearDown() override {
-    log::set_path("");
+    log::clear_path();
 
     if (std::filesystem::is_directory(kTestsFolderPath_))
       std::filesystem::remove_all(kTestsFolderPath_);
   };
 
- protected:
   const std::filesystem::path kTestsFolderPath_{
       std::filesystem::temp_directory_path().c_str() +
       std::string("/TestsFolder/")};
@@ -31,20 +31,24 @@ class LogTests : public ::testing::Test {
 TEST_F(LogTests, Multithreading) {
   log::set_path(kTestsFolderPath_);
 
-  std::vector<std::unique_ptr<std::thread>> threads(10);
+  const uint8_t kThreadsNumber(10);
+  const uint8_t kMessagingRoundsNumber(2);
+  const uint kSleepSeconds(1);
+
+  std::vector<std::unique_ptr<std::thread>> threads(kThreadsNumber);
   for (size_t i = 0; i < threads.size(); i++) {
-    threads[i].reset(new std::thread([&]() {
-      for (int i = 0; i < 10; i++) {
+    threads[i] = std::make_unique<std::thread>([&]() {
+      for (int i = 0; i < kMessagingRoundsNumber; i++) {
         log::info(std::to_string(i), __func__);
         log::warning(std::to_string(i), __func__);
         log::error(std::to_string(i), __func__);
 
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        sleep(kSleepSeconds);
       }
-    }));
+    });
   }
 
-  for (auto& thread : threads)
+  for (auto &thread : threads)
     if (thread->joinable())
       thread->join();
 }
@@ -61,7 +65,7 @@ TEST_F(LogTests, CheckFileRecreating) {
   EXPECT_FALSE(std::filesystem::is_empty(kTestsFolderPath_));
 
   int files_count = 0;
-  for (const auto& entry :
+  for (const auto &entry :
        std::filesystem::directory_iterator(kTestsFolderPath_)) {
     if (files_count > 1)
       FAIL();
@@ -84,7 +88,21 @@ TEST_F(LogTests, WithoutSettingPath) {
   EXPECT_TRUE(std::filesystem::is_empty(kTestsFolderPath_));
 }
 
-int main(int argc, char** argv) {
+TEST_F(LogTests, ClearingPath) {
+  log::set_path(kTestsFolderPath_);
+  log::info("Info message", __func__);
+
+  EXPECT_FALSE(std::filesystem::is_empty(kTestsFolderPath_));
+  std::filesystem::remove_all(kTestsFolderPath_);
+  EXPECT_FALSE(std::filesystem::exists(kTestsFolderPath_));
+
+  log::clear_path();
+  log::info("Info message", __func__);
+
+  EXPECT_FALSE(std::filesystem::exists(kTestsFolderPath_));
+}
+
+int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
