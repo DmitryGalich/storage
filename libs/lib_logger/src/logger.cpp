@@ -53,20 +53,20 @@ public:
 
   void write_info(const std::string &message,
                   const std::string &function_prefix) {
-    do_writing(get_time() + " [info] (" + function_prefix + ") (" +
-               get_thread_id() + ") " + message + "\n");
+    do_writing(get_time() + " [info] (" + function_prefix +
+               ") (thread: " + get_thread_id() + ") " + message + "\n");
   }
 
   void write_warning(const std::string &message,
                      const std::string &function_prefix) {
-    do_writing(get_time() + " [warning] (" + function_prefix + ") (" +
-               get_thread_id() + ") " + message + "\n");
+    do_writing(get_time() + " [warning] (" + function_prefix +
+               ") (thread: " + get_thread_id() + ") " + message + "\n");
   }
 
   void write_error(const std::string &message,
                    const std::string &function_prefix) {
-    do_writing(get_time() + " [error] (" + function_prefix + ") (" +
-               get_thread_id() + ") " + message + "\n");
+    do_writing(get_time() + " [error] (" + function_prefix +
+               ") (thread: " + get_thread_id() + ") " + message + "\n");
   }
 
 private:

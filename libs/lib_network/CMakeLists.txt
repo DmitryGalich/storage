@@ -9,11 +9,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 add_library(${PROJECT_NAME}
-    src/network.cpp
+    src/server.cpp
     include/network.h)
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+    lib_logger)
 
 set(TESTS_TARGET ${PROJECT_NAME}_tests)
 find_package(GTest 1.10 REQUIRED)
