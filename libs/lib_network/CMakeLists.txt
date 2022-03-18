@@ -24,7 +24,8 @@ add_executable(${TESTS_TARGET} tests/network_test.cpp)
 target_link_libraries(${TESTS_TARGET}
     PRIVATE
     ${PROJECT_NAME}
-    GTest::GTest)
+    GTest::GTest
+    lib_logger)
 target_include_directories(${TESTS_TARGET}
     PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/include)
