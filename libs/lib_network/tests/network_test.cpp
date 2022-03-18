@@ -33,13 +33,10 @@ protected:
   network::Server server_;
 };
 
-// TEST_F(NetworkTests, IncorrectIp) { EXPECT_ANY_THROW(server_.start("",
-// 8080)); }
-
 TEST_F(NetworkTests, Simple) {
   using namespace std::chrono_literals;
   EXPECT_NO_THROW(server_.start("127.0.0.1", 8080));
-  std::this_thread::sleep_for(5s);
+  std::this_thread::sleep_for(30s);
 }
 
 int main(int argc, char **argv) {
