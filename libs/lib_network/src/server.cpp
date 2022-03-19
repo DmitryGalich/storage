@@ -39,7 +39,7 @@ private:
     struct sockaddr_in server_address_data_;
     descriptor server_{kInvalidDesciptor};
 
-    descriptor epoll_{kInvalidDesciptor};
+    descriptor epoll_fd{kInvalidDesciptor};
     struct epoll_event events_[kEpollMaxEvents_];
   } connecting_data_;
 
@@ -106,15 +106,15 @@ void Server::Implementation::run_connecting_thread(const std::string &ip,
     };
 
     const auto configure_epoll = [&]() {
-      connecting_data_.epoll_ = epoll_create(1);
-      if (connecting_data_.epoll_ < 0)
+      connecting_data_.epoll_fd = epoll_create(1);
+      if (connecting_data_.epoll_fd < 0)
         throw std::runtime_error("epoll_create() - " +
                                  std::string(strerror(errno)));
 
       struct epoll_event event;
       event.data.fd = connecting_data_.server_;
       event.events = EPOLLIN | EPOLLOUT;
-      if (epoll_ctl(connecting_data_.epoll_, EPOLL_CTL_ADD,
+      if (epoll_ctl(connecting_data_.epoll_fd, EPOLL_CTL_ADD,
                     connecting_data_.server_, &event) < 0)
         throw std::runtime_error("epoll_ctl() - " +
                                  std::string(strerror(errno)));
@@ -146,12 +146,50 @@ void Server::Implementation::run_connecting_thread(const std::string &ip,
       struct epoll_event event;
       event.events = EPOLLIN | EPOLLET;
       event.data.fd = client;
-      if (epoll_ctl(connecting_data_.epoll_, EPOLL_CTL_ADD, client, &event) < 0)
+      if (epoll_ctl(connecting_data_.epoll_fd, EPOLL_CTL_ADD, client, &event) <
+          0)
         throw std::runtime_error("epoll_ctl() - " +
                                  std::string(strerror(errno)));
 
       log::info("new connection processed", __PRETTY_FUNCTION__);
     };
+
+    const auto process_exsiting_connection = [&](const descriptor &client_fd) {
+      char buffer[1024] = {0};
+      const std::string kAnswer("Message from server");
+
+      const int kReceivedSymbolsCount = read(client_fd, buffer, 1024);
+      if (kReceivedSymbolsCount < 0)
+        throw std::runtime_error("read() - " + std::string(strerror(errno)));
+
+      log::info("client_fd(" + std::to_string(client_fd) +
+                ") received message: " + buffer);
+
+      const int kWrittenSymbolsCount =
+          write(client_fd, kAnswer.c_str(), kAnswer.length());
+      if (kWrittenSymbolsCount < 0)
+        throw std::runtime_error("write() - " + std::string(strerror(errno)));
+
+      log::info("written to client_fd(" + std::to_string(client_fd) +
+                ") message: " + kAnswer.substr(0, kWrittenSymbolsCount));
+    };
+
+    const auto close_connection = [&](const descriptor &client) {
+      log::info("closing connection(" + std::to_string(client) + ")...",
+                __PRETTY_FUNCTION__);
+
+      if (epoll_ctl(connecting_data_.epoll_fd, EPOLL_CTL_DEL, client, nullptr) <
+          0)
+        throw std::runtime_error("epoll_ctl() - " +
+                                 std::string(strerror(errno)));
+
+      close(client);
+
+      log::info("connection " + std::to_string(client) + " closed",
+                __PRETTY_FUNCTION__);
+    };
+
+    // =======================================
 
     using namespace std::chrono_literals;
     static const int kWaitingTimeout(0);
@@ -162,7 +200,7 @@ void Server::Implementation::run_connecting_thread(const std::string &ip,
       log::info("epoll_wait() attempt", __PRETTY_FUNCTION__);
 
       const int kEventsCount = epoll_wait(
-          connecting_data_.epoll_, connecting_data_.events_,
+          connecting_data_.epoll_fd, connecting_data_.events_,
           connecting_data_.kMaxSocketsRequestsCount_, kWaitingTimeout);
       if (kEventsCount == -1)
         throw std::runtime_error("epoll_wait() - " +
@@ -170,8 +208,20 @@ void Server::Implementation::run_connecting_thread(const std::string &ip,
 
       for (int event_i = 0; event_i < kEventsCount; event_i++) {
         if (connecting_data_.events_[event_i].data.fd ==
-            connecting_data_.server_)
+            connecting_data_.server_) {
           process_new_connection();
+        } else {
+          try {
+            process_exsiting_connection(
+                connecting_data_.events_[event_i].data.fd);
+          } catch (const std::exception &exception) {
+            log::error(std::string(exception.what()), __PRETTY_FUNCTION__);
+            close_connection(connecting_data_.events_[event_i].data.fd);
+          }
+        }
+
+        if (connecting_data_.events_[event_i].events & (EPOLLRDHUP | EPOLLHUP))
+          close_connection(connecting_data_.events_[event_i].data.fd);
       }
 
       std::this_thread::sleep_for(500ms);
@@ -193,7 +243,8 @@ void Server::Implementation::run_connecting_thread(const std::string &ip,
     configure();
     run_cycle();
   } catch (const std::exception &exception) {
-    log::error("connecting thread error", __PRETTY_FUNCTION__);
+    log::error("connecting thread error(" + std::string(exception.what()) + ")",
+               __PRETTY_FUNCTION__);
   }
 
   make_stop();
