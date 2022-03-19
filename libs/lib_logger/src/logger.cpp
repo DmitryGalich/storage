@@ -53,20 +53,17 @@ public:
 
   void write_info(const std::string &message,
                   const std::string &function_prefix) {
-    do_writing(get_time() + " [info] (" + function_prefix +
-               ") (thread: " + get_thread_id() + ") " + message + "\n");
+    do_writing(message, "info", function_prefix);
   }
 
   void write_warning(const std::string &message,
                      const std::string &function_prefix) {
-    do_writing(get_time() + " [warning] (" + function_prefix +
-               ") (thread: " + get_thread_id() + ") " + message + "\n");
+    do_writing(message, "warning", function_prefix);
   }
 
   void write_error(const std::string &message,
                    const std::string &function_prefix) {
-    do_writing(get_time() + " [error] (" + function_prefix +
-               ") (thread: " + get_thread_id() + ") " + message + "\n");
+    do_writing(message, "error", function_prefix);
   }
 
 private:
@@ -78,10 +75,15 @@ private:
       file_.close();
   }
 
-  void do_writing(const std::string &message) {
+  void do_writing(const std::string &message, const std::string &type,
+                  const std::string &function_prefix) {
+    const std::string kLogLine(get_time() + " [" + type +
+                               "] (thread: " + get_thread_id() + ") (" +
+                               function_prefix + ") " + message + "\n");
+
     std::lock_guard<std::mutex> lock(mutex_);
 
-    std::cout << message << std::flush;
+    std::cout << kLogLine << std::flush;
 
     if (path_.empty())
       return;
@@ -96,7 +98,7 @@ private:
       std::cout << "Logger error: Can't open file \""
                 << "\"" << std::endl;
     } else {
-      file_.write(message.c_str(), message.size());
+      file_.write(kLogLine.c_str(), kLogLine.size());
 
       if (file_.is_open())
         file_.close();
