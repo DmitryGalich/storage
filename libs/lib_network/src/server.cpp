@@ -7,6 +7,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <mutex>
+#include <signal.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <thread>
@@ -112,6 +113,9 @@ void Server::Implementation::configure_socket(const std::string &ip,
                  SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0)
     throw std::runtime_error("setsockopt() - " + std::string(strerror(errno)));
 
+  if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+    throw std::runtime_error("signal() - " + std::string(strerror(errno)));
+
   if (bind(connecting_data_.server_,
            (struct sockaddr *)&connecting_data_.server_address_data_,
            sizeof(connecting_data_.server_address_data_)) < 0)
@@ -214,21 +218,29 @@ void Server::Implementation::process_existing_connection(
   char buffer[1024] = {0};
   const std::string kAnswer("Message from server");
 
-  const int kReceivedSymbolsCount = read(client_fd, buffer, 1024);
-  if (kReceivedSymbolsCount < 0)
+  int read_symbols_count(0);
+  try {
+    read_symbols_count = read(client_fd, buffer, 1024);
+  } catch (const std::exception &exception) {
+    throw std::runtime_error("read() - " + std::string(strerror(errno)));
+  }
+
+  if (read_symbols_count < 0)
     throw std::runtime_error("read() - " + std::string(strerror(errno)));
 
   log::info("client_fd(" + std::to_string(client_fd) +
-                ") received message: " + buffer,
+                ") read message: " + buffer,
             __PRETTY_FUNCTION__);
 
-  const int kWrittenSymbolsCount =
-      write(client_fd, kAnswer.c_str(), kAnswer.length());
-  if (kWrittenSymbolsCount < 0)
+  int written_symbols_count(0);
+  try {
+    written_symbols_count = write(client_fd, kAnswer.c_str(), kAnswer.length());
+  } catch (const std::exception &exception) {
     throw std::runtime_error("write() - " + std::string(strerror(errno)));
+  }
 
   log::info("written to client_fd(" + std::to_string(client_fd) +
-                ") message: " + kAnswer.substr(0, kWrittenSymbolsCount),
+                ") message: " + kAnswer.substr(0, written_symbols_count),
             __PRETTY_FUNCTION__);
 }
 
@@ -242,7 +254,7 @@ void Server::Implementation::close_connection(const descriptor &client_fd) {
 
   close(client_fd);
 
-  log::info("connection " + std::to_string(client_fd) + " closed",
+  log::info("connection (" + std::to_string(client_fd) + ") closed",
             __PRETTY_FUNCTION__);
 }
 
