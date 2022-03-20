@@ -75,28 +75,20 @@ void Server::Implementation::start(const std::string &ip, const uint32_t port) {
   communication_data_.ip_ = ip;
   communication_data_.port_ = port;
 
-  log::info("starting(" + communication_data_.ip_ + ", " +
-                std::to_string(communication_data_.port_) + ")...",
-            __PRETTY_FUNCTION__);
+  log::info("starting...", __PRETTY_FUNCTION__);
 
   communication_data_.thread_.reset(
       new std::thread([&]() { run_communicating_thread(); }));
 
-  log::info("started(" + communication_data_.ip_ + ", " +
-                std::to_string(communication_data_.port_) + ")",
-            __PRETTY_FUNCTION__);
+  log::info("started", __PRETTY_FUNCTION__);
 }
 
 void Server::Implementation::stop() {
-  log::info("stopping(" + communication_data_.ip_ + ", " +
-                std::to_string(communication_data_.port_) + ")...",
-            __PRETTY_FUNCTION__);
+  log::info("stopping...", __PRETTY_FUNCTION__);
 
   communication_data_.clear();
 
-  log::info("stopped(" + communication_data_.ip_ + ", " +
-                std::to_string(communication_data_.port_) + ")",
-            __PRETTY_FUNCTION__);
+  log::info("stopped", __PRETTY_FUNCTION__);
 }
 
 void Server::Implementation::run_communicating_thread() {
@@ -172,9 +164,9 @@ void Server::Implementation::run_communication_cycle() {
   while (communication_data_.is_need_cycling_.load()) {
     log::info("epoll_wait() attempt", __PRETTY_FUNCTION__);
 
-    const int kEventsCount =
-        epoll_wait(communication_data_.epoll_fd, communication_data_.events_,
-                   communication_data_.kMaxSocketsRequestsCount_, kWaitingTimeout);
+    const int kEventsCount = epoll_wait(
+        communication_data_.epoll_fd, communication_data_.events_,
+        communication_data_.kMaxSocketsRequestsCount_, kWaitingTimeout);
     if (kEventsCount == -1)
       throw std::runtime_error("epoll_wait() - " +
                                std::string(strerror(errno)));
@@ -227,7 +219,8 @@ void Server::Implementation::process_new_connection() {
   struct epoll_event event;
   event.events = EPOLLIN | EPOLLET;
   event.data.fd = client;
-  if (epoll_ctl(communication_data_.epoll_fd, EPOLL_CTL_ADD, client, &event) < 0)
+  if (epoll_ctl(communication_data_.epoll_fd, EPOLL_CTL_ADD, client, &event) <
+      0)
     throw std::runtime_error("epoll_ctl() - " + std::string(strerror(errno)));
 
   log::info("new connection processed", __PRETTY_FUNCTION__);
@@ -268,8 +261,8 @@ void Server::Implementation::close_connection(const descriptor &client_fd) {
   log::info("closing connection(" + std::to_string(client_fd) + ")...",
             __PRETTY_FUNCTION__);
 
-  if (epoll_ctl(communication_data_.epoll_fd, EPOLL_CTL_DEL, client_fd, nullptr) <
-      0)
+  if (epoll_ctl(communication_data_.epoll_fd, EPOLL_CTL_DEL, client_fd,
+                nullptr) < 0)
     throw std::runtime_error("epoll_ctl() - " + std::string(strerror(errno)));
 
   close(client_fd);

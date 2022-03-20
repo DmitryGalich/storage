@@ -31,7 +31,7 @@ protected:
       std::filesystem::temp_directory_path().c_str() +
       std::string("/TestsFolder/")};
 
-  //  network::Server server_;
+  network::Server server_;
   network::Client client_;
 };
 
@@ -41,15 +41,15 @@ TEST_F(NetworkTests, Simple) {
   const std::string kIp("127.0.0.1");
   const uint32_t kPort(8080);
 
-  //  std::thread server_thread(
-  //      [&]() { EXPECT_NO_THROW(server_.start(kIp, kPort)); });
+  std::thread server_thread(
+      [&]() { EXPECT_NO_THROW(server_.start(kIp, kPort)); });
 
   std::thread client_thread(
       [&]() { EXPECT_NO_THROW(client_.start(kIp, kPort)); });
 
   std::this_thread::sleep_for(5s);
 
-  //  server_thread.join();
+  server_thread.join();
   client_thread.join();
 }
 
