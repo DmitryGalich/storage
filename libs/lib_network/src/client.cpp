@@ -136,8 +136,8 @@ void Client::Implementation::connect_to_server() {
               sizeof(communication_data_.server_address_data_)) < 0)
     throw std::runtime_error("connect() - " + std::string(strerror(errno)));
 
-  log::info("connected to server(" + communication_data_.ip_ + ", " +
-                std::to_string(communication_data_.port_) + ")",
+  log::info("connected to server(" +
+                std::to_string(communication_data_.server_) + ")",
             __PRETTY_FUNCTION__);
 }
 
@@ -156,8 +156,17 @@ void Client::Implementation::run_communication_cycle() {
 }
 
 void Client::Implementation::deactivate_socket() {
-  if (communication_data_.server_ >= 0)
+  if (communication_data_.server_ >= 0) {
+    log::info("closing connection(" +
+                  std::to_string(communication_data_.server_) + ")...",
+              __PRETTY_FUNCTION__);
+
     close(communication_data_.server_);
+
+    log::info("connection closed(" +
+                  std::to_string(communication_data_.server_) + ")",
+              __PRETTY_FUNCTION__);
+  }
 }
 
 Client::Client() : impl_(new Implementation) {}

@@ -31,7 +31,7 @@ protected:
       std::filesystem::temp_directory_path().c_str() +
       std::string("/TestsFolder/")};
 
-  network::Server server_;
+  //  network::Server server_;
   network::Client client_;
 };
 
