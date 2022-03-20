@@ -10,6 +10,7 @@ add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 add_library(${PROJECT_NAME}
     src/server.cpp
+    src/client.cpp
     include/network.h)
 target_include_directories(${PROJECT_NAME}
     PUBLIC
