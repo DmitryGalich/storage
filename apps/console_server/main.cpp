@@ -64,12 +64,11 @@ int main(int argc, char **argv) {
   log::info(kApplicationName + " started");
 
   network::Server server;
-  std::thread server_thread([&]() { server.start(ip, port); });
+  server.start(ip, port);
 
   check_user_input();
 
   server.stop();
-  server_thread.join();
 
   log::info(kApplicationName + " stopped");
 

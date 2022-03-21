@@ -64,12 +64,11 @@ int main(int argc, char **argv) {
   log::info(kApplicationName + " started");
 
   network::Client client;
-  std::thread client_thread([&]() { client.start(ip, port); });
+  client.start(ip, port);
 
   check_user_input();
 
   client.stop();
-  client_thread.join();
 
   log::info(kApplicationName + " stopped");
 
