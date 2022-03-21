@@ -3,18 +3,24 @@
 #include "cmake_config.h"
 
 #include "logger.h"
+#include "network.h"
 
-int parse_arguments(const int argc, char **argv, std::string &log_path) {
-  if (argc < 2) {
-    std::cerr << "Not enough arguments. Need log folder path" << std::endl;
+int parse_arguments(const int argc, char **argv, std::string &log_path,
+                    std::string &ip, uint32_t &port) {
+  if (argc < 4) {
+    std::cerr << "Not enough arguments. Need log_folder_path, ip, port"
+              << std::endl;
     return -1;
-  } else if (argc == 2) {
+  } else if (argc == 4) {
     if (!std::filesystem::is_directory(argv[1])) {
       std::cerr << "Unexisting path" << std::endl;
       return -1;
     }
 
     log_path = argv[1];
+    ip = argv[2];
+    port = strtoul(argv[3], NULL, 0);
+
   } else {
     std::cerr << "Incorrect arguments" << std::endl;
     return -1;
@@ -23,10 +29,27 @@ int parse_arguments(const int argc, char **argv, std::string &log_path) {
   return 0;
 }
 
+void check_user_input() {
+  char input_symbol = 0x00;
+  do {
+    std::this_thread::sleep_for(std::chrono_literals::operator""ms(500));
+
+    std::cin >> input_symbol;
+
+    if (input_symbol == 'q')
+      break;
+    else
+      std::cout << "Press \'q\' to stop" << std::endl;
+
+  } while (true);
+}
+
 int main(int argc, char **argv) {
   std::string log_path;
+  std::string ip;
+  uint32_t port;
 
-  int status = parse_arguments(argc, argv, log_path);
+  int status = parse_arguments(argc, argv, log_path, ip, port);
   if (status != 0)
     return status;
 
@@ -38,7 +61,17 @@ int main(int argc, char **argv) {
 
   log::set_application_name(kApplicationName);
   log::set_path(log_path);
-  log::info(kApplicationName);
+  log::info(kApplicationName + " started");
+
+  network::Server server;
+  std::thread server_thread([&]() { server.start(ip, port); });
+
+  check_user_input();
+
+  server.stop();
+  server_thread.join();
+
+  log::info(kApplicationName + " stopped");
 
   return 0;
 }

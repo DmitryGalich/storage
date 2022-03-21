@@ -11,6 +11,7 @@ add_compile_options(-Wall -Wextra -pedantic -Werror)
 add_executable(${PROJECT_NAME} main.cpp)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-    lib_logger)
+    lib_logger
+    lib_network)
 
 configure_file(cmake_config.h.cmake ${CMAKE_CURRENT_LIST_DIR}/cmake_config.h @ONLY)
