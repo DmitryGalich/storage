@@ -66,6 +66,12 @@ public:
     do_writing(message, "error", function_prefix);
   }
 
+  void set_application_name(const std::string &app_name) {
+    app_name_ = app_name;
+  }
+
+  void clear_application_name() { app_name_.clear(); }
+
 private:
   Logger() = default;
   ~Logger() {
@@ -91,8 +97,9 @@ private:
     if (file_creating_time_.empty())
       file_creating_time_ = get_time();
 
-    std::string filename(path_.c_str() + std::string("/") +
-                         file_creating_time_ + std::string(".log"));
+    std::string filename(path_.c_str() + std::string("/") + app_name_ +
+                         (app_name_.empty() ? "" : "_") + file_creating_time_ +
+                         std::string(".log"));
     file_.open(filename, std::ios::out | std::ios::app);
     if (!file_.is_open()) {
       std::cout << "Logger error: Can't open file \""
@@ -109,6 +116,7 @@ private:
   std::mutex mutex_;
 
   std::string file_creating_time_;
+  std::string app_name_;
   std::filesystem::path path_;
   std::fstream file_;
 };
@@ -130,5 +138,13 @@ void set_path(const std::filesystem::path &path) {
 }
 
 void clear_path() { Logger::get_instance().clear_path(); }
+
+void set_application_name(const std::string &app_name) {
+  Logger::get_instance().set_application_name(app_name);
+}
+
+void clear_application_name() {
+  Logger::get_instance().clear_application_name();
+}
 
 } // namespace log
