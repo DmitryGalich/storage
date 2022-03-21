@@ -1,1 +1,1 @@
-add_subdirectory(console_app)
+add_subdirectory(console_server)

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(console_app
+project(console_server
     LANGUAGES CXX
     VERSION 0.0.1)
 
