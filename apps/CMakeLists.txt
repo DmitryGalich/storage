@@ -1,1 +1,2 @@
 add_subdirectory(console_server)
+add_subdirectory(console_client)
