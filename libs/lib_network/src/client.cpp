@@ -144,10 +144,40 @@ void Client::Implementation::connect_to_server() {
 void Client::Implementation::run_communication_cycle() {
   using namespace std::chrono_literals;
 
+  static const std::string kMessageBase("Message from client");
+  static const uint kBufferSize(1024);
+  char buffer[kBufferSize] = {0};
+  int iteration_number(0);
+  int written_symbols_count(0);
+  int read_symbols_count(0);
+
   communication_data_.is_need_communication_cycling_.store(true);
 
   while (communication_data_.is_need_communication_cycling_.load()) {
-    log::info("communication iteration", __PRETTY_FUNCTION__);
+    std::string message(kMessageBase + " " +
+                        std::to_string(iteration_number++));
+
+    try {
+      written_symbols_count =
+          write(communication_data_.server_, message.c_str(), message.length());
+    } catch (const std::exception &exception) {
+      throw std::runtime_error("write() - " + std::string(strerror(errno)));
+    }
+
+    log::info("wrote message: " + message.substr(0, written_symbols_count),
+              __PRETTY_FUNCTION__);
+
+    try {
+      read_symbols_count =
+          read(communication_data_.server_, buffer, kBufferSize);
+    } catch (const std::exception &exception) {
+      throw std::runtime_error("read() - " + std::string(strerror(errno)));
+    }
+
+    if (read_symbols_count < 0)
+      throw std::runtime_error("read() - " + std::string(strerror(errno)));
+
+    log::info(std::string("read message: ") + buffer, __PRETTY_FUNCTION__);
 
     std::this_thread::sleep_for(500ms);
   }

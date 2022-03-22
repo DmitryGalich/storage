@@ -162,8 +162,6 @@ void Server::Implementation::run_communication_cycle() {
   communication_data_.is_need_cycling_.store(true);
 
   while (communication_data_.is_need_cycling_.load()) {
-    log::info("epoll_wait() attempt", __PRETTY_FUNCTION__);
-
     const int kEventsCount = epoll_wait(
         communication_data_.epoll_fd, communication_data_.events_,
         communication_data_.kMaxSocketsRequestsCount_, kWaitingTimeout);
@@ -228,12 +226,13 @@ void Server::Implementation::process_new_connection() {
 
 void Server::Implementation::process_existing_connection(
     const descriptor &client_fd) {
-  char buffer[1024] = {0};
-  const std::string kAnswer("Message from server");
+  static const std::string kAnswer("Message from server");
+  static const uint kBufferSize(1024);
+  char buffer[kBufferSize] = {0};
 
   int read_symbols_count(0);
   try {
-    read_symbols_count = read(client_fd, buffer, 1024);
+    read_symbols_count = read(client_fd, buffer, kBufferSize);
   } catch (const std::exception &exception) {
     throw std::runtime_error("read() - " + std::string(strerror(errno)));
   }
