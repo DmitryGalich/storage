@@ -4,14 +4,15 @@
 
 #include "logger.h"
 
-int main() {
+int main()
+{
   const std::string kTitle("console_app");
   const std::string kVersion("(" + std::to_string(console_app_VERSION_MINOR) +
                              "." + std::to_string(console_app_VERSION_MINOR) +
                              "." + std::to_string(console_app_VERSION_PATCH) +
                              ")");
 
-  log::info(kTitle + kVersion, __FUNCTION__);
+  logger::info(kTitle + kVersion, __FUNCTION__);
 
   return 0;
 }
