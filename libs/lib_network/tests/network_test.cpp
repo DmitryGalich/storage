@@ -8,9 +8,11 @@
 
 #include "logger.h"
 
-class NetworkTests : public ::testing::Test {
+class NetworkTests : public ::testing::Test
+{
 protected:
-  void SetUp() override {
+  void SetUp() override
+  {
     if (std::filesystem::is_directory(kTestsFolderPath_))
       std::filesystem::remove_all(kTestsFolderPath_);
 
@@ -18,10 +20,11 @@ protected:
       throw std::runtime_error("Can't create directory \"" +
                                std::string(kTestsFolderPath_) + "\"");
 
-    log::set_path(kTestsFolderPath_);
+    logger::set_path(kTestsFolderPath_);
   };
-  void TearDown() override {
-    log::clear_path();
+  void TearDown() override
+  {
+    logger::clear_path();
 
     if (std::filesystem::is_directory(kTestsFolderPath_))
       std::filesystem::remove_all(kTestsFolderPath_);
@@ -35,17 +38,20 @@ protected:
   network::Client client_;
 };
 
-TEST_F(NetworkTests, Simple) {
+TEST_F(NetworkTests, Simple)
+{
   using namespace std::chrono_literals;
 
   const std::string kIp("127.0.0.1");
   const uint32_t kPort(8080);
 
   std::thread server_thread(
-      [&]() { EXPECT_NO_THROW(server_.start(kIp, kPort)); });
+      [&]()
+      { EXPECT_NO_THROW(server_.start(kIp, kPort)); });
 
   std::thread client_thread(
-      [&]() { EXPECT_NO_THROW(client_.start(kIp, kPort)); });
+      [&]()
+      { EXPECT_NO_THROW(client_.start(kIp, kPort)); });
 
   std::this_thread::sleep_for(5s);
 
@@ -53,7 +59,8 @@ TEST_F(NetworkTests, Simple) {
   client_thread.join();
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

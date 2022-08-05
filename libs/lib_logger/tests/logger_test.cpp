@@ -6,9 +6,11 @@
 
 #include "gtest/gtest.h"
 
-class LogTests : public ::testing::Test {
+class LogTests : public ::testing::Test
+{
 protected:
-  void SetUp() override {
+  void SetUp() override
+  {
     if (std::filesystem::is_directory(kTestsFolderPath_))
       std::filesystem::remove_all(kTestsFolderPath_);
 
@@ -16,8 +18,9 @@ protected:
       throw std::runtime_error("Can't create directory \"" +
                                std::string(kTestsFolderPath_) + "\"");
   };
-  void TearDown() override {
-    log::clear_path();
+  void TearDown() override
+  {
+    logger::clear_path();
 
     if (std::filesystem::is_directory(kTestsFolderPath_))
       std::filesystem::remove_all(kTestsFolderPath_);
@@ -28,24 +31,26 @@ protected:
       std::string("/TestsFolder/")};
 };
 
-TEST_F(LogTests, Multithreading) {
-  log::set_path(kTestsFolderPath_);
+TEST_F(LogTests, Multithreading)
+{
+  logger::set_path(kTestsFolderPath_);
 
   const uint8_t kThreadsNumber(10);
   const uint8_t kMessagingRoundsNumber(2);
   const uint kSleepSeconds(1);
 
   std::vector<std::unique_ptr<std::thread>> threads(kThreadsNumber);
-  for (size_t i = 0; i < threads.size(); i++) {
-    threads[i] = std::make_unique<std::thread>([&]() {
+  for (size_t i = 0; i < threads.size(); i++)
+  {
+    threads[i] = std::make_unique<std::thread>([&]()
+                                               {
       for (int i = 0; i < kMessagingRoundsNumber; i++) {
-        log::info(std::to_string(i), __func__);
-        log::warning(std::to_string(i), __func__);
-        log::error(std::to_string(i), __func__);
+        LOG_INFO(std::to_string(i));
+        LOG_WARNING(std::to_string(i));
+        LOG_ERROR(std::to_string(i));
 
         sleep(kSleepSeconds);
-      }
-    });
+      } });
   }
 
   for (auto &thread : threads)
@@ -53,20 +58,22 @@ TEST_F(LogTests, Multithreading) {
       thread->join();
 }
 
-TEST_F(LogTests, CheckFileRecreating) {
+TEST_F(LogTests, CheckFileRecreating)
+{
   EXPECT_TRUE(std::filesystem::is_empty(kTestsFolderPath_));
 
-  log::set_path(kTestsFolderPath_);
+  logger::set_path(kTestsFolderPath_);
 
-  log::info("Info message", __func__);
-  log::warning("Warning message", __func__);
-  log::error("Error message", __func__);
+  LOG_INFO("Info message");
+  LOG_WARNING("Warning message");
+  LOG_ERROR("Error message");
 
   EXPECT_FALSE(std::filesystem::is_empty(kTestsFolderPath_));
 
   int files_count = 0;
   for (const auto &entry :
-       std::filesystem::directory_iterator(kTestsFolderPath_)) {
+       std::filesystem::directory_iterator(kTestsFolderPath_))
+  {
     if (files_count > 1)
       FAIL();
 
@@ -78,31 +85,34 @@ TEST_F(LogTests, CheckFileRecreating) {
   }
 }
 
-TEST_F(LogTests, WithoutSettingPath) {
+TEST_F(LogTests, WithoutSettingPath)
+{
   EXPECT_TRUE(std::filesystem::is_empty(kTestsFolderPath_));
 
-  log::info("Info message", __func__);
-  log::warning("Warning message", __func__);
-  log::error("Error message", __func__);
+  LOG_INFO("Info message");
+  LOG_WARNING("Warning message");
+  LOG_ERROR("Error message");
 
   EXPECT_TRUE(std::filesystem::is_empty(kTestsFolderPath_));
 }
 
-TEST_F(LogTests, ClearingPath) {
-  log::set_path(kTestsFolderPath_);
-  log::info("Info message", __func__);
+TEST_F(LogTests, ClearingPath)
+{
+  logger::set_path(kTestsFolderPath_);
+  LOG_INFO("Info message");
 
   EXPECT_FALSE(std::filesystem::is_empty(kTestsFolderPath_));
   std::filesystem::remove_all(kTestsFolderPath_);
   EXPECT_FALSE(std::filesystem::exists(kTestsFolderPath_));
 
-  log::clear_path();
-  log::info("Info message", __func__);
+  logger::clear_path();
+  LOG_INFO("Info message");
 
   EXPECT_FALSE(std::filesystem::exists(kTestsFolderPath_));
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
