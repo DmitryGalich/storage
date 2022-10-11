@@ -5,23 +5,29 @@
 #include "logger.h"
 #include "network.h"
 
-int parse_arguments(const int argc, char **argv, std::string &log_path,
-                    std::string &ip, uint32_t &port) {
-  if (argc < 4) {
-    std::cerr << "Not enough arguments. Need log_folder_path, ip, port"
+int parse_arguments(const int argc, char **argv, std::string &logger_path,
+                    std::string &ip, uint32_t &port)
+{
+  if (argc < 4)
+  {
+    std::cerr << "Not enough arguments. Need logger_folder_path, ip, port"
               << std::endl;
     return -1;
-  } else if (argc == 4) {
-    if (!std::filesystem::is_directory(argv[1])) {
+  }
+  else if (argc == 4)
+  {
+    if (!std::filesystem::is_directory(argv[1]))
+    {
       std::cerr << "Unexisting path" << std::endl;
       return -1;
     }
 
-    log_path = argv[1];
+    logger_path = argv[1];
     ip = argv[2];
     port = strtoul(argv[3], NULL, 0);
-
-  } else {
+  }
+  else
+  {
     std::cerr << "Incorrect arguments" << std::endl;
     return -1;
   }
@@ -29,9 +35,11 @@ int parse_arguments(const int argc, char **argv, std::string &log_path,
   return 0;
 }
 
-void check_user_input() {
+void check_user_input()
+{
   char input_symbol = 0x00;
-  do {
+  do
+  {
     std::this_thread::sleep_for(std::chrono_literals::operator""ms(500));
 
     std::cin >> input_symbol;
@@ -44,12 +52,13 @@ void check_user_input() {
   } while (true);
 }
 
-int main(int argc, char **argv) {
-  std::string log_path;
+int main(int argc, char **argv)
+{
+  std::string logger_path;
   std::string ip;
   uint32_t port;
 
-  int status = parse_arguments(argc, argv, log_path, ip, port);
+  int status = parse_arguments(argc, argv, logger_path, ip, port);
   if (status != 0)
     return status;
 
@@ -59,9 +68,9 @@ int main(int argc, char **argv) {
       std::to_string(console_server_VERSION_MINOR) + std::string("_") +
       std::to_string(console_server_VERSION_PATCH));
 
-  log::set_application_name(kApplicationName);
-  log::set_path(log_path);
-  log::info(kApplicationName + " started");
+  logger::set_application_name(kApplicationName);
+  logger::set_path(logger_path);
+  logger::info(kApplicationName + " started");
 
   network::Server server;
   server.start(ip, port);
@@ -70,7 +79,7 @@ int main(int argc, char **argv) {
 
   server.stop();
 
-  log::info(kApplicationName + " stopped");
+  logger::info(kApplicationName + " stopped");
 
   return 0;
 }
