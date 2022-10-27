@@ -1,1 +1,3 @@
 add_subdirectory(crc_sample)
+add_subdirectory(logger_sample)
+add_subdirectory(crypto_sample)
