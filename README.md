@@ -2,8 +2,6 @@
 
 Simple implementation of synchronized data storage
 
-#
-
 ## General structure
 
 ![general structure](/docs/general_structure.jpg)
@@ -15,8 +13,6 @@ Handler of users data storage
 ### Server
 
 Storage of all clients copied data. For each client server has independent substorage that synchronized with client. If client has files or folders that server substorage has not, server loading them. If client deleted some files or folders, server deleting them too.
-
-#
 
 ## General structure of server or client
 
@@ -47,16 +43,12 @@ Storage of all clients copied data. For each client server has independent subst
 * Asking clients about any changes of users data
 * Provide ordered requesting of needed users data
 
-#
-
 ## Files handling module
 
 * Get list of folders and files
 * Create/Remove folder
 * Create file from receiver chunks
 * Get specific chunck of concrete file
-
-#
 
 ## Server network module
 
@@ -67,15 +59,11 @@ Storage of all clients copied data. For each client server has independent subst
 * Ask clients about any changes of their local storages
 * Request specific chunck of concrete client file
 
-#
-
 ## Client network module
 
 * Connect to server
 * Reconnect to server after network errors
 * Receive servers requests
 * Send requests answers
-
-#
 
 ## Main logic module
