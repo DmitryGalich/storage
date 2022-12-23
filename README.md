@@ -62,8 +62,25 @@ Storage of all clients copied data. For each client server has independent subst
 ## Client network module
 
 * Connect to server
-* Reconnect to server after network errors
 * Receive servers requests
 * Send requests answers
 
-## Main logic module
+## Client main logic module
+
+* Produce stable renewal connection with server
+* Catching any changes in local file storage
+* Spliting files on chuncks
+
+## Server main logic module
+
+* Making ordered request of files chuncks
+
+## View module
+
+* UI
+
+## Support modules
+
+* Control summ computing module
+* Encrypting/Decrypting module
+* Logger
