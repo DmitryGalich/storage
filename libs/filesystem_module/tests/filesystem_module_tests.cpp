@@ -78,6 +78,6 @@ TEST_F(FilesystemTestsHandler, GetListOfContent_FolderWithFiles)
             }
         }
 
-        EXPECT_TRUE(is_found);
+        EXPECT_FALSE(is_found);
     }
 }
