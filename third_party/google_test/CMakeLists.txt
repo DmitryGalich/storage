@@ -9,9 +9,9 @@ if(result)
 endif()
 
 # Build
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
+execute_process(COMMAND ${CMAKE_COMMAND} --build . 
   RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/google_test_download )
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/google_test_download)
 if(result)
   message(FATAL_ERROR "Build step for googletest failed: ${result}")
 endif()
