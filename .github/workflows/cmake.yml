@@ -22,5 +22,12 @@ jobs:
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
-    - name: Test
-      run: ${{github.workspace}}/build/libs/filesystem_module/filesystem_module_tests
+    - name: Test filesystem module
+      run: ${{github.workspace}}/build/modules/filesystem_module/filesystem_module_tests
+
+    - name: Test crc module
+      run: ${{github.workspace}}/build/modules/crc_module/crc_module_tests
+
+    - name: Test json module
+      run: ${{github.workspace}}/build/modules/json_module/json_module_tests
+
