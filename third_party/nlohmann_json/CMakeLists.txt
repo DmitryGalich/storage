@@ -5,11 +5,11 @@ message("Json library downloading:")
 file(DOWNLOAD 
   https://github.com/nlohmann/json/releases/download/v3.11.2/json.hpp  
   ${CMAKE_CURRENT_BINARY_DIR}/json.hpp
+  STATUS DownloadingStatus
+  EXPECTED_HASH SHA256=665fa14b8af3837966949e8eb0052d583e2ac105d3438baba9951785512cf921
   SHOW_PROGRESS
   TIMEOUT 60
   INACTIVITY_TIMEOUT 10
-  STATUS DownloadingStatus
-  EXPECTED_HASH SHA256=665fa14b8af3837966949e8eb0052d583e2ac105d3438baba9951785512cf921
 )
 
 if(DownloadingStatus MATCHES 0)
