@@ -33,3 +33,4 @@
 
 /build
 *.txt.user
+cmake_config.h
