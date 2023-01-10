@@ -16,9 +16,9 @@ if(result)
   message(FATAL_ERROR "Build step for easyloggingpp failed: ${result}")
 endif()
 
-add_library(easyloggingpp
-            ${CMAKE_CURRENT_BINARY_DIR}/easyloggingpp_src/src/easylogging++.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/easyloggingpp_src/src/easylogging++.h
+add_library(easyloggingpp 
+  SHARED
+    ${CMAKE_CURRENT_BINARY_DIR}/easyloggingpp_src/src/easylogging++.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/easyloggingpp_src/src/easylogging++.h
 )
 add_library(easylogging::easylogging ALIAS easyloggingpp)
-

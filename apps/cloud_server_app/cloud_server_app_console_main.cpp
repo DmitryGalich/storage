@@ -1,15 +1,23 @@
-#include <iostream>
-
-#include "cmake_config.h"
+#include "configs/cmake_config.h"
 
 #include "easylogging++.h"
+
+#include "server/server.h"
 
 INITIALIZE_EASYLOGGINGPP
 
 int main()
 {
-    LOG(INFO) << cloud_server_app_PROJECT_NAME;
-    LOG(INFO) << "version " << cloud_server_app_VERSION_MAJOR << "." << cloud_server_app_VERSION_PATCH << "." << cloud_server_app_VERSION_PATCH;
+    const std::string kLogConfigPath = CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/log_config.conf"};
+
+    el::Loggers::configureFromGlobal(kLogConfigPath.c_str());
+
+    LOG(INFO) << PROJECT_NAME;
+    LOG(INFO) << "version " << PROJECT_VERSION;
+
+    cloud::Server server;
+    server.start();
+    server.stop();
 
     return 0;
 }
