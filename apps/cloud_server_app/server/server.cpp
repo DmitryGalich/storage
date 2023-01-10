@@ -6,10 +6,12 @@ namespace cloud
 {
     Server::Server()
     {
+        LOG(DEBUG) << "Constructor";
     }
 
     Server::~Server()
     {
+        LOG(DEBUG) << "Destructor";
     }
 
     void Server::start()

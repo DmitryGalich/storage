@@ -6,18 +6,25 @@
 
 INITIALIZE_EASYLOGGINGPP
 
+void configure_logger()
+{
+    el::Configurations conf(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/log_config.conf"});
+    el::Loggers::reconfigureAllLoggers(conf);
+}
+
 int main()
 {
-    const std::string kLogConfigPath = CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/log_config.conf"};
+    configure_logger();
 
-    el::Loggers::configureFromGlobal(kLogConfigPath.c_str());
-
+    LOG(INFO) << "================================";
     LOG(INFO) << PROJECT_NAME;
     LOG(INFO) << "version " << PROJECT_VERSION;
 
     cloud::Server server;
     server.start();
     server.stop();
+
+    LOG(INFO) << "================================";
 
     return 0;
 }
