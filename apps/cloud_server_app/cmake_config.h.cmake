@@ -1,4 +1,4 @@
-#define cloud_server_console_app_PROJECT_NAME "@PROJECT_NAME@"
-#define cloud_server_console_app_VERSION_MAJOR @cloud_server_console_app_VERSION_MAJOR@
-#define cloud_server_console_app_VERSION_MINOR @cloud_server_console_app_VERSION_MINOR@
-#define cloud_server_console_app_VERSION_PATCH @cloud_server_console_app_VERSION_PATCH@
+#define cloud_server_app_PROJECT_NAME "@PROJECT_NAME@"
+#define cloud_server_app_VERSION_MAJOR @cloud_server_app_VERSION_MAJOR@
+#define cloud_server_app_VERSION_MINOR @cloud_server_app_VERSION_MINOR@
+#define cloud_server_app_VERSION_PATCH @cloud_server_app_VERSION_PATCH@
