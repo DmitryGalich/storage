@@ -2,12 +2,14 @@
 
 #include "cmake_config.h"
 
+#include "easylogging++.h"
+
+INITIALIZE_EASYLOGGINGPP
+
 int main()
 {
-    std::cout << cloud_server_app_PROJECT_NAME << std::endl;
-    std::cout << cloud_server_app_VERSION_MAJOR << std::endl;
-    std::cout << cloud_server_app_VERSION_MINOR << std::endl;
-    std::cout << cloud_server_app_VERSION_PATCH << std::endl;
+    LOG(INFO) << cloud_server_app_PROJECT_NAME;
+    LOG(INFO) << "version " << cloud_server_app_VERSION_MAJOR << "." << cloud_server_app_VERSION_PATCH << "." << cloud_server_app_VERSION_PATCH;
 
     return 0;
 }
