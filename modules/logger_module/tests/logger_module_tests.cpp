@@ -1,14 +1,46 @@
-#include <iostream>
-
-// #include "../../../build/third_party/easylogging/easyloggingpp_src/src/easylogging++.h"
+#include "configs/cmake_config.h"
 
 #include "easylogging++.h"
 
 INITIALIZE_EASYLOGGINGPP
 
+void configure_logger()
+{
+    el::Configurations conf(CMAKE_CURRENT_SOURCE_DIR + std::string{"/tests/configs/log_config.conf"});
+    el::Loggers::reconfigureAllLoggers(conf);
+}
+
+class BusinessLogicModule
+{
+
+public:
+    BusinessLogicModule()
+    {
+        LOG(DEBUG) << "Constructor";
+    }
+    ~BusinessLogicModule()
+    {
+        LOG(DEBUG) << "Destructor";
+    }
+
+    void run_business_logic()
+    {
+        LOG(INFO) << "running business logic";
+    }
+};
+
 int main()
 {
-    LOG(INFO) << "My first info log using default logger111111111111111";
+    configure_logger();
+
+    LOG(INFO) << "================================";
+    LOG(INFO) << PROJECT_NAME;
+    LOG(INFO) << "version " << PROJECT_VERSION;
+
+    BusinessLogicModule module;
+    module.run_business_logic();
+
+    LOG(INFO) << "================================";
 
     return 0;
 }
