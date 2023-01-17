@@ -5,10 +5,4 @@ FetchContent_Populate(
   SOURCE_DIR tiny_AES_c
 )
 
-add_library(tiny_AES_c 
-  SHARED
-    ${CMAKE_CURRENT_BINARY_DIR}/tiny_AES_c/aes.h
-    ${CMAKE_CURRENT_BINARY_DIR}/tiny_AES_c/aes.hpp
-    ${CMAKE_CURRENT_BINARY_DIR}/tiny_AES_c/aes.c
-)
-add_library(tiny_AES_c::tiny_AES_c ALIAS tiny_AES_c)
+
