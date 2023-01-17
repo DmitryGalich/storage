@@ -1,6 +1,6 @@
 #include "crc_module.h"
 
-#include "../../../build/third_party/crcpp/crcpp_src/inc/CRC.h"
+#include "CRC.h"
 
 namespace crc_module
 {
