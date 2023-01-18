@@ -13,7 +13,7 @@ add_library(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
     PUBLIC 
         ${PROJECT_SOURCE_DIR}/include
-        ${CMAKE_BINARY_DIR}/third_party/nlohmann_json
+        ${CMAKE_BINARY_DIR}/third_party/nlohmann_json/
 )
 
 enable_testing()
