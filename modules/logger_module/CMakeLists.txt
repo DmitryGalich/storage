@@ -15,7 +15,7 @@ add_executable(${PROJECT_NAME}
 )
 target_include_directories(${PROJECT_NAME}
     PUBLIC 
-    ${CMAKE_BINARY_DIR}/third_party/easylogging/easyloggingpp/src/
+    ${CMAKE_BINARY_DIR}/third_party/easylogging/easyloggingpp-src/src/
 )
 target_link_libraries(${PROJECT_NAME} 
     easylogging::easylogging
