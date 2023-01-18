@@ -1,13 +1,13 @@
-#define SERVER_H
-#ifdef SERVER_H
+#define CLIENT_H
+#ifdef CLIENT_H
 
 namespace cloud
 {
-    class Server
+    class Client
     {
     public:
-        Server();
-        ~Server();
+        Client();
+        ~Client();
 
         void start();
         void stop();
