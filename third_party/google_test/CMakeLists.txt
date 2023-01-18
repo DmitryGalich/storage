@@ -1,20 +1,16 @@
-configure_file(CMakeLists.txt.in google_test_download/CMakeLists.txt)
+set(GTEST_LIB_NAME googletest)
+set(GTEST_LIB_DIR_NAME ${GTEST_LIB_NAME}-src)
+set(GTEST_LIB_BUILD_NAME ${GTEST_LIB_NAME}-build)
 
-# Download source code
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/google_test_download)
-if(result)
-  message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-endif()
+include(FetchContent)
+FetchContent_Populate(
+  ${GTEST_LIB_NAME}
+  URL        https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz
+  SOURCE_DIR ${GTEST_LIB_DIR_NAME}
+)
 
-# Build
-execute_process(COMMAND ${CMAKE_COMMAND} --build . 
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/google_test_download)
-if(result)
-  message(FATAL_ERROR "Build step for googletest failed: ${result}")
-endif()
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/${GTEST_LIB_DIR_NAME}
+                 ${CMAKE_CURRENT_BINARY_DIR}/${GTEST_LIB_BUILD_NAME})
 
 # Prevent overriding the parent project's compiler/linker
 # settings on Windows
@@ -22,11 +18,6 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 # Prevent installation of GTest with your project
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
-
-# Add googletest directly to our build. This defines
-# the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/google_test_src
-                 ${CMAKE_CURRENT_BINARY_DIR}/google_test_build)
 
 # Add aliases for GTest and GMock libraries
 if(NOT TARGET GTest::GTest)
