@@ -8,7 +8,7 @@ add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/configs/cmake_config.h.cmake ${CMAKE_CURRENT_LIST_DIR}/configs/cmake_config.h @ONLY)
 
-include_directories(${CMAKE_BINARY_DIR}/third_party/easylogging/easyloggingpp_src/src/)
+include_directories(${CMAKE_BINARY_DIR}/third_party/easylogging/easyloggingpp-src/src/)
 
 add_subdirectory(server)
 
