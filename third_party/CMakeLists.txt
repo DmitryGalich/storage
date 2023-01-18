@@ -1,5 +1,4 @@
 add_subdirectory(google_test)
 add_subdirectory(crcpp)
-add_subdirectory(nlohmann_json)
-add_subdirectory(easylogging)
-add_subdirectory(tiny_AES_c)
+# add_subdirectory(nlohmann_json)
+# add_subdirectory(easylogging)
