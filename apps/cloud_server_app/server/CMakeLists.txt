@@ -10,7 +10,7 @@ add_library(cloud::server ALIAS ${MODULE_NAME})
 
 target_include_directories(${MODULE_NAME}
     PUBLIC 
-        ${CMAKE_BINARY_DIR}/third_party/oatpp/oatpp-src/src/oatpp/network/
+        ${CMAKE_BINARY_DIR}/third_party/oatpp/oatpp-src/src/oatpp/
 )
 
 target_link_libraries(${MODULE_NAME}

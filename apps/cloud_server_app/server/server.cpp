@@ -2,7 +2,11 @@
 
 #include "easylogging++.h"
 
-#include "oatpp/network/Server.hpp"
+#include "oatpp/web/server/AsyncHttpConnectionHandler.hpp"
+#include "oatpp/web/server/HttpRouter.hpp"
+#include "oatpp/network/tcp/server/ConnectionProvider.hpp"
+#include "oatpp/parser/json/mapping/ObjectMapper.hpp"
+#include "oatpp/core/macro/component.hpp"
 
 namespace cloud
 {
