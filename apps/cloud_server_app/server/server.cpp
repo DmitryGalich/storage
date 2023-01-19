@@ -2,11 +2,15 @@
 
 #include "easylogging++.h"
 
+#include "oatpp/network/Server.hpp"
+
 namespace cloud
 {
     Server::Server()
     {
         LOG(DEBUG) << "Constructor";
+
+        // oatpp::network::Server server;
     }
 
     Server::~Server()

@@ -1,11 +1,19 @@
 cmake_minimum_required(VERSION 3.5)
 
-add_library(server
-    server.cpp
-    server.h
-)
-add_library(cloud::server ALIAS server)
+set(MODULE_NAME server)
 
-target_link_libraries(server
+add_library(${MODULE_NAME}
+    ${MODULE_NAME}.cpp
+    ${MODULE_NAME}.h
+)
+add_library(cloud::server ALIAS ${MODULE_NAME})
+
+target_include_directories(${MODULE_NAME}
+    PUBLIC 
+        ${CMAKE_BINARY_DIR}/third_party/oatpp/oatpp-src/src/oatpp/network/
+)
+
+target_link_libraries(${MODULE_NAME}
     easylogging::easylogging
+    oatpp::oatpp
 )
