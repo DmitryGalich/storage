@@ -2,19 +2,48 @@
 
 #include "easylogging++.h"
 
-#include "oatpp/core/base/Environment.hpp"
-#include "oatpp/parser/json/mapping/ObjectMapper.hpp"
-#include "oatpp/web/client/HttpRequestExecutor.hpp"
-#include "oatpp/network/tcp/client/ConnectionProvider.hpp"
-
-#include "DemoApiClient.hpp"
-
-#include "AsyncExample.hpp"
-#include "SimpleExample.hpp"
+#include "internal/client_fabric.h"
+#include "internal/abstract_client.h"
 
 namespace cloud
 {
-    Client::Client()
+    class ClientImpl
+    {
+    public:
+        ClientImpl();
+        ~ClientImpl();
+
+        void start();
+        void stop();
+
+    private:
+        std::unique_ptr<internal::AbstractClient> client_;
+    };
+
+    ClientImpl::ClientImpl()
+    {
+        LOG(DEBUG) << "Constructor";
+    }
+
+    ClientImpl::~ClientImpl()
+    {
+        LOG(DEBUG) << "Destructor";
+    }
+
+    void ClientImpl::start()
+    {
+        client_.reset(internal::create_client());
+        LOG(INFO) << "Started";
+    }
+
+    void ClientImpl::stop()
+    {
+        LOG(INFO) << "Stopped";
+    }
+
+    // Outside
+
+    Client::Client() : client_impl_(std::make_unique<ClientImpl>())
     {
         LOG(DEBUG) << "Constructor";
     }
@@ -26,21 +55,13 @@ namespace cloud
 
     void Client::start()
     {
-        oatpp::base::Environment::init();
-        auto objectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
-        auto connectionProvider = oatpp::network::tcp::client::ConnectionProvider::createShared({"httpbin.org", 80});
-        auto requestExecutor = oatpp::web::client::HttpRequestExecutor::createShared(connectionProvider);
-        auto client = DemoApiClient::createShared(requestExecutor, objectMapper);
-
+        client_impl_->start();
         LOG(INFO) << "Started";
-
-        SimpleExample::runExample(client);
     }
 
     void Client::stop()
     {
-        oatpp::base::Environment::destroy();
-
+        client_impl_->stop();
         LOG(INFO) << "Stopped";
     }
 }

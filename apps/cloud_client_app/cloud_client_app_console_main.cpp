@@ -8,8 +8,8 @@ INITIALIZE_EASYLOGGINGPP
 
 void configure_logger()
 {
-    el::Configurations conf(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/log_config.conf"});
-    el::Loggers::reconfigureAllLoggers(conf);
+    el::Configurations config(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/log_config.conf"});
+    el::Loggers::reconfigureAllLoggers(config);
 }
 
 int main()
