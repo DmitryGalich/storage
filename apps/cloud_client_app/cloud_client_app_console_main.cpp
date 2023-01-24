@@ -21,10 +21,17 @@ int main()
     LOG(INFO) << "version " << PROJECT_VERSION;
 
     cloud::Client cloud;
-    cloud.start();
-    cloud.stop();
 
-    LOG(INFO) << "================================";
+    try
+    {
+        cloud.start();
+    }
+    catch (const std::exception &e)
+    {
+        LOG(ERROR) << e.what();
+        LOG(INFO) << "Shutting down the application";
+        return -1;
+    }
 
     return 0;
 }

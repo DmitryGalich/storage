@@ -34,8 +34,9 @@ namespace cloud
         client_.reset(internal::create_client());
         if (!client_)
         {
-            LOG(FATAL) << "Client null";
-            return;
+            static const std::string kErrorText("Client not created");
+            LOG(ERROR) << kErrorText;
+            throw std::runtime_error(kErrorText);
         }
 
         client_->start();
