@@ -32,11 +32,25 @@ namespace cloud
     void ClientImpl::start()
     {
         client_.reset(internal::create_client());
+        if (!client_)
+        {
+            LOG(FATAL) << "Client null";
+            return;
+        }
+
+        client_->start();
         LOG(INFO) << "Started";
     }
 
     void ClientImpl::stop()
     {
+        if (!client_)
+        {
+            LOG(WARNING) << "Client already null";
+            return;
+        }
+
+        client_->stop();
         LOG(INFO) << "Stopped";
     }
 
