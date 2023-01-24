@@ -1,5 +1,4 @@
-#define ABSTRACT_CLIENT_H
-#ifdef ABSTRACT_CLIENT_H
+#pragma once
 
 namespace cloud
 {
@@ -15,5 +14,3 @@ namespace cloud
         };
     }
 }
-
-#endif

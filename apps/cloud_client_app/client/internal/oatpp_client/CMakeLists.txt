@@ -8,12 +8,12 @@ add_library(${MODULE_NAME}
 )
 add_library(cloud::internal::client_oatpp ALIAS ${MODULE_NAME})
 target_include_directories(${MODULE_NAME}
-    PUBLIC 
+    PRIVATE 
         ${CMAKE_BINARY_DIR}/third_party/oatpp/oatpp-src/src/oatpp/
 )
 target_link_libraries(${MODULE_NAME} 
     PRIVATE
         easylogging::easylogging
         oatpp::oatpp
-        cloud::internal::abstract_client 
+        cloud::internal::abstract_client
 )

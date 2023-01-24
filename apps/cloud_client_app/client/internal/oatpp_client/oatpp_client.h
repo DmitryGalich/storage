@@ -1,5 +1,4 @@
-#define OATPP_CLIENT_H
-#ifdef OATPP_CLIENT_H
+#pragma once
 
 #include "../abstract_client.h"
 
@@ -18,5 +17,3 @@ namespace cloud
         };
     }
 }
-
-#endif

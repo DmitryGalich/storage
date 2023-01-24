@@ -11,6 +11,7 @@ add_library(${MODULE_NAME}
 add_library(cloud::client ALIAS ${MODULE_NAME})
 
 target_link_libraries(${MODULE_NAME}
-    easylogging::easylogging
-    cloud::internal::client_fabric
+    PRIVATE
+        easylogging::easylogging
+        cloud::internal::client_fabric
 )

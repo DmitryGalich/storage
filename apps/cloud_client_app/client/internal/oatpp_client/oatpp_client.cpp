@@ -2,6 +2,8 @@
 
 #include "easylogging++.h"
 
+#include "../abstract_client.h"
+
 namespace cloud
 {
     namespace internal

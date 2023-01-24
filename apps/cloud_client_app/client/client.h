@@ -1,5 +1,4 @@
-#define CLIENT_H
-#ifdef CLIENT_H
+#pragma once
 
 #include <memory>
 
@@ -20,5 +19,3 @@ namespace cloud
         std::unique_ptr<ClientImpl> client_impl_;
     };
 }
-
-#endif
