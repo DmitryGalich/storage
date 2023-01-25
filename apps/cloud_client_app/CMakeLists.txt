@@ -7,7 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/configs/cmake_config.h.cmake ${CMAKE_CURRENT_LIST_DIR}/configs/cmake_config.h @ONLY)
 
-include_directories(${CMAKE_BINARY_DIR}/third_party/easylogging/easyloggingpp-src/src/)
+include_directories(
+    ${CMAKE_BINARY_DIR}/third_party/easylogging/easyloggingpp-src/src/)
 
 add_subdirectory(client)
 

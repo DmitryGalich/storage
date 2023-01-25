@@ -14,7 +14,7 @@ namespace cloud
         ~ClientImpl();
 
         void start();
-        void stop();
+        void stop() noexcept;
 
     private:
         std::unique_ptr<internal::AbstractClient> client_;
@@ -42,7 +42,7 @@ namespace cloud
         LOG(INFO) << "Started";
     }
 
-    void ClientImpl::stop()
+    void ClientImpl::stop() noexcept
     {
         if (!client_)
         {
@@ -50,7 +50,16 @@ namespace cloud
             return;
         }
 
-        client_->stop();
+        try
+        {
+            client_->stop();
+        }
+        catch (const std::exception &e)
+        {
+            LOG(ERROR) << "Error while stopping client. " << e.what();
+            return;
+        }
+
         LOG(INFO) << "Stopped";
     }
 
@@ -69,7 +78,7 @@ namespace cloud
         client_impl_->start();
     }
 
-    void Client::stop()
+    void Client::stop() noexcept
     {
         client_impl_->stop();
     }

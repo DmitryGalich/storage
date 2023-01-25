@@ -30,8 +30,12 @@ int main()
     {
         LOG(ERROR) << e.what();
         LOG(INFO) << "Shutting down the application";
+
+        cloud.stop();
         return -1;
     }
+
+    cloud.stop();
 
     return 0;
 }

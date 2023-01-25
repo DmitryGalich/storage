@@ -13,7 +13,7 @@ namespace cloud
         ~Client();
 
         void start();
-        void stop();
+        void stop() noexcept;
 
     private:
         std::unique_ptr<ClientImpl> client_impl_;
