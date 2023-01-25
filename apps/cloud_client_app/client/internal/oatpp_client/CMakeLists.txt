@@ -5,6 +5,8 @@ set(MODULE_NAME oatpp_client)
 add_library(${MODULE_NAME}
     oatpp_client.cpp
     oatpp_client.h
+    api_client.hpp
+    api_model.hpp
 )
 add_library(cloud::internal::client_oatpp ALIAS ${MODULE_NAME})
 target_include_directories(${MODULE_NAME}
