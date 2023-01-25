@@ -7,7 +7,7 @@ namespace cloud
         class AbstractClient
         {
         public:
-            virtual ~AbstractClient() = 0;
+            virtual ~AbstractClient() {}
 
             virtual void start() = 0;
             virtual void stop() = 0;

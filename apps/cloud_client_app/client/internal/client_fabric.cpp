@@ -3,7 +3,7 @@
 #include "easylogging++.h"
 
 #include "abstract_client.h"
-// #include "oatpp_client/oatpp_client.h"
+#include "oatpp_client/oatpp_client.h"
 
 namespace cloud
 {
@@ -12,7 +12,7 @@ namespace cloud
         AbstractClient *create_client()
         {
             LOG(INFO) << "Creating client";
-            return nullptr;
+            return new OatppClient;
         }
     }
 }

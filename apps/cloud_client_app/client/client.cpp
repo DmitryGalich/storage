@@ -22,12 +22,10 @@ namespace cloud
 
     ClientImpl::ClientImpl()
     {
-        LOG(DEBUG) << "Constructor";
     }
 
     ClientImpl::~ClientImpl()
     {
-        LOG(DEBUG) << "Destructor";
     }
 
     void ClientImpl::start()
@@ -60,23 +58,19 @@ namespace cloud
 
     Client::Client() : client_impl_(std::make_unique<ClientImpl>())
     {
-        LOG(DEBUG) << "Constructor";
     }
 
     Client::~Client()
     {
-        LOG(DEBUG) << "Destructor";
     }
 
     void Client::start()
     {
         client_impl_->start();
-        LOG(INFO) << "Started";
     }
 
     void Client::stop()
     {
         client_impl_->stop();
-        LOG(INFO) << "Stopped";
     }
 }
