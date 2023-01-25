@@ -3,6 +3,7 @@
 #include "easylogging++.h"
 
 #include "internal/client_fabric.h"
+#include "internal/abstract_client.h"
 
 namespace cloud
 {

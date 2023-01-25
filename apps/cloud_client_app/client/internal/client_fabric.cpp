@@ -3,7 +3,7 @@
 #include "easylogging++.h"
 
 #include "abstract_client.h"
-#include "oatpp_client/oatpp_client.h"
+// #include "oatpp_client/oatpp_client.h"
 
 namespace cloud
 {

@@ -12,7 +12,7 @@ target_include_directories(${MODULE_NAME}
         ${CMAKE_BINARY_DIR}/third_party/oatpp/oatpp-src/src/oatpp/
 )
 target_link_libraries(${MODULE_NAME} 
-    PRIVATE
+    PUBLIC
         easylogging::easylogging
         oatpp::oatpp
         cloud::internal::abstract_client
