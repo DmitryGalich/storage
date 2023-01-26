@@ -29,7 +29,7 @@ namespace cloud
             std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
             std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
-            std::shared_ptr<oatpp::web::client::ApiClient> api_client_;
+            std::shared_ptr<DemoApiClient> client_;
         };
 
         OatppClient::OatppClientImpl::OatppClientImpl()
@@ -45,41 +45,47 @@ namespace cloud
         {
             oatpp::base::Environment::init();
 
-            // auto object_mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
+            object_mapper_.reset();
+            object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared();
 
-            // auto connection_provider = oatpp::network::tcp::client::ConnectionProvider::createShared({"httpbin.org", 80});
-            // auto request_executor = oatpp::web::client::HttpRequestExecutor::createShared(connection_provider);
-            // auto client = DemoApiClient::createShared(request_executor, object_mapper);
+            connection_provider_.reset();
+            connection_provider_ = oatpp::network::tcp::client::ConnectionProvider::createShared({"httpbin.org", 80});
 
-            // constexpr static const char *TAG = "SimpleExample";
+            http_request_executor_.reset();
+            http_request_executor_ = oatpp::web::client::HttpRequestExecutor::createShared(connection_provider_);
 
-            // {
-            //     auto data = client->doGet()->readBodyToString();
-            //     OATPP_LOGD(TAG, "[doGet] data='%s'", data->c_str());
-            // }
+            client_.reset();
+            client_ = DemoApiClient::createShared(http_request_executor_, object_mapper_);
 
-            // {
-            //     auto data = client->doPost("Some data passed to POST")->readBodyToString();
-            //     OATPP_LOGD(TAG, "[doPost] data='%s'", data->c_str());
-            // }
+            constexpr static const char *TAG = "SimpleExample";
 
-            // {
-            //     auto data = client->doGetAnything("path-parameter")->readBodyToString();
-            //     OATPP_LOGD(TAG, "[doGetAnything] data='%s'", data->c_str());
-            // }
+            {
+                auto data = client_->doGet()->readBodyToString();
+                OATPP_LOGD(TAG, "[doGet] data='%s'", data->c_str());
+            }
 
-            // {
-            //     auto data = client->doPostAnything("path-parameter", "Some body here")->readBodyToString();
-            //     OATPP_LOGD(TAG, "[doPostAnything] data='%s'", data->c_str());
-            // }
+            {
+                auto data = client_->doPost("Some data passed to POST")->readBodyToString();
+                OATPP_LOGD(TAG, "[doPost] data='%s'", data->c_str());
+            }
 
-            // {
-            //     auto dto = RequestDto::createShared();
-            //     dto->message = "Some message";
-            //     dto->code = 200;
-            //     auto data = client->doPostWithDto(dto)->readBodyToString();
-            //     OATPP_LOGD(TAG, "[doPostWithDto] data='%s'", data->c_str());
-            // }
+            {
+                auto data = client_->doGetAnything("path-parameter")->readBodyToString();
+                OATPP_LOGD(TAG, "[doGetAnything] data='%s'", data->c_str());
+            }
+
+            {
+                auto data = client_->doPostAnything("path-parameter", "Some body here")->readBodyToString();
+                OATPP_LOGD(TAG, "[doPostAnything] data='%s'", data->c_str());
+            }
+
+            {
+                auto dto = RequestDto::createShared();
+                dto->message = "Some message";
+                dto->code = 200;
+                auto data = client_->doPostWithDto(dto)->readBodyToString();
+                OATPP_LOGD(TAG, "[doPostWithDto] data='%s'", data->c_str());
+            }
 
             LOG(INFO) << "OATPP Started";
         }
