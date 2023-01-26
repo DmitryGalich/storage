@@ -12,27 +12,91 @@
 
 #include "api_client.hpp"
 
-class OatppClientImpl
+namespace cloud
 {
-public:
-    OatppClientImpl() = default;
-    ~OatppClientImpl() = default;
+    namespace internal
+    {
+        class OatppClient::OatppClientImpl
+        {
+        public:
+            OatppClientImpl();
+            ~OatppClientImpl();
 
-    void start() {}
-    void stop() {}
+            void start();
+            void stop();
 
-private:
-    std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
-    std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
-    std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
-    std::shared_ptr<oatpp::web::client::ApiClient> api_client_;
-};
+        private:
+            std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
+            std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
+            std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
+            std::shared_ptr<oatpp::web::client::ApiClient> api_client_;
+        };
+
+        OatppClient::OatppClientImpl::OatppClientImpl()
+        {
+            LOG(DEBUG) << "Constructor";
+        }
+        OatppClient::OatppClientImpl::~OatppClientImpl()
+        {
+            LOG(DEBUG) << "Destructor";
+        }
+
+        void OatppClient::OatppClientImpl::start()
+        {
+            oatpp::base::Environment::init();
+
+            // auto object_mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
+
+            // auto connection_provider = oatpp::network::tcp::client::ConnectionProvider::createShared({"httpbin.org", 80});
+            // auto request_executor = oatpp::web::client::HttpRequestExecutor::createShared(connection_provider);
+            // auto client = DemoApiClient::createShared(request_executor, object_mapper);
+
+            // constexpr static const char *TAG = "SimpleExample";
+
+            // {
+            //     auto data = client->doGet()->readBodyToString();
+            //     OATPP_LOGD(TAG, "[doGet] data='%s'", data->c_str());
+            // }
+
+            // {
+            //     auto data = client->doPost("Some data passed to POST")->readBodyToString();
+            //     OATPP_LOGD(TAG, "[doPost] data='%s'", data->c_str());
+            // }
+
+            // {
+            //     auto data = client->doGetAnything("path-parameter")->readBodyToString();
+            //     OATPP_LOGD(TAG, "[doGetAnything] data='%s'", data->c_str());
+            // }
+
+            // {
+            //     auto data = client->doPostAnything("path-parameter", "Some body here")->readBodyToString();
+            //     OATPP_LOGD(TAG, "[doPostAnything] data='%s'", data->c_str());
+            // }
+
+            // {
+            //     auto dto = RequestDto::createShared();
+            //     dto->message = "Some message";
+            //     dto->code = 200;
+            //     auto data = client->doPostWithDto(dto)->readBodyToString();
+            //     OATPP_LOGD(TAG, "[doPostWithDto] data='%s'", data->c_str());
+            // }
+
+            LOG(INFO) << "OATPP Started";
+        }
+
+        void OatppClient::OatppClientImpl::stop()
+        {
+            oatpp::base::Environment::destroy();
+            LOG(INFO) << "OATPP Stopped";
+        }
+    }
+}
 
 namespace cloud
 {
     namespace internal
     {
-        OatppClient::OatppClient()
+        OatppClient::OatppClient() : client_impl_(std::make_unique<OatppClient::OatppClientImpl>())
         {
             LOG(DEBUG) << "Constructor";
         }
@@ -43,51 +107,11 @@ namespace cloud
 
         void OatppClient::start()
         {
-            oatpp::base::Environment::init();
-
-            auto object_mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
-
-            auto connection_provider = oatpp::network::tcp::client::ConnectionProvider::createShared({"httpbin.org", 80});
-            auto request_executor = oatpp::web::client::HttpRequestExecutor::createShared(connection_provider);
-            auto client = DemoApiClient::createShared(request_executor, object_mapper);
-
-            constexpr static const char *TAG = "SimpleExample";
-
-            {
-                auto data = client->doGet()->readBodyToString();
-                OATPP_LOGD(TAG, "[doGet] data='%s'", data->c_str());
-            }
-
-            {
-                auto data = client->doPost("Some data passed to POST")->readBodyToString();
-                OATPP_LOGD(TAG, "[doPost] data='%s'", data->c_str());
-            }
-
-            {
-                auto data = client->doGetAnything("path-parameter")->readBodyToString();
-                OATPP_LOGD(TAG, "[doGetAnything] data='%s'", data->c_str());
-            }
-
-            {
-                auto data = client->doPostAnything("path-parameter", "Some body here")->readBodyToString();
-                OATPP_LOGD(TAG, "[doPostAnything] data='%s'", data->c_str());
-            }
-
-            {
-                auto dto = RequestDto::createShared();
-                dto->message = "Some message";
-                dto->code = 200;
-                auto data = client->doPostWithDto(dto)->readBodyToString();
-                OATPP_LOGD(TAG, "[doPostWithDto] data='%s'", data->c_str());
-            }
-
-            LOG(INFO) << "OATPP Started";
+            client_impl_->start();
         }
         void OatppClient::stop()
         {
-            oatpp::base::Environment::destroy();
-
-            LOG(INFO) << "OATPP Stopped";
+            client_impl_->stop();
         }
     }
 }

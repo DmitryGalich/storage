@@ -16,6 +16,10 @@ namespace cloud
 
             void start() override;
             void stop() override;
+
+        private:
+            class OatppClientImpl;
+            std::unique_ptr<OatppClientImpl> client_impl_;
         };
     }
 }

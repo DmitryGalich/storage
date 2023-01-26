@@ -54,10 +54,11 @@ namespace cloud
 
         LOG(INFO) << "Stopped";
     }
+}
 
-    // Outside
-
-    Client::Client() : client_impl_(std::make_unique<cloud::Client::ClientImpl>())
+namespace cloud
+{
+    Client::Client() : client_impl_(std::make_unique<Client::ClientImpl>())
     {
     }
 
