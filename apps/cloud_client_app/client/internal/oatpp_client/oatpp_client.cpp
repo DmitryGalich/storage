@@ -107,10 +107,23 @@ namespace cloud
 
         void OatppClient::start()
         {
+            if (!client_impl_)
+            {
+                static const std::string kErrorText("Implementation is not created");
+                LOG(ERROR) << kErrorText;
+                throw std::runtime_error(kErrorText);
+            }
+
             client_impl_->start();
         }
         void OatppClient::stop()
         {
+            if (!client_impl_)
+            {
+                LOG(ERROR) << "Implementation is not created";
+                return;
+            }
+
             client_impl_->stop();
         }
     }
