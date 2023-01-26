@@ -11,7 +11,6 @@ namespace cloud
     {
         AbstractClient *create_client()
         {
-            LOG(INFO) << "Creating client";
             return new OatppClient;
         }
     }

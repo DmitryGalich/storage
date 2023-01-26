@@ -12,7 +12,6 @@
 #include "../abstract_client.h"
 
 #include "api_client.hpp"
-#include "async_executor.hpp"
 
 namespace
 {
@@ -104,23 +103,15 @@ namespace cloud
             std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
             std::shared_ptr<ClientApiHolder> client_api_holder_;
-            oatpp::async::Executor async_executor_;
+            oatpp::async::Executor async_executor_{1, 1, 1};
         };
 
-        OatppClient::OatppClientImpl::OatppClientImpl()
-        {
-            LOG(DEBUG) << "Constructor";
-        }
+        OatppClient::OatppClientImpl::OatppClientImpl() {}
 
-        OatppClient::OatppClientImpl::~OatppClientImpl()
-        {
-            LOG(DEBUG) << "Destructor";
-        }
+        OatppClient::OatppClientImpl::~OatppClientImpl() {}
 
         bool OatppClient::OatppClientImpl::start()
         {
-            LOG(INFO) << "Starting...";
-
             oatpp::base::Environment::init();
 
             object_mapper_.reset();
@@ -155,16 +146,15 @@ namespace cloud
                 return false;
             }
 
-            LOG(INFO) << "Started";
-
-            AsyncExecutorLol::runExample(client_api_holder_);
+            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message1", 10000);
+            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message2", 10000);
+            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message3", 10000);
 
             return true;
         }
 
         void OatppClient::OatppClientImpl::stop()
         {
-            LOG(INFO) << "Stopping...";
 
             async_executor_.waitTasksFinished();
             async_executor_.stop();
@@ -176,8 +166,6 @@ namespace cloud
             client_api_holder_.reset();
 
             oatpp::base::Environment::destroy();
-
-            LOG(INFO) << "Stopped";
         }
     }
 }
@@ -188,11 +176,9 @@ namespace cloud
     {
         OatppClient::OatppClient() : client_impl_(std::make_unique<OatppClient::OatppClientImpl>())
         {
-            LOG(DEBUG) << "Constructor";
         }
         OatppClient::~OatppClient()
         {
-            LOG(DEBUG) << "Destructor";
         }
 
         bool OatppClient::start()

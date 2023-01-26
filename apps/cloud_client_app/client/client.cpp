@@ -22,6 +22,8 @@ namespace cloud
 
     bool Client::ClientImpl::start()
     {
+        LOG(INFO) << "Starting...";
+
         client_.reset(cloud::internal::create_client());
         if (!client_)
         {
@@ -35,6 +37,8 @@ namespace cloud
 
     void Client::ClientImpl::stop() noexcept
     {
+        LOG(INFO) << "Stopping...";
+
         if (!client_)
         {
             LOG(WARNING) << "Client already null";
@@ -50,6 +54,8 @@ namespace cloud
             LOG(ERROR) << "Error while stopping client. " << e.what();
             return;
         }
+
+        LOG(INFO) << "Stopped";
     }
 }
 
