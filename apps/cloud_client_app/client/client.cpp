@@ -68,11 +68,24 @@ namespace cloud
 
     void Client::start()
     {
+        if (!client_impl_)
+        {
+            static const std::string kErrorText("Implementation is not created");
+            LOG(ERROR) << kErrorText;
+            throw std::runtime_error(kErrorText);
+        }
+
         client_impl_->start();
     }
 
     void Client::stop() noexcept
     {
+        if (!client_impl_)
+        {
+            LOG(ERROR) << "Implementation is not created";
+            return;
+        }
+
         client_impl_->stop();
     }
 }
