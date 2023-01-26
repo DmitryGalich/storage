@@ -35,7 +35,6 @@ int main()
     {
         LOG(ERROR) << e.what();
         LOG(INFO) << "Shutting down the application";
-
         client.stop();
         return -1;
     }
