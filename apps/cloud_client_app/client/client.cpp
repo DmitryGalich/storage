@@ -50,8 +50,6 @@ namespace cloud
             LOG(ERROR) << "Error while stopping client. " << e.what();
             return;
         }
-
-        LOG(INFO) << "Stopped";
     }
 }
 
