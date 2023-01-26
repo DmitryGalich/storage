@@ -4,8 +4,6 @@
 
 namespace cloud
 {
-    class ClientImpl;
-
     class Client
     {
     public:
@@ -16,6 +14,7 @@ namespace cloud
         void stop() noexcept;
 
     private:
-        std::unique_ptr<ClientImpl> client_impl_;
+        class ClientImpl;
+        std::unique_ptr<cloud::Client::ClientImpl> client_impl_;
     };
 }

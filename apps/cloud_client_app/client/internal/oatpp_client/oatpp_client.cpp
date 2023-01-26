@@ -12,6 +12,22 @@
 
 #include "api_client.hpp"
 
+class OatppClientImpl
+{
+public:
+    OatppClientImpl() = default;
+    ~OatppClientImpl() = default;
+
+    void start() {}
+    void stop() {}
+
+private:
+    std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
+    std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
+    std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
+    std::shared_ptr<oatpp::web::client::ApiClient> api_client_;
+};
+
 namespace cloud
 {
     namespace internal
@@ -30,9 +46,11 @@ namespace cloud
             oatpp::base::Environment::init();
 
             auto object_mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
+
             auto connection_provider = oatpp::network::tcp::client::ConnectionProvider::createShared({"httpbin.org", 80});
             auto request_executor = oatpp::web::client::HttpRequestExecutor::createShared(connection_provider);
             auto client = DemoApiClient::createShared(request_executor, object_mapper);
+
             constexpr static const char *TAG = "SimpleExample";
 
             {

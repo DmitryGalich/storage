@@ -2,6 +2,8 @@
 
 #include "../abstract_client.h"
 
+#include <memory>
+
 namespace cloud
 {
     namespace internal

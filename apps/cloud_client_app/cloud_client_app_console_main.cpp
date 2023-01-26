@@ -21,7 +21,6 @@ int main()
     LOG(INFO) << "version " << PROJECT_VERSION;
 
     cloud::Client cloud;
-
     try
     {
         cloud.start();
