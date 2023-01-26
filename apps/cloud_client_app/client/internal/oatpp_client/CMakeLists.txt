@@ -7,6 +7,8 @@ add_library(${MODULE_NAME}
     oatpp_client.h
     api_client.hpp
     api_model.hpp
+    async_handler.hpp
+    async_handler.cpp
 )
 add_library(cloud::internal::client_oatpp ALIAS ${MODULE_NAME})
 target_include_directories(${MODULE_NAME}

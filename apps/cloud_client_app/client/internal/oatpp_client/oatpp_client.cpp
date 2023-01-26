@@ -11,6 +11,7 @@
 #include "../abstract_client.h"
 
 #include "api_client.hpp"
+#include "async_handler.hpp"
 
 namespace cloud
 {
@@ -57,37 +58,9 @@ namespace cloud
             client_.reset();
             client_ = DemoApiClient::createShared(http_request_executor_, object_mapper_);
 
-            constexpr static const char *TAG = "SimpleExample";
-
-            {
-                auto data = client_->doGet()->readBodyToString();
-                OATPP_LOGD(TAG, "[doGet] data='%s'", data->c_str());
-            }
-
-            {
-                auto data = client_->doPost("Some data passed to POST")->readBodyToString();
-                OATPP_LOGD(TAG, "[doPost] data='%s'", data->c_str());
-            }
-
-            {
-                auto data = client_->doGetAnything("path-parameter")->readBodyToString();
-                OATPP_LOGD(TAG, "[doGetAnything] data='%s'", data->c_str());
-            }
-
-            {
-                auto data = client_->doPostAnything("path-parameter", "Some body here")->readBodyToString();
-                OATPP_LOGD(TAG, "[doPostAnything] data='%s'", data->c_str());
-            }
-
-            {
-                auto dto = RequestDto::createShared();
-                dto->message = "Some message";
-                dto->code = 200;
-                auto data = client_->doPostWithDto(dto)->readBodyToString();
-                OATPP_LOGD(TAG, "[doPostWithDto] data='%s'", data->c_str());
-            }
-
             LOG(INFO) << "OATPP Started";
+
+            AsyncExample::runExample(client_);
         }
 
         void OatppClient::OatppClientImpl::stop()
