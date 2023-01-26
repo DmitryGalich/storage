@@ -23,7 +23,13 @@ int main()
     cloud::Client client;
     try
     {
-        client.start();
+        if (!client.start())
+        {
+            LOG(ERROR) << "Can't start client";
+            LOG(INFO) << "Shutting down the application";
+            client.stop();
+            return -1;
+        }
     }
     catch (const std::exception &e)
     {

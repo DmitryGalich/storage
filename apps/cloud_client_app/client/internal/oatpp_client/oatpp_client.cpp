@@ -7,11 +7,12 @@
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 #include "oatpp/network/tcp/client/ConnectionProvider.hpp"
 #include "oatpp/web/client/HttpRequestExecutor.hpp"
+#include "oatpp/core/async/Executor.hpp"
 
 #include "../abstract_client.h"
 
 #include "api_client.hpp"
-#include "async_handler.hpp"
+#include "async_executor.hpp"
 
 namespace cloud
 {
@@ -23,14 +24,15 @@ namespace cloud
             OatppClientImpl();
             ~OatppClientImpl();
 
-            void start();
+            bool start();
             void stop();
 
         private:
             std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
             std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
-            std::shared_ptr<DemoApiClient> client_;
+            std::shared_ptr<ClientApiHolder> client_api_holder_;
+            oatpp::async::Executor async_executor_;
         };
 
         OatppClient::OatppClientImpl::OatppClientImpl()
@@ -42,31 +44,67 @@ namespace cloud
             LOG(DEBUG) << "Destructor";
         }
 
-        void OatppClient::OatppClientImpl::start()
+        bool OatppClient::OatppClientImpl::start()
         {
+            LOG(INFO) << "Starting...";
+
             oatpp::base::Environment::init();
 
             object_mapper_.reset();
             object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared();
+            if (!object_mapper_)
+            {
+                LOG(ERROR) << "ObjectMapper is not created";
+                return false;
+            }
 
             connection_provider_.reset();
             connection_provider_ = oatpp::network::tcp::client::ConnectionProvider::createShared({"httpbin.org", 80});
+            if (!connection_provider_)
+            {
+                LOG(ERROR) << "ConnectionProvider is not created";
+                return false;
+            }
 
             http_request_executor_.reset();
             http_request_executor_ = oatpp::web::client::HttpRequestExecutor::createShared(connection_provider_);
+            if (!http_request_executor_)
+            {
+                LOG(ERROR) << "HttpRequestExecutor is not created";
+                return false;
+            }
 
-            client_.reset();
-            client_ = DemoApiClient::createShared(http_request_executor_, object_mapper_);
+            client_api_holder_.reset();
+            client_api_holder_ = ClientApiHolder::createShared(http_request_executor_, object_mapper_);
+            if (!http_request_executor_)
+            {
+                LOG(ERROR) << "ClientApiHolder is not created";
+                return false;
+            }
 
-            LOG(INFO) << "OATPP Started";
+            LOG(INFO) << "Started";
 
-            AsyncExample::runExample(client_);
+            AsyncExecutorLol::runExample(client_api_holder_);
+
+            return true;
         }
 
         void OatppClient::OatppClientImpl::stop()
         {
+            LOG(INFO) << "Stopping...";
+
+            async_executor_.waitTasksFinished();
+            async_executor_.stop();
+            async_executor_.join();
+
+            object_mapper_.reset();
+            connection_provider_.reset();
+            http_request_executor_.reset();
+            client_api_holder_.reset();
+
             oatpp::base::Environment::destroy();
-            LOG(INFO) << "OATPP Stopped";
+
+            LOG(INFO) << "Stopped";
         }
     }
 }
@@ -84,7 +122,7 @@ namespace cloud
             LOG(DEBUG) << "Destructor";
         }
 
-        void OatppClient::start()
+        bool OatppClient::start()
         {
             if (!client_impl_)
             {
@@ -93,7 +131,7 @@ namespace cloud
                 throw std::runtime_error(kErrorText);
             }
 
-            client_impl_->start();
+            return client_impl_->start();
         }
         void OatppClient::stop()
         {

@@ -9,7 +9,7 @@ namespace cloud
         public:
             virtual ~AbstractClient() {}
 
-            virtual void start() = 0;
+            virtual bool start() = 0;
             virtual void stop() = 0;
         };
     }

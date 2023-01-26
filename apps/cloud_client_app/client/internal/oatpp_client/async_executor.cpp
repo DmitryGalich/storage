@@ -1,6 +1,6 @@
-#include "async_handler.hpp"
+#include "async_executor.hpp"
 
-void AsyncExample::runExample(const std::shared_ptr<DemoApiClient> &client)
+void AsyncExecutorLol::runExample(const std::shared_ptr<ClientApiHolder> &client)
 {
 
   oatpp::async::Executor executor(1, 1, 1);

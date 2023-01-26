@@ -14,7 +14,7 @@ namespace cloud
             OatppClient();
             ~OatppClient() override;
 
-            void start() override;
+            bool start() override;
             void stop() override;
 
         private:

@@ -5,11 +5,11 @@
 #include "oatpp/web/client/ApiClient.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 
-class DemoApiClient : public oatpp::web::client::ApiClient
+class ClientApiHolder : public oatpp::web::client::ApiClient
 {
 #include OATPP_CODEGEN_BEGIN(ApiClient)
 
-    API_CLIENT_INIT(DemoApiClient)
+    API_CLIENT_INIT(ClientApiHolder)
 
     //-----------------------------------------------------------------------------------------------
     // Synchronous calls

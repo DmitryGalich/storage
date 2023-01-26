@@ -13,14 +13,14 @@ namespace cloud
         ClientImpl() = default;
         ~ClientImpl() = default;
 
-        void start();
+        bool start();
         void stop() noexcept;
 
     private:
         std::unique_ptr<cloud::internal::AbstractClient> client_;
     };
 
-    void Client::ClientImpl::start()
+    bool Client::ClientImpl::start()
     {
         client_.reset(cloud::internal::create_client());
         if (!client_)
@@ -30,8 +30,7 @@ namespace cloud
             throw std::runtime_error(kErrorText);
         }
 
-        client_->start();
-        LOG(INFO) << "Started";
+        return client_->start();
     }
 
     void Client::ClientImpl::stop() noexcept
@@ -66,7 +65,7 @@ namespace cloud
     {
     }
 
-    void Client::start()
+    bool Client::start()
     {
         if (!client_impl_)
         {
@@ -75,7 +74,7 @@ namespace cloud
             throw std::runtime_error(kErrorText);
         }
 
-        client_impl_->start();
+        return client_impl_->start();
     }
 
     void Client::stop() noexcept

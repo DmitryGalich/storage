@@ -10,7 +10,7 @@ namespace cloud
         Client();
         ~Client();
 
-        void start();
+        bool start();
         void stop() noexcept;
 
     private:

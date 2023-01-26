@@ -4,7 +4,7 @@
 
 #include "oatpp/core/async/Executor.hpp"
 
-class AsyncExample
+class AsyncExecutorLol
 {
 private:
   typedef oatpp::web::protocol::http::incoming::Response Response;
@@ -16,12 +16,12 @@ private:
   class SendDtoCoroutine : public oatpp::async::Coroutine<SendDtoCoroutine>
   {
   private:
-    std::shared_ptr<DemoApiClient> m_client;
+    std::shared_ptr<ClientApiHolder> m_client;
     oatpp::String m_message;
     v_int32 m_code;
 
   public:
-    SendDtoCoroutine(const std::shared_ptr<DemoApiClient> client,
+    SendDtoCoroutine(const std::shared_ptr<ClientApiHolder> client,
                      const oatpp::String &message,
                      v_int32 code)
         : m_client(client), m_message(message), m_code(code)
@@ -60,10 +60,10 @@ private:
   class SendCoroutine : public oatpp::async::Coroutine<SendCoroutine>
   {
   private:
-    std::shared_ptr<DemoApiClient> m_client;
+    std::shared_ptr<ClientApiHolder> m_client;
 
   public:
-    SendCoroutine(const std::shared_ptr<DemoApiClient> client) : m_client(client) {}
+    SendCoroutine(const std::shared_ptr<ClientApiHolder> client) : m_client(client) {}
 
     Action act() override
     {
@@ -83,5 +83,5 @@ private:
   };
 
 public:
-  void static runExample(const std::shared_ptr<DemoApiClient> &client);
+  void static runExample(const std::shared_ptr<ClientApiHolder> &client);
 };
