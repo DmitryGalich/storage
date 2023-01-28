@@ -1,4 +1,5 @@
 {
+    "network_lib": "oatpp",
     "host": "httpbin.org",
     "port": 80
 }

@@ -92,7 +92,7 @@ namespace cloud
         class OatppClient::OatppClientImpl
         {
         public:
-            OatppClientImpl();
+            OatppClientImpl(const ClientConfig &config);
             ~OatppClientImpl();
 
             bool start();
@@ -110,7 +110,7 @@ namespace cloud
             oatpp::async::Executor async_executor_;
         };
 
-        OatppClient::OatppClientImpl::OatppClientImpl() {}
+        OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config) {}
 
         OatppClient::OatppClientImpl::~OatppClientImpl() {}
 
@@ -194,7 +194,7 @@ namespace cloud
 {
     namespace internal
     {
-        OatppClient::OatppClient() : client_impl_(std::make_unique<OatppClient::OatppClientImpl>())
+        OatppClient::OatppClient(const ClientConfig &config) : client_impl_(std::make_unique<OatppClient::OatppClientImpl>(config))
         {
         }
         OatppClient::~OatppClient()
