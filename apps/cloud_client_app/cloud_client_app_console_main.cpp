@@ -20,7 +20,7 @@ int main()
     LOG(INFO) << PROJECT_NAME;
     LOG(INFO) << "version " << PROJECT_VERSION;
 
-    cloud::Client client;
+    cloud::Client client("KEK");
     try
     {
         if (!client.start())

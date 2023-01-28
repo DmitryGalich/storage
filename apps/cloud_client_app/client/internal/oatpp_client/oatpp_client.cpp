@@ -146,9 +146,9 @@ namespace cloud
                 return false;
             }
 
-            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message1", 10000);
-            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message2", 10000);
-            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message3", 10000);
+            // async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message1", 10000);
+            // async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message2", 10000);
+            // async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message3", 10000);
 
             return true;
         }

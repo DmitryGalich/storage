@@ -1,0 +1,5 @@
+{
+    "client_impl": "oatpp",
+    "host": "httpbin.org",
+    "port": 80
+}

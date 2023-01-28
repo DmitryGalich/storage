@@ -10,7 +10,8 @@ namespace cloud
     class Client::ClientImpl
     {
     public:
-        ClientImpl() = default;
+        ClientImpl();
+        ClientImpl(const std::string &config_path);
         ~ClientImpl() = default;
 
         bool start();
@@ -19,6 +20,13 @@ namespace cloud
     private:
         std::unique_ptr<cloud::internal::AbstractClient> client_;
     };
+
+    Client::ClientImpl::ClientImpl() {}
+
+    Client::ClientImpl::ClientImpl(const std::string &config_path)
+    {
+        LOG(INFO) << config_path;
+    }
 
     bool Client::ClientImpl::start()
     {
@@ -64,6 +72,8 @@ namespace cloud
     Client::Client() : client_impl_(std::make_unique<Client::ClientImpl>())
     {
     }
+
+    Client::Client(const std::string &config_path) : client_impl_(std::make_unique<Client::ClientImpl>(config_path)) {}
 
     Client::~Client()
     {
