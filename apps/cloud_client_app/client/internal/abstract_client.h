@@ -6,6 +6,7 @@ namespace cloud
 {
     struct ClientConfig
     {
+        std::string network_lib_;
         std::string host_;
         int port_;
     };
