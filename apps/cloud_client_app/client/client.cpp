@@ -7,6 +7,15 @@
 
 namespace cloud
 {
+    Client::Config load_config(const std::string &path)
+    {
+        LOG(INFO) << path;
+        return {};
+    }
+}
+
+namespace cloud
+{
     class Client::ClientImpl
     {
     public:
@@ -25,7 +34,7 @@ namespace cloud
 
     Client::ClientImpl::ClientImpl(const std::string &config_path)
     {
-        LOG(INFO) << config_path;
+        load_config(config_path);
     }
 
     bool Client::ClientImpl::start()

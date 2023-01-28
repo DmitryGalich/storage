@@ -20,7 +20,7 @@ int main()
     LOG(INFO) << PROJECT_NAME;
     LOG(INFO) << "version " << PROJECT_VERSION;
 
-    cloud::Client client("KEK");
+    cloud::Client client(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/client_config.json"});
     try
     {
         if (!client.start())

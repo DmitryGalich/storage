@@ -99,6 +99,10 @@ namespace cloud
             void stop();
 
         private:
+            bool init();
+            bool run();
+
+        private:
             std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
             std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
@@ -110,7 +114,7 @@ namespace cloud
 
         OatppClient::OatppClientImpl::~OatppClientImpl() {}
 
-        bool OatppClient::OatppClientImpl::start()
+        bool OatppClient::OatppClientImpl::init()
         {
             oatpp::base::Environment::init();
 
@@ -146,9 +150,25 @@ namespace cloud
                 return false;
             }
 
-            // async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message1", 10000);
-            // async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message2", 10000);
-            // async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message3", 10000);
+            return true;
+        }
+
+        bool OatppClient::OatppClientImpl::run()
+        {
+            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message1", 10000);
+            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message2", 10000);
+            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message3", 10000);
+
+            return true;
+        }
+
+        bool OatppClient::OatppClientImpl::start()
+        {
+            if (!init())
+                return false;
+
+            // if (!run())
+            //     return false;
 
             return true;
         }
