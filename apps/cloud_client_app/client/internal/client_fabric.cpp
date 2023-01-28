@@ -34,13 +34,15 @@ namespace
 {
     cloud::ClientConfig load_config(const std::string &config_path)
     {
+        nlohmann::json json_object;
+        json_object[kConfigSupport.kJsonArgs_.kNetworkLib_] = kConfigSupport.kNetworkLibsTitles_.kOatpp_;
+        json_object[kConfigSupport.kJsonArgs_.kHost_] = "127.0.0.1";
+        json_object[kConfigSupport.kJsonArgs_.kPort_] = 80;
+
         std::fstream file(config_path);
         if (!file.is_open())
         {
-            nlohmann::json defaut_config_json_object;
-            defaut_config_json_object[kConfigSupport.kJsonArgs_.kNetworkLib_] = kConfigSupport.kNetworkLibsTitles_.kOatpp_;
-            defaut_config_json_object[kConfigSupport.kJsonArgs_.kHost_] = "127.0.0.1";
-            defaut_config_json_object[kConfigSupport.kJsonArgs_.kPort_] = 80;
+            LOG(INFO) << "Creeating default client config...";
 
             std::ofstream default_config_file(config_path);
             if (!default_config_file.is_open())
@@ -50,15 +52,19 @@ namespace
                 throw std::runtime_error(kErrorText);
             }
 
-            default_config_file << defaut_config_json_object.dump(4);
+            default_config_file << json_object.dump(4);
             default_config_file.close();
 
-            return {};
+            LOG(INFO) << "Created";
+        }
+        else
+        {
+            json_object = nlohmann::json::parse(file);
+            file.close();
         }
 
-        nlohmann::json json_object = nlohmann::json::parse(file);
-
-        file.close();
+        LOG(INFO) << "Current client config: \n"
+                  << json_object.dump(4);
 
         cloud::ClientConfig config;
         json_object.at(kConfigSupport.kJsonArgs_.kNetworkLib_).get_to(config.network_lib_);
