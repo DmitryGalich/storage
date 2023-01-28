@@ -142,8 +142,8 @@ namespace cloud
             if (!init())
                 return false;
 
-            // if (!run())
-            //     return false;
+            if (!run())
+                return false;
 
             return true;
         }
