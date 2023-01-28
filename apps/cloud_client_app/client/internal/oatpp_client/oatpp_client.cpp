@@ -17,16 +17,12 @@ namespace
 {
     class SendDtoCoroutine : public oatpp::async::Coroutine<SendDtoCoroutine>
     {
-    private:
-        std::shared_ptr<ClientApiHolder> m_client;
-        oatpp::String m_message;
-        v_int32 m_code;
 
     public:
         SendDtoCoroutine(const std::shared_ptr<ClientApiHolder> client,
                          const oatpp::String &message,
                          v_int32 code)
-            : m_client(client), m_message(message), m_code(code)
+            : client_(client), message_(message), code_(code)
         {
         }
 
@@ -36,9 +32,9 @@ namespace
         Action act() override
         {
             auto dto = RequestDto::createShared();
-            dto->message = m_message;
-            dto->code = m_code;
-            return m_client->doPostWithDtoAsync(dto).callbackTo(&SendDtoCoroutine::onResponse);
+            dto->message = message_;
+            dto->code = code_;
+            return client_->doPostWithDtoAsync(dto).callbackTo(&SendDtoCoroutine::onResponse);
         }
 
         /**
@@ -57,31 +53,11 @@ namespace
             OATPP_LOGD("[doPostWithDtoAsync] data='%s'", body->c_str());
             return finish();
         }
-    };
 
-    class SendCoroutine : public oatpp::async::Coroutine<SendCoroutine>
-    {
     private:
-        std::shared_ptr<ClientApiHolder> m_client;
-
-    public:
-        SendCoroutine(const std::shared_ptr<ClientApiHolder> client) : m_client(client) {}
-
-        Action act() override
-        {
-            return m_client->doPostAsync("<POST-DATA-HERE>").callbackTo(&SendDtoCoroutine::onResponse);
-        }
-
-        Action onResponse(const std::shared_ptr<oatpp::web::protocol::http::incoming::Response> &response)
-        {
-            return response->readBodyToStringAsync().callbackTo(&SendDtoCoroutine::onBody);
-        }
-
-        Action onBody(const oatpp::String &body)
-        {
-            OATPP_LOGD("[SendCoroutine. doPostAsync] data='%s'", body->c_str());
-            return finish();
-        }
+        std::shared_ptr<ClientApiHolder> client_;
+        oatpp::String message_;
+        v_int32 code_;
     };
 }
 
@@ -92,8 +68,9 @@ namespace cloud
         class OatppClient::OatppClientImpl
         {
         public:
+            OatppClientImpl() = delete;
             OatppClientImpl(const ClientConfig &config);
-            ~OatppClientImpl();
+            ~OatppClientImpl() = default;
 
             bool start();
             void stop();
@@ -103,6 +80,8 @@ namespace cloud
             bool run();
 
         private:
+            const ClientConfig kConfig_;
+
             std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
             std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
@@ -110,9 +89,7 @@ namespace cloud
             oatpp::async::Executor async_executor_;
         };
 
-        OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config) {}
-
-        OatppClient::OatppClientImpl::~OatppClientImpl() {}
+        OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config) : kConfig_(config) {}
 
         bool OatppClient::OatppClientImpl::init()
         {
@@ -127,7 +104,7 @@ namespace cloud
             }
 
             connection_provider_.reset();
-            connection_provider_ = oatpp::network::tcp::client::ConnectionProvider::createShared({"httpbin.org", 80});
+            connection_provider_ = oatpp::network::tcp::client::ConnectionProvider::createShared({kConfig_.host_, static_cast<v_uint16>(kConfig_.port_)});
             if (!connection_provider_)
             {
                 LOG(ERROR) << "ConnectionProvider is not created";
@@ -156,8 +133,6 @@ namespace cloud
         bool OatppClient::OatppClientImpl::run()
         {
             async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message1", 10000);
-            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message2", 10000);
-            async_executor_.execute<SendDtoCoroutine>(client_api_holder_, "message3", 10000);
 
             return true;
         }
