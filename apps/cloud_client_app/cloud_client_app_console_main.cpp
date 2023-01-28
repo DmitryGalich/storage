@@ -20,10 +20,10 @@ int main()
     LOG(INFO) << PROJECT_NAME;
     LOG(INFO) << "version " << PROJECT_VERSION;
 
-    cloud::Client client(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/client_config.json"});
+    cloud::Client client;
     try
     {
-        if (!client.start())
+        if (!client.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/client_config.json"}))
         {
             LOG(ERROR) << "Can't start client";
             LOG(INFO) << "Shutting down the application";

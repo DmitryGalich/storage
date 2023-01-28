@@ -7,41 +7,24 @@
 
 namespace cloud
 {
-    Client::Config load_config(const std::string &path)
-    {
-        LOG(INFO) << path;
-        return {};
-    }
-}
-
-namespace cloud
-{
     class Client::ClientImpl
     {
     public:
-        ClientImpl();
-        ClientImpl(const std::string &config_path);
+        ClientImpl() = default;
         ~ClientImpl() = default;
 
-        bool start();
+        bool start(const std::string &config_path);
         void stop() noexcept;
 
     private:
         std::unique_ptr<cloud::internal::AbstractClient> client_;
     };
 
-    Client::ClientImpl::ClientImpl() {}
-
-    Client::ClientImpl::ClientImpl(const std::string &config_path)
-    {
-        load_config(config_path);
-    }
-
-    bool Client::ClientImpl::start()
+    bool Client::ClientImpl::start(const std::string &config_path)
     {
         LOG(INFO) << "Starting...";
 
-        client_.reset(cloud::internal::create_client());
+        client_.reset(cloud::internal::create_client(config_path));
         if (!client_)
         {
             static const std::string kErrorText("Client not created");
@@ -65,6 +48,7 @@ namespace cloud
         try
         {
             client_->stop();
+            client_.reset();
         }
         catch (const std::exception &e)
         {
@@ -82,13 +66,11 @@ namespace cloud
     {
     }
 
-    Client::Client(const std::string &config_path) : client_impl_(std::make_unique<Client::ClientImpl>(config_path)) {}
-
     Client::~Client()
     {
     }
 
-    bool Client::start()
+    bool Client::start(const std::string &config_path)
     {
         if (!client_impl_)
         {
@@ -97,7 +79,7 @@ namespace cloud
             throw std::runtime_error(kErrorText);
         }
 
-        return client_impl_->start();
+        return client_impl_->start(config_path);
     }
 
     void Client::stop() noexcept

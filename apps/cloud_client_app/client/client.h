@@ -7,18 +7,10 @@ namespace cloud
     class Client
     {
     public:
-        struct Config
-        {
-            std::string host_{"127.0.0.1"};
-            int port_{80};
-        };
-
-    public:
         Client();
-        Client(const std::string &config_path);
         ~Client();
 
-        bool start();
+        bool start(const std::string &config_path);
         void stop() noexcept;
 
     private:

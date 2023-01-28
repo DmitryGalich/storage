@@ -9,8 +9,9 @@ namespace cloud
 {
     namespace internal
     {
-        AbstractClient *create_client()
+        AbstractClient *create_client(const std::string &config_path)
         {
+            LOG(DEBUG) << config_path;
             return new OatppClient;
         }
     }
