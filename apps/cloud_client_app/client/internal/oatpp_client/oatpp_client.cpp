@@ -107,7 +107,7 @@ namespace cloud
             std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
             std::shared_ptr<ClientApiHolder> client_api_holder_;
-            oatpp::async::Executor async_executor_{1, 1, 1};
+            oatpp::async::Executor async_executor_;
         };
 
         OatppClient::OatppClientImpl::OatppClientImpl() {}

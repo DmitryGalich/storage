@@ -20,3 +20,7 @@ target_link_libraries(${CLIENT_FABRIC_MODULE_NAME}
         cloud::internal::abstract_client
         cloud::internal::client_oatpp
 )
+target_include_directories(${CLIENT_FABRIC_MODULE_NAME}
+    PRIVATE 
+        ${CMAKE_BINARY_DIR}/third_party/nlohmann_json/
+)

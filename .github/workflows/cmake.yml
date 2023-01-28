@@ -28,9 +28,6 @@ jobs:
     - name: Test crc module
       run: ${{github.workspace}}/build/modules/crc_module/crc_module_tests
 
-    - name: Test json module
-      run: ${{github.workspace}}/build/modules/json_module/json_module_tests
-
     - name: Test logger module
       run: ${{github.workspace}}/build/modules/logger_module/logger_module
 
