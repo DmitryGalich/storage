@@ -6,8 +6,8 @@ namespace cloud
 {
     struct ClientConfig
     {
-        std::string host_{"127.0.0.1"};
-        int port_{80};
+        std::string host_;
+        int port_;
     };
 
     namespace internal
