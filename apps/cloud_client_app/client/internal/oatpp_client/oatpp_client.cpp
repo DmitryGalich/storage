@@ -15,61 +15,17 @@
 
 namespace
 {
-    // class SendDtoCoroutine : public oatpp::async::Coroutine<SendDtoCoroutine>
-    // {
-    // public:
-    //     SendDtoCoroutine(const std::shared_ptr<ClientApiHolder> client,
-    //                      const oatpp::String &message,
-    //                      v_int32 code)
-    //         : client_(client), message_(message), code_(code)
-    //     {
-    //     }
-
-    //     /**
-    //      * Create DTO and send it via doPostWithDtoAsync method
-    //      */
-    //     Action act() override
-    //     {
-    //         auto dto = RequestDto::createShared();
-    //         dto->message = message_;
-    //         dto->code = code_;
-    //         return client_->doPostWithDtoAsync(dto).callbackTo(&SendDtoCoroutine::onResponse);
-    //     }
-
-    //     /**
-    //      * Receive response and read body asynchronously
-    //      */
-    //     Action onResponse(const std::shared_ptr<oatpp::web::protocol::http::incoming::Response> &response)
-    //     {
-    //         return response->readBodyToStringAsync().callbackTo(&SendDtoCoroutine::onBody);
-    //     }
-
-    //     /**
-    //      * Print read body from the stream and finish
-    //      */
-    //     Action onBody(const oatpp::String &body)
-    //     {
-    //         OATPP_LOGD("[doPostWithDtoAsync] data='%s'", body->c_str());
-    //         return finish();
-    //     }
-
-    // private:
-    //     std::shared_ptr<ClientApiHolder> client_;
-    //     oatpp::String message_;
-    //     v_int32 code_;
-    // };
-
     class GetDtoCoroutine : public oatpp::async::Coroutine<GetDtoCoroutine>
     {
     public:
-        GetDtoCoroutine(const std::shared_ptr<ClientApiHolder> client)
-            : client_(client)
+        GetDtoCoroutine(const std::shared_ptr<ClientApiHolder> client, const std::string argument)
+            : kArgument_(argument), client_(client)
         {
         }
 
         Action act() override
         {
-            return client_->doGetAsync("headers").callbackTo(&GetDtoCoroutine::onResponse);
+            return client_->doGetAsync(kArgument_).callbackTo(&GetDtoCoroutine::onResponse);
         }
 
         Action onResponse(const std::shared_ptr<oatpp::web::protocol::http::incoming::Response> &response)
@@ -79,11 +35,13 @@ namespace
 
         Action onBody(const oatpp::String &body)
         {
-            OATPP_LOGD("[doGetAsync] data='%s'", body->c_str());
+            LOG(INFO) << "Response on GET(" << kArgument_ << ")\n"
+                      << body->c_str();
             return finish();
         }
 
     private:
+        const std::string kArgument_;
         std::shared_ptr<ClientApiHolder> client_;
     };
 }
@@ -159,7 +117,10 @@ namespace cloud
 
         bool OatppClient::OatppClientImpl::run()
         {
-            async_executor_.execute<GetDtoCoroutine>(client_api_holder_);
+            LOG(INFO) << "headers";
+            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "headers");
+            LOG(INFO) << "ip";
+            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "ip");
 
             return true;
         }
