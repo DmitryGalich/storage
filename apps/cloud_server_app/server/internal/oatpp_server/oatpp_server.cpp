@@ -102,7 +102,6 @@ namespace cloud
             std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
             std::shared_ptr<oatpp::network::tcp::server::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::server::HttpRouter> router_;
-            std::shared_ptr<oatpp::web::server::handler::ErrorHandler> error_handler_;
             std::shared_ptr<oatpp::web::server::HttpConnectionHandler> connection_handler_;
         };
 
@@ -142,6 +141,11 @@ namespace cloud
             connection_handler_.reset();
             connection_handler_ = oatpp::web::server::HttpConnectionHandler::createShared(router_);
             connection_handler_->setErrorHandler(std::make_shared<ErrorHandler>(object_mapper_));
+            if (!connection_handler_)
+            {
+                LOG(ERROR) << "HttpConnectionHandler is not created";
+                return false;
+            }
 
             return true;
         }
@@ -165,6 +169,7 @@ namespace cloud
 
         void OatppServer::OatppServerImpl::stop()
         {
+            connection_handler_.reset();
             router_.reset();
             connection_provider_.reset();
             object_mapper_.reset();
