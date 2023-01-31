@@ -18,6 +18,7 @@ namespace
             const std::string kHost_{"host"};
             const std::string kPort_{"port"};
             const std::string kNetworkLib_{"network_lib"};
+            const std::string kIsIpV6Family_{"is_ip_v6_family"};
 
         } const kJsonArgs_;
 
@@ -38,6 +39,7 @@ namespace
         json_object[kConfigSupport.kJsonArgs_.kNetworkLib_] = kConfigSupport.kNetworkLibsTitles_.kOatpp_;
         json_object[kConfigSupport.kJsonArgs_.kHost_] = "127.0.0.1";
         json_object[kConfigSupport.kJsonArgs_.kPort_] = 80;
+        json_object[kConfigSupport.kJsonArgs_.kIsIpV6Family_] = false;
 
         std::fstream file(config_path);
         if (!file.is_open())
@@ -70,6 +72,7 @@ namespace
         json_object.at(kConfigSupport.kJsonArgs_.kNetworkLib_).get_to(config.network_lib_);
         json_object.at(kConfigSupport.kJsonArgs_.kHost_).get_to(config.host_);
         json_object.at(kConfigSupport.kJsonArgs_.kPort_).get_to(config.port_);
+        json_object.at(kConfigSupport.kJsonArgs_.kIsIpV6Family_).get_to(config.is_ip_v6_family_);
 
         return config;
     }

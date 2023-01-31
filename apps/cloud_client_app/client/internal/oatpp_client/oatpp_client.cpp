@@ -89,7 +89,9 @@ namespace cloud
             }
 
             connection_provider_.reset();
-            connection_provider_ = oatpp::network::tcp::client::ConnectionProvider::createShared({kConfig_.host_, static_cast<v_uint16>(kConfig_.port_)});
+            connection_provider_ = oatpp::network::tcp::client::ConnectionProvider::createShared({kConfig_.host_,
+                                                                                                  static_cast<v_uint16>(kConfig_.port_),
+                                                                                                  (kConfig_.is_ip_v6_family_ ? oatpp::network::Address::IP_6 : oatpp::network::Address::IP_4)});
             if (!connection_provider_)
             {
                 LOG(ERROR) << "ConnectionProvider is not created";

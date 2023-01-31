@@ -9,6 +9,7 @@ namespace cloud
         std::string network_lib_;
         std::string host_;
         int port_;
+        bool is_ip_v6_family_;
     };
 
     namespace internal

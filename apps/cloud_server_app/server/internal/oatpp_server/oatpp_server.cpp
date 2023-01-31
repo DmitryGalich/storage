@@ -4,6 +4,10 @@
 
 #include "../abstract_server.h"
 
+#include "oatpp/core/base/Environment.hpp"
+#include "oatpp/parser/json/mapping/ObjectMapper.hpp"
+#include "oatpp/network/tcp/server/ConnectionProvider.hpp"
+
 namespace cloud
 {
     namespace internal
@@ -24,12 +28,29 @@ namespace cloud
 
         private:
             const ServerConfig kConfig_;
+
+            std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
+            std::shared_ptr<oatpp::network::tcp::server::ConnectionProvider> connection_provider_;
         };
 
         OatppServer::OatppServerImpl::OatppServerImpl(const ServerConfig &config) : kConfig_(config) {}
 
         bool OatppServer::OatppServerImpl::init()
         {
+            oatpp::base::Environment::init();
+
+            object_mapper_.reset();
+            object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared();
+            if (!object_mapper_)
+            {
+                LOG(ERROR) << "ObjectMapper is not created";
+                return false;
+            }
+
+            connection_provider_.reset();
+            connection_provider_ = oatpp::network::tcp::server::ConnectionProvider::createShared({kConfig_.host_,
+                                                                                                  static_cast<v_uint16>(kConfig_.port_),
+                                                                                                  (kConfig_.is_ip_v6_family_ ? oatpp::network::Address::IP_6 : oatpp::network::Address::IP_4)});
 
             return true;
         }
@@ -53,6 +74,10 @@ namespace cloud
 
         void OatppServer::OatppServerImpl::stop()
         {
+            object_mapper_.reset();
+            connection_provider_.reset();
+
+            oatpp::base::Environment::destroy();
         }
     }
 }
