@@ -21,10 +21,24 @@ int main()
     LOG(INFO) << "version " << PROJECT_VERSION;
 
     cloud::Server server;
-    server.start();
+    try
+    {
+        if (!server.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
+        {
+            LOG(ERROR) << "Can't start server";
+            LOG(INFO) << "Shutting down the application";
+            server.stop();
+            return -1;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        LOG(ERROR) << e.what();
+        LOG(INFO) << "Shutting down the application";
+        server.stop();
+        return -1;
+    }
     server.stop();
-
-    LOG(INFO) << "================================";
 
     return 0;
 }

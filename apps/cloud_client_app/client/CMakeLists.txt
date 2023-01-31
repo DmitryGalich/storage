@@ -5,8 +5,8 @@ set(MODULE_NAME client)
 add_subdirectory(internal)
 
 add_library(${MODULE_NAME}
-    client.cpp
-    client.h
+    ${MODULE_NAME}.cpp
+    ${MODULE_NAME}.h
 )
 add_library(cloud::client ALIAS ${MODULE_NAME})
 

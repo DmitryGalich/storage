@@ -15,6 +15,6 @@ namespace cloud
 
     private:
         class ClientImpl;
-        std::unique_ptr<cloud::Client::ClientImpl> client_impl_;
+        std::unique_ptr<ClientImpl> client_impl_;
     };
 }
