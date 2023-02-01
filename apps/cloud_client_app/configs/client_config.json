@@ -3,7 +3,7 @@
     "host": "httpbin.org",
     "port": 80,
     "is_ip_v6_family": false,
-    "executor_data_processing_threads": 9,
-    "executor_io_threads": 2,
+    "executor_data_processing_threads": 1,
+    "executor_io_threads": 1,
     "executor_timer_threads": 1
 }

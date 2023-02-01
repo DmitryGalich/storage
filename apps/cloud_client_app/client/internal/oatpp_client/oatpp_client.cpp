@@ -74,7 +74,13 @@ namespace cloud
             oatpp::async::Executor async_executor_;
         };
 
-        OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config) : kConfig_(config) {}
+        OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config)
+            : kConfig_(config),
+              async_executor_({kConfig_.executor_data_processing_threads_,
+                               kConfig_.executor_io_threads_,
+                               kConfig_.executor_timer_threads_})
+        {
+        }
 
         bool OatppClient::OatppClientImpl::init()
         {
