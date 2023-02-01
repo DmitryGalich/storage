@@ -19,6 +19,9 @@ namespace
             const std::string kPort_{"port"};
             const std::string kNetworkLib_{"network_lib"};
             const std::string kIsIpV6Family_{"is_ip_v6_family"};
+            const std::string kExecutorDataProcessingThreads_{"executor_data_processing_threads"};
+            const std::string kExecutorIOThreads_{"executor_io_threads"};
+            const std::string kExecutorTimerThreads_{"executor_timer_threads"};
 
         } const kJsonArgs_;
 
@@ -40,6 +43,9 @@ namespace
         json_object[kConfigSupport.kJsonArgs_.kHost_] = "127.0.0.1";
         json_object[kConfigSupport.kJsonArgs_.kPort_] = 80;
         json_object[kConfigSupport.kJsonArgs_.kIsIpV6Family_] = false;
+        json_object[kConfigSupport.kJsonArgs_.kExecutorDataProcessingThreads_] = 1;
+        json_object[kConfigSupport.kJsonArgs_.kExecutorIOThreads_] = 1;
+        json_object[kConfigSupport.kJsonArgs_.kExecutorTimerThreads_] = 1;
 
         std::fstream file(config_path);
         if (!file.is_open())
@@ -73,6 +79,9 @@ namespace
         json_object.at(kConfigSupport.kJsonArgs_.kHost_).get_to(config.host_);
         json_object.at(kConfigSupport.kJsonArgs_.kPort_).get_to(config.port_);
         json_object.at(kConfigSupport.kJsonArgs_.kIsIpV6Family_).get_to(config.is_ip_v6_family_);
+        json_object.at(kConfigSupport.kJsonArgs_.kExecutorDataProcessingThreads_).get_to(config.executor_data_processing_threads_);
+        json_object.at(kConfigSupport.kJsonArgs_.kExecutorIOThreads_).get_to(config.executor_io_threads_);
+        json_object.at(kConfigSupport.kJsonArgs_.kExecutorTimerThreads_).get_to(config.executor_timer_threads_);
 
         return config;
     }

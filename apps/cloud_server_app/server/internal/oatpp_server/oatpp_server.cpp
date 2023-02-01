@@ -51,10 +51,9 @@ namespace cloud
 
             async_executor_.reset();
             async_executor_ = std::make_shared<oatpp::async::Executor>(
-                9 /* Data-Processing threads */,
-                2 /* I/O threads */,
-                1 /* Timer threads */
-            );
+                kConfig_.executor_data_processing_threads_,
+                kConfig_.executor_io_threads_,
+                kConfig_.executor_timer_threads_);
             if (!async_executor_)
             {
                 LOG(ERROR) << "Executor is not created";
