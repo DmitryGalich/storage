@@ -5,6 +5,7 @@
 #include "oatpp/core/base/Environment.hpp"
 #include "oatpp/core/async/Executor.hpp"
 #include "oatpp/network/ConnectionProvider.hpp"
+#include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 #include "oatpp/web/server/HttpRouter.hpp"
 #include "oatpp/web/server/AsyncHttpConnectionHandler.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
@@ -32,13 +33,14 @@ namespace cloud
         private:
             const ServerConfig kConfig_;
 
-            std::shared_ptr<oatpp::async::Executor> executor_;
-            std::shared_ptr<oatpp::network::ServerConnectionProvider> connection_provider_;
+            std::shared_ptr<oatpp::network::tcp::server::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::server::HttpRouter> router_;
             std::shared_ptr<oatpp::network::ConnectionHandler> connection_handler_;
             std::shared_ptr<oatpp::parser::json::mapping::Serializer::Config> serializer_config_;
             std::shared_ptr<oatpp::parser::json::mapping::Deserializer::Config> deserializer_config_;
             std::shared_ptr<oatpp::data::mapping::ObjectMapper> object_mapper_;
+
+            std::shared_ptr<oatpp::async::Executor> async_executor_;
         };
 
         OatppServer::OatppServerImpl::OatppServerImpl(const ServerConfig &config) : kConfig_(config) {}
@@ -47,15 +49,15 @@ namespace cloud
         {
             oatpp::base::Environment::init();
 
-            executor_.reset();
-            executor_ = std::make_shared<oatpp::async::Executor>(
+            async_executor_.reset();
+            async_executor_ = std::make_shared<oatpp::async::Executor>(
                 9 /* Data-Processing threads */,
                 2 /* I/O threads */,
                 1 /* Timer threads */
             );
-            if (!executor_)
+            if (!async_executor_)
             {
-                LOG(ERROR) << "ConnectionProvider is not created";
+                LOG(ERROR) << "Executor is not created";
                 return false;
             }
 
@@ -79,7 +81,7 @@ namespace cloud
             }
 
             connection_handler_.reset();
-            connection_handler_ = oatpp::web::server::AsyncHttpConnectionHandler::createShared(router_, executor_);
+            connection_handler_ = oatpp::web::server::AsyncHttpConnectionHandler::createShared(router_, async_executor_);
             if (!connection_handler_)
             {
                 LOG(ERROR) << "AsyncHttpConnectionHandler is not created";
@@ -133,7 +135,11 @@ namespace cloud
 
         void OatppServer::OatppServerImpl::stop()
         {
-            executor_.reset();
+            async_executor_->waitTasksFinished();
+            async_executor_->stop();
+            async_executor_->join();
+            async_executor_.reset();
+
             connection_provider_.reset();
             router_.reset();
             connection_handler_.reset();
