@@ -11,7 +11,7 @@
 
 #include "../abstract_client.h"
 
-#include "api_client.hpp"
+#include "api_holder.hpp"
 
 namespace
 {
@@ -120,10 +120,7 @@ namespace cloud
 
         bool OatppClient::OatppClientImpl::run()
         {
-            LOG(INFO) << "headers";
-            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "headers");
-            LOG(INFO) << "ip";
-            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "ip");
+            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "info");
 
             return true;
         }

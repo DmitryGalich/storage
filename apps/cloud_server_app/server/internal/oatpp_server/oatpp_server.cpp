@@ -2,81 +2,14 @@
 
 #include "easylogging++.h"
 
-#include "../abstract_server.h"
-
 #include "oatpp/core/base/Environment.hpp"
-#include "oatpp/parser/json/mapping/ObjectMapper.hpp"
-#include "oatpp/network/tcp/server/ConnectionProvider.hpp"
+#include "oatpp/core/async/Executor.hpp"
+#include "oatpp/network/ConnectionProvider.hpp"
 #include "oatpp/web/server/HttpRouter.hpp"
-#include "oatpp/web/server/handler/ErrorHandler.hpp"
-#include "oatpp/web/protocol/http/outgoing/Response.hpp"
-#include "oatpp/web/server/HttpConnectionHandler.hpp"
+#include "oatpp/web/server/AsyncHttpConnectionHandler.hpp"
+#include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 
-#include "oatpp/core/macro/codegen.hpp"
-#include "oatpp/core/Types.hpp"
-
-namespace
-{
-#include OATPP_CODEGEN_BEGIN(DTO)
-
-    class StatusDto : public oatpp::DTO
-    {
-        DTO_INIT(StatusDto, DTO)
-
-        DTO_FIELD_INFO(status)
-        {
-            info->description = "Short status text";
-        }
-        DTO_FIELD(String, status);
-
-        DTO_FIELD_INFO(code)
-        {
-            info->description = "Status code";
-        }
-        DTO_FIELD(Int32, code);
-
-        DTO_FIELD_INFO(message)
-        {
-            info->description = "Verbose message";
-        }
-        DTO_FIELD(String, message);
-    };
-
-#include OATPP_CODEGEN_END(DTO)
-}
-
-namespace
-{
-    class ErrorHandler : public oatpp::web::server::handler::ErrorHandler
-    {
-    public:
-        ErrorHandler(const std::shared_ptr<oatpp::data::mapping::ObjectMapper> &object_mapper)
-            : object_mapper_(object_mapper) {}
-
-        std::shared_ptr<oatpp::web::protocol::http::outgoing::Response>
-        handleError(const oatpp::web::protocol::http::Status &status,
-                    const oatpp::String &message,
-                    const Headers &headers) override
-        {
-            auto error = StatusDto::createShared();
-            error->status = "ERROR";
-            error->code = status.code;
-            error->message = message;
-
-            auto response = oatpp::web::protocol::http::outgoing::ResponseFactory::createResponse(status, error, object_mapper_);
-
-            for (const auto &pair : headers.getAll())
-            {
-                response->putHeader(pair.first.toString(), pair.second.toString());
-            }
-
-            return response;
-        }
-
-    private:
-        std::shared_ptr<oatpp::data::mapping::ObjectMapper> object_mapper_;
-    };
-}
+#include "../abstract_server.h"
 
 namespace cloud
 {
@@ -99,10 +32,13 @@ namespace cloud
         private:
             const ServerConfig kConfig_;
 
-            std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
-            std::shared_ptr<oatpp::network::tcp::server::ConnectionProvider> connection_provider_;
+            std::shared_ptr<oatpp::async::Executor> executor_;
+            std::shared_ptr<oatpp::network::ServerConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::server::HttpRouter> router_;
-            std::shared_ptr<oatpp::web::server::HttpConnectionHandler> connection_handler_;
+            std::shared_ptr<oatpp::network::ConnectionHandler> connection_handler_;
+            std::shared_ptr<oatpp::parser::json::mapping::Serializer::Config> serializer_config_;
+            std::shared_ptr<oatpp::parser::json::mapping::Deserializer::Config> deserializer_config_;
+            std::shared_ptr<oatpp::data::mapping::ObjectMapper> object_mapper_;
         };
 
         OatppServer::OatppServerImpl::OatppServerImpl(const ServerConfig &config) : kConfig_(config) {}
@@ -111,11 +47,15 @@ namespace cloud
         {
             oatpp::base::Environment::init();
 
-            object_mapper_.reset();
-            object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared();
-            if (!object_mapper_)
+            executor_.reset();
+            executor_ = std::make_shared<oatpp::async::Executor>(
+                9 /* Data-Processing threads */,
+                2 /* I/O threads */,
+                1 /* Timer threads */
+            );
+            if (!executor_)
             {
-                LOG(ERROR) << "ObjectMapper is not created";
+                LOG(ERROR) << "ConnectionProvider is not created";
                 return false;
             }
 
@@ -139,11 +79,35 @@ namespace cloud
             }
 
             connection_handler_.reset();
-            connection_handler_ = oatpp::web::server::HttpConnectionHandler::createShared(router_);
-            connection_handler_->setErrorHandler(std::make_shared<ErrorHandler>(object_mapper_));
+            connection_handler_ = oatpp::web::server::AsyncHttpConnectionHandler::createShared(router_, executor_);
             if (!connection_handler_)
             {
-                LOG(ERROR) << "HttpConnectionHandler is not created";
+                LOG(ERROR) << "AsyncHttpConnectionHandler is not created";
+                return false;
+            }
+
+            serializer_config_.reset();
+            serializer_config_ = oatpp::parser::json::mapping::Serializer::Config::createShared();
+            if (!serializer_config_)
+            {
+                LOG(ERROR) << "Serializer::Config is not created";
+                return false;
+            }
+
+            deserializer_config_.reset();
+            deserializer_config_ = oatpp::parser::json::mapping::Deserializer::Config::createShared();
+            deserializer_config_->allowUnknownFields = false;
+            if (!deserializer_config_)
+            {
+                LOG(ERROR) << "Deserializer::Config is not created";
+                return false;
+            }
+
+            object_mapper_.reset();
+            object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared(serializer_config_, deserializer_config_);
+            if (!object_mapper_)
+            {
+                LOG(ERROR) << "ObjectMapper is not created";
                 return false;
             }
 
@@ -169,9 +133,12 @@ namespace cloud
 
         void OatppServer::OatppServerImpl::stop()
         {
-            connection_handler_.reset();
-            router_.reset();
+            executor_.reset();
             connection_provider_.reset();
+            router_.reset();
+            connection_handler_.reset();
+            serializer_config_.reset();
+            deserializer_config_.reset();
             object_mapper_.reset();
 
             oatpp::base::Environment::destroy();
