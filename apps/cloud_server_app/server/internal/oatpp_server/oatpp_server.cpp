@@ -6,11 +6,14 @@
 #include "oatpp/core/async/Executor.hpp"
 #include "oatpp/network/ConnectionProvider.hpp"
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
+#include "oatpp/network/Server.hpp"
 #include "oatpp/web/server/HttpRouter.hpp"
 #include "oatpp/web/server/AsyncHttpConnectionHandler.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 
 #include "../abstract_server.h"
+
+#include "api_controller.hpp"
 
 namespace cloud
 {
@@ -39,8 +42,9 @@ namespace cloud
             std::shared_ptr<oatpp::parser::json::mapping::Serializer::Config> serializer_config_;
             std::shared_ptr<oatpp::parser::json::mapping::Deserializer::Config> deserializer_config_;
             std::shared_ptr<oatpp::data::mapping::ObjectMapper> object_mapper_;
-
             std::shared_ptr<oatpp::async::Executor> async_executor_;
+            std::shared_ptr<ServerApiController> server_api_controller_;
+            std::shared_ptr<oatpp::network::Server> server_;
         };
 
         OatppServer::OatppServerImpl::OatppServerImpl(const ServerConfig &config) : kConfig_(config) {}
@@ -112,6 +116,22 @@ namespace cloud
                 return false;
             }
 
+            server_api_controller_.reset();
+            server_api_controller_ = ServerApiController::createShared(object_mapper_);
+            if (!server_api_controller_)
+            {
+                LOG(ERROR) << "ServerApiController is not created";
+                return false;
+            }
+
+            // server_.reset();
+            // server_ = oatpp::network::Server::createShared(connection_provider_, connection_handler_);
+            // if (!server_)
+            // {
+            //     LOG(ERROR) << "Server is not created";
+            //     return false;
+            // }
+
             return true;
         }
 
@@ -134,17 +154,21 @@ namespace cloud
 
         void OatppServer::OatppServerImpl::stop()
         {
+            server_.reset();
+
+            server_api_controller_.reset();
+
+            object_mapper_.reset();
+            deserializer_config_.reset();
+            serializer_config_.reset();
+            connection_handler_.reset();
+            router_.reset();
+            connection_provider_.reset();
+
             async_executor_->waitTasksFinished();
             async_executor_->stop();
             async_executor_->join();
             async_executor_.reset();
-
-            connection_provider_.reset();
-            router_.reset();
-            connection_handler_.reset();
-            serializer_config_.reset();
-            deserializer_config_.reset();
-            object_mapper_.reset();
 
             oatpp::base::Environment::destroy();
         }
