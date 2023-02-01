@@ -124,13 +124,17 @@ namespace cloud
                 return false;
             }
 
-            // server_.reset();
-            // server_ = oatpp::network::Server::createShared(connection_provider_, connection_handler_);
-            // if (!server_)
-            // {
-            //     LOG(ERROR) << "Server is not created";
-            //     return false;
-            // }
+            router_->addController(server_api_controller_);
+
+            server_.reset();
+            server_ = oatpp::network::Server::createShared(connection_provider_, connection_handler_);
+            if (!server_)
+            {
+                LOG(ERROR) << "Server is not created";
+                return false;
+            }
+
+            OATPP_LOGD("Server", "Running on port %s...", connection_provider_->getProperty("port").toString()->c_str());
 
             return true;
         }
