@@ -126,10 +126,13 @@ namespace cloud
 
         bool OatppClient::OatppClientImpl::run()
         {
-            LOG(INFO) << "headers";
-            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "headers");
-            LOG(INFO) << "ip";
-            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "ip");
+            // LOG(INFO) << "headers";
+            // async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "headers");
+            // LOG(INFO) << "ip";
+            // async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "ip");
+
+            LOG(INFO) << "hello request";
+            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "hello");
 
             return true;
         }

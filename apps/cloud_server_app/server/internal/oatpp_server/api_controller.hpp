@@ -24,7 +24,7 @@ public:
     /**
      *  Hello World endpoint Coroutine mapped to the "/" (root)
      */
-    ENDPOINT_ASYNC("GET", "/", Root){
+    ENDPOINT_ASYNC("GET", "hello", Root){
         ENDPOINT_ASYNC_INIT(Root)
 
         /**

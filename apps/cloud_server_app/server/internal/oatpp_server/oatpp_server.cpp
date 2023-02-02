@@ -134,13 +134,12 @@ namespace cloud
                 return false;
             }
 
-            OATPP_LOGD("Server", "Running on port %s...", connection_provider_->getProperty("port").toString()->c_str());
-
             return true;
         }
 
         bool OatppServer::OatppServerImpl::run()
         {
+            server_->run();
 
             return true;
         }
