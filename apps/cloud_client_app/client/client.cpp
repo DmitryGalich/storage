@@ -10,21 +10,33 @@ namespace cloud
     class Client::ClientImpl
     {
     public:
-        ClientImpl() = default;
+        ClientImpl();
         ~ClientImpl() = default;
 
         bool start(const std::string &config_path);
         void stop() noexcept;
 
     private:
-        std::unique_ptr<cloud::internal::AbstractClient> client_;
+        void do_hello(const std::string &text);
+
+    private:
+        std::unique_ptr<cloud::internal::AbstractClient>
+            client_;
+        cloud::internal::ClientCallbacks callbacks_;
     };
+
+    Client::ClientImpl::ClientImpl() : callbacks_({{[&](const std::string &text)
+                                                    {
+                                                        do_hello(text);
+                                                    }}})
+    {
+    }
 
     bool Client::ClientImpl::start(const std::string &config_path)
     {
         LOG(INFO) << "Starting...";
 
-        client_.reset(cloud::internal::create_client(config_path));
+        client_.reset(cloud::internal::create_client(config_path, callbacks_));
         if (!client_)
         {
             static const std::string kErrorText("Client not created");
@@ -57,6 +69,11 @@ namespace cloud
         }
 
         LOG(INFO) << "Stopped";
+    }
+
+    void Client::ClientImpl::do_hello(const std::string &text)
+    {
+        LOG(DEBUG) << text;
     }
 }
 

@@ -157,6 +157,9 @@ namespace cloud
 
         void OatppServer::OatppServerImpl::stop()
         {
+            if (server_)
+                server_->stop();
+
             server_.reset();
 
             server_api_controller_.reset();

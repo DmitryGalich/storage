@@ -11,7 +11,8 @@ namespace cloud
         class OatppClient : public AbstractClient
         {
         public:
-            OatppClient(const ClientConfig &config);
+            OatppClient(const ClientConfig &config,
+                        const cloud::internal::ClientCallbacks &callbacks);
             ~OatppClient() override;
 
             bool start() override;

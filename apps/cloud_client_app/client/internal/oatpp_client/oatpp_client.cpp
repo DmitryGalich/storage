@@ -18,8 +18,8 @@ namespace
     class GetDtoCoroutine : public oatpp::async::Coroutine<GetDtoCoroutine>
     {
     public:
-        GetDtoCoroutine(const std::shared_ptr<ClientApiHolder> client, const std::string argument)
-            : kArgument_(argument), client_(client)
+        GetDtoCoroutine(const std::shared_ptr<ClientApiHolder> client, const std::string argument, const std::function<void(const std::string &)> do_callback)
+            : kArgument_(argument), kDoCallback_(do_callback), client_(client)
         {
         }
 
@@ -35,13 +35,14 @@ namespace
 
         Action onBody(const oatpp::String &body)
         {
-            LOG(INFO) << "Response on GET(" << kArgument_ << ")\n"
-                      << body->c_str();
+            kDoCallback_(body->c_str());
             return finish();
         }
 
     private:
         const std::string kArgument_;
+        const std::function<void(const std::string &)> kDoCallback_;
+
         std::shared_ptr<ClientApiHolder> client_;
     };
 }
@@ -54,7 +55,8 @@ namespace cloud
         {
         public:
             OatppClientImpl() = delete;
-            OatppClientImpl(const ClientConfig &config);
+            OatppClientImpl(const ClientConfig &config,
+                            const cloud::internal::ClientCallbacks &callbacks);
             ~OatppClientImpl() = default;
 
             bool start();
@@ -66,6 +68,7 @@ namespace cloud
 
         private:
             const ClientConfig kConfig_;
+            const cloud::internal::ClientCallbacks &kCallbacks_;
 
             std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
             std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
@@ -74,8 +77,10 @@ namespace cloud
             oatpp::async::Executor async_executor_;
         };
 
-        OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config)
+        OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config,
+                                                      const cloud::internal::ClientCallbacks &callbacks)
             : kConfig_(config),
+              kCallbacks_(callbacks),
               async_executor_({kConfig_.executor_data_processing_threads_,
                                kConfig_.executor_io_threads_,
                                kConfig_.executor_timer_threads_})
@@ -126,13 +131,9 @@ namespace cloud
 
         bool OatppClient::OatppClientImpl::run()
         {
-            // LOG(INFO) << "headers";
-            // async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "headers");
-            // LOG(INFO) << "ip";
-            // async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "ip");
-
             LOG(INFO) << "hello request";
-            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "hello");
+            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "hello", [&](const std::string &text)
+                                                     { kCallbacks_.do_hello_(text); });
 
             return true;
         }
@@ -168,7 +169,8 @@ namespace cloud
 {
     namespace internal
     {
-        OatppClient::OatppClient(const ClientConfig &config) : client_impl_(std::make_unique<OatppClient::OatppClientImpl>(config))
+        OatppClient::OatppClient(const ClientConfig &config,
+                                 const cloud::internal::ClientCallbacks &callbacks) : client_impl_(std::make_unique<OatppClient::OatppClientImpl>(config, callbacks))
         {
         }
         OatppClient::~OatppClient()

@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <functional>
+
 namespace cloud
 {
     struct ClientConfig
@@ -25,5 +27,14 @@ namespace cloud
             virtual bool start() = 0;
             virtual void stop() = 0;
         };
+
+        struct ClientCallbacks
+        {
+            ClientCallbacks() = delete;
+            ClientCallbacks(const std::function<void(const std::string &)> do_hello) : do_hello_(do_hello) {}
+
+            std::function<void(const std::string &)> do_hello_;
+        };
+
     }
 }

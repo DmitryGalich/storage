@@ -91,12 +91,12 @@ namespace cloud
 {
     namespace internal
     {
-        AbstractClient *create_client(const std::string &config_path)
+        AbstractClient *create_client(const std::string &config_path, const ClientCallbacks &callbacks)
         {
             const auto config = load_config(config_path);
 
             if (config.network_lib_ == kConfigSupport.kNetworkLibsTitles_.kOatpp_)
-                return new OatppClient(config);
+                return new OatppClient(config, callbacks);
             else
             {
                 LOG(ERROR) << "Unknown title of network lib: \"" << config.network_lib_ << "\"";
