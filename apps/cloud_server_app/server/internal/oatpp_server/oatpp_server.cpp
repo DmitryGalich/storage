@@ -13,8 +13,6 @@
 
 #include "../abstract_server.h"
 
-#include "api_controller.hpp"
-
 namespace cloud
 {
     namespace internal
@@ -39,11 +37,9 @@ namespace cloud
             std::shared_ptr<oatpp::network::tcp::server::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::server::HttpRouter> router_;
             std::shared_ptr<oatpp::network::ConnectionHandler> connection_handler_;
-            std::shared_ptr<oatpp::parser::json::mapping::Serializer::Config> serializer_config_;
-            std::shared_ptr<oatpp::parser::json::mapping::Deserializer::Config> deserializer_config_;
+
             std::shared_ptr<oatpp::data::mapping::ObjectMapper> object_mapper_;
             std::shared_ptr<oatpp::async::Executor> async_executor_;
-            std::shared_ptr<ServerApiController> server_api_controller_;
             std::shared_ptr<oatpp::network::Server> server_;
         };
 
@@ -91,40 +87,13 @@ namespace cloud
                 return false;
             }
 
-            serializer_config_.reset();
-            serializer_config_ = oatpp::parser::json::mapping::Serializer::Config::createShared();
-            if (!serializer_config_)
-            {
-                LOG(ERROR) << "Serializer::Config is not created";
-                return false;
-            }
-
-            deserializer_config_.reset();
-            deserializer_config_ = oatpp::parser::json::mapping::Deserializer::Config::createShared();
-            deserializer_config_->allowUnknownFields = false;
-            if (!deserializer_config_)
-            {
-                LOG(ERROR) << "Deserializer::Config is not created";
-                return false;
-            }
-
             object_mapper_.reset();
-            object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared(serializer_config_, deserializer_config_);
+            object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared();
             if (!object_mapper_)
             {
                 LOG(ERROR) << "ObjectMapper is not created";
                 return false;
             }
-
-            server_api_controller_.reset();
-            server_api_controller_ = ServerApiController::createShared(object_mapper_);
-            if (!server_api_controller_)
-            {
-                LOG(ERROR) << "ServerApiController is not created";
-                return false;
-            }
-
-            router_->addController(server_api_controller_);
 
             server_.reset();
             server_ = oatpp::network::Server::createShared(connection_provider_, connection_handler_);
@@ -161,12 +130,7 @@ namespace cloud
                 server_->stop();
 
             server_.reset();
-
-            server_api_controller_.reset();
-
             object_mapper_.reset();
-            deserializer_config_.reset();
-            serializer_config_.reset();
             connection_handler_.reset();
             router_.reset();
             connection_provider_.reset();
