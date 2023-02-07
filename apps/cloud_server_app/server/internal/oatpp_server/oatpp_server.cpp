@@ -4,10 +4,8 @@
 
 #include "oatpp/core/base/Environment.hpp"
 #include "oatpp/core/async/Executor.hpp"
-#include "oatpp/network/ConnectionProvider.hpp"
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 #include "oatpp/network/Server.hpp"
-#include "oatpp/web/server/HttpRouter.hpp"
 #include "oatpp/web/server/AsyncHttpConnectionHandler.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 
@@ -34,12 +32,11 @@ namespace cloud
         private:
             const ServerConfig kConfig_;
 
+            std::shared_ptr<oatpp::async::Executor> async_executor_;
             std::shared_ptr<oatpp::network::tcp::server::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::web::server::HttpRouter> router_;
             std::shared_ptr<oatpp::network::ConnectionHandler> connection_handler_;
-
             std::shared_ptr<oatpp::data::mapping::ObjectMapper> object_mapper_;
-            std::shared_ptr<oatpp::async::Executor> async_executor_;
             std::shared_ptr<oatpp::network::Server> server_;
         };
 
