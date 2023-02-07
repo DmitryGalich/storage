@@ -8,6 +8,7 @@
 #include "oatpp/network/Server.hpp"
 #include "oatpp/web/server/AsyncHttpConnectionHandler.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
+#include "oatpp-websocket/AsyncConnectionHandler.hpp"
 
 #include "../abstract_server.h"
 
@@ -37,6 +38,7 @@ namespace cloud
             std::shared_ptr<oatpp::web::server::HttpRouter> router_;
             std::shared_ptr<oatpp::network::ConnectionHandler> connection_handler_;
             std::shared_ptr<oatpp::data::mapping::ObjectMapper> object_mapper_;
+            std::shared_ptr<oatpp::websocket::AsyncConnectionHandler> socket_connection_handler_;
             std::shared_ptr<oatpp::network::Server> server_;
         };
 
@@ -92,6 +94,14 @@ namespace cloud
                 return false;
             }
 
+            socket_connection_handler_.reset();
+            socket_connection_handler_ = oatpp::websocket::AsyncConnectionHandler::createShared(async_executor_);
+            if (!socket_connection_handler_)
+            {
+                LOG(ERROR) << "websocket::AsyncConnectionHandler is not created";
+                return false;
+            }
+
             server_.reset();
             server_ = oatpp::network::Server::createShared(connection_provider_, connection_handler_);
             if (!server_)
@@ -127,6 +137,7 @@ namespace cloud
                 server_->stop();
 
             server_.reset();
+            socket_connection_handler_.reset();
             object_mapper_.reset();
             connection_handler_.reset();
             router_.reset();
