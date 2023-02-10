@@ -2,50 +2,11 @@
 
 #include "easylogging++.h"
 
-#include "oatpp/core/async/Executor.hpp"
 #include "oatpp/core/base/Environment.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 #include "oatpp/network/tcp/client/ConnectionProvider.hpp"
-#include "oatpp/web/client/HttpRequestExecutor.hpp"
-#include "oatpp/core/async/Executor.hpp"
 
 #include "../abstract_client.h"
-
-#include "api_holder.hpp"
-
-namespace
-{
-    class GetDtoCoroutine : public oatpp::async::Coroutine<GetDtoCoroutine>
-    {
-    public:
-        GetDtoCoroutine(const std::shared_ptr<ClientApiHolder> client, const std::string argument, const std::function<void(const std::string &)> do_callback)
-            : kArgument_(argument), kDoCallback_(do_callback), client_(client)
-        {
-        }
-
-        Action act() override
-        {
-            return client_->doGetAsync(kArgument_).callbackTo(&GetDtoCoroutine::onResponse);
-        }
-
-        Action onResponse(const std::shared_ptr<oatpp::web::protocol::http::incoming::Response> &response)
-        {
-            return response->readBodyToStringAsync().callbackTo(&GetDtoCoroutine::onBody);
-        }
-
-        Action onBody(const oatpp::String &body)
-        {
-            kDoCallback_(body->c_str());
-            return finish();
-        }
-
-    private:
-        const std::string kArgument_;
-        const std::function<void(const std::string &)> kDoCallback_;
-
-        std::shared_ptr<ClientApiHolder> client_;
-    };
-}
 
 namespace cloud
 {
@@ -55,8 +16,7 @@ namespace cloud
         {
         public:
             OatppClientImpl() = delete;
-            OatppClientImpl(const ClientConfig &config,
-                            const cloud::internal::ClientCallbacks &callbacks);
+            OatppClientImpl(const ClientConfig &config);
             ~OatppClientImpl() = default;
 
             bool start();
@@ -68,22 +28,14 @@ namespace cloud
 
         private:
             const ClientConfig kConfig_;
-            const cloud::internal::ClientCallbacks &kCallbacks_;
 
             std::shared_ptr<oatpp::parser::json::mapping::ObjectMapper> object_mapper_;
             std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
-            std::shared_ptr<oatpp::web::client::HttpRequestExecutor> http_request_executor_;
-            std::shared_ptr<ClientApiHolder> client_api_holder_;
-            oatpp::async::Executor async_executor_;
         };
 
-        OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config,
-                                                      const cloud::internal::ClientCallbacks &callbacks)
-            : kConfig_(config),
-              kCallbacks_(callbacks),
-              async_executor_({kConfig_.executor_data_processing_threads_,
-                               kConfig_.executor_io_threads_,
-                               kConfig_.executor_timer_threads_})
+        OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config)
+            : kConfig_(config)
+
         {
         }
 
@@ -110,30 +62,11 @@ namespace cloud
                 return false;
             }
 
-            http_request_executor_.reset();
-            http_request_executor_ = oatpp::web::client::HttpRequestExecutor::createShared(connection_provider_);
-            if (!http_request_executor_)
-            {
-                LOG(ERROR) << "HttpRequestExecutor is not created";
-                return false;
-            }
-
-            client_api_holder_.reset();
-            client_api_holder_ = ClientApiHolder::createShared(http_request_executor_, object_mapper_);
-            if (!http_request_executor_)
-            {
-                LOG(ERROR) << "ClientApiHolder is not created";
-                return false;
-            }
-
             return true;
         }
 
         bool OatppClient::OatppClientImpl::run()
         {
-            LOG(INFO) << "hello request";
-            async_executor_.execute<GetDtoCoroutine>(client_api_holder_, "hello", [&](const std::string &text)
-                                                     { kCallbacks_.do_hello_(text); });
 
             return true;
         }
@@ -151,14 +84,9 @@ namespace cloud
 
         void OatppClient::OatppClientImpl::stop()
         {
-            async_executor_.waitTasksFinished();
-            async_executor_.stop();
-            async_executor_.join();
 
             object_mapper_.reset();
             connection_provider_.reset();
-            http_request_executor_.reset();
-            client_api_holder_.reset();
 
             oatpp::base::Environment::destroy();
         }
@@ -169,8 +97,7 @@ namespace cloud
 {
     namespace internal
     {
-        OatppClient::OatppClient(const ClientConfig &config,
-                                 const cloud::internal::ClientCallbacks &callbacks) : client_impl_(std::make_unique<OatppClient::OatppClientImpl>(config, callbacks))
+        OatppClient::OatppClient(const ClientConfig &config) : client_impl_(std::make_unique<OatppClient::OatppClientImpl>(config))
         {
         }
         OatppClient::~OatppClient()

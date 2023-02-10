@@ -22,13 +22,9 @@ namespace cloud
     private:
         std::unique_ptr<cloud::internal::AbstractClient>
             client_;
-        cloud::internal::ClientCallbacks callbacks_;
     };
 
-    Client::ClientImpl::ClientImpl() : callbacks_({{[&](const std::string &text)
-                                                    {
-                                                        do_hello(text);
-                                                    }}})
+    Client::ClientImpl::ClientImpl()
     {
     }
 
@@ -36,7 +32,7 @@ namespace cloud
     {
         LOG(INFO) << "Starting...";
 
-        client_.reset(cloud::internal::create_client(config_path, callbacks_));
+        client_.reset(cloud::internal::create_client(config_path));
         if (!client_)
         {
             static const std::string kErrorText("Client not created");

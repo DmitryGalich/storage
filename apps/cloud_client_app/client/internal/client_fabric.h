@@ -8,6 +8,6 @@ namespace cloud
 {
     namespace internal
     {
-        AbstractClient *create_client(const std::string &config_path, const ClientCallbacks &callbacks);
+        AbstractClient *create_client(const std::string &config_path);
     }
 }
