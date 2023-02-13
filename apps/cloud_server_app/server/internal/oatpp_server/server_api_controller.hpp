@@ -1,6 +1,6 @@
 
-#ifndef ServerApiController_hpp
-#define ServerApiController_hpp
+#ifndef server_api_controller_hpp
+#define server_api_controller_hpp
 
 #include "oatpp-websocket/Handshaker.hpp"
 
