@@ -8,6 +8,8 @@ set(MODULE_NAME oatpp_client)
 add_library(${MODULE_NAME}
     ${MODULE_NAME}.cpp
     ${MODULE_NAME}.h
+    websocket_listener.hpp
+    websocket_listener.cpp
 )
 add_library(cloud::internal::client_oatpp ALIAS ${MODULE_NAME})
 target_link_libraries(${MODULE_NAME} 

@@ -9,9 +9,11 @@
 #include "oatpp/web/server/AsyncHttpConnectionHandler.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 #include "oatpp-websocket/AsyncConnectionHandler.hpp"
+#include "oatpp/network/ConnectionHandler.hpp"
 #include "oatpp-websocket/AsyncWebSocket.hpp"
 
 #include "../abstract_server.h"
+#include "server_api_controller.hpp"
 
 namespace
 {
@@ -33,7 +35,7 @@ namespace
          */
         CoroutineStarter onPing(const std::shared_ptr<AsyncWebSocket> &socket, const oatpp::String &message) override
         {
-            // OATPP_LOGD("Server_WSListener", "onPing");
+            OATPP_LOGD("Server_WSListener", "onPing");
             return socket->sendPongAsync(message);
         }
 
@@ -42,7 +44,7 @@ namespace
          */
         CoroutineStarter onPong(const std::shared_ptr<AsyncWebSocket> &socket, const oatpp::String &message) override
         {
-            // OATPP_LOGD("Server_WSListener", "onPong");
+            OATPP_LOGD("Server_WSListener", "onPong");
             return nullptr; // do nothing
         }
 
@@ -51,7 +53,7 @@ namespace
          */
         CoroutineStarter onClose(const std::shared_ptr<AsyncWebSocket> &socket, v_uint16 code, const oatpp::String &message) override
         {
-            // OATPP_LOGD("Server_WSListener", "onClose code=%d", code);
+            OATPP_LOGD("Server_WSListener", "onClose code=%d", code);
             return nullptr; // do nothing
         }
 
@@ -66,7 +68,7 @@ namespace
                 auto wholeMessage = m_messageBuffer.toString();
                 m_messageBuffer.setCurrentPosition(0);
 
-                // OATPP_LOGD("Server_WSListener", "onMessage message='%s'", wholeMessage->c_str());
+                OATPP_LOGD("Server_WSListener", "onMessage message='%s'", wholeMessage->c_str());
 
                 /* Send message in reply */
                 return socket->sendOneFrameTextAsync("Hello from oatpp!: " + wholeMessage);
@@ -179,6 +181,14 @@ namespace cloud
                 return false;
             }
 
+            object_mapper_.reset();
+            object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared();
+            if (!object_mapper_)
+            {
+                LOG(ERROR) << "ObjectMapper is not created";
+                return false;
+            }
+
             router_.reset();
             router_ = oatpp::web::server::HttpRouter::createShared();
             if (!router_)
@@ -187,19 +197,13 @@ namespace cloud
                 return false;
             }
 
+            router_->addController(std::make_shared<ServerApiController>());
+
             connection_handler_.reset();
             connection_handler_ = oatpp::web::server::AsyncHttpConnectionHandler::createShared(router_, async_executor_);
             if (!connection_handler_)
             {
                 LOG(ERROR) << "AsyncHttpConnectionHandler is not created";
-                return false;
-            }
-
-            object_mapper_.reset();
-            object_mapper_ = oatpp::parser::json::mapping::ObjectMapper::createShared();
-            if (!object_mapper_)
-            {
-                LOG(ERROR) << "ObjectMapper is not created";
                 return false;
             }
 

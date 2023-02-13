@@ -4,86 +4,11 @@
 
 #include "oatpp/core/base/Environment.hpp"
 #include "oatpp/network/tcp/client/ConnectionProvider.hpp"
-#include "oatpp-websocket/WebSocket.hpp"
 #include "oatpp-websocket/Connector.hpp"
+#include "oatpp-websocket/WebSocket.hpp"
 
 #include "../abstract_client.h"
-
-#include <mutex>
-
-namespace
-{
-    /**
-     * WebSocket listener listens on incoming WebSocket events.
-     */
-    class WSListener : public oatpp::websocket::WebSocket::Listener
-    {
-    private:
-        static constexpr const char *TAG = "Client_WSListener";
-
-    private:
-        std::mutex &m_writeMutex;
-        /**
-         * Buffer for messages. Needed for multi-frame messages.
-         */
-        oatpp::data::stream::BufferOutputStream m_messageBuffer;
-
-    public:
-        WSListener(std::mutex &writeMutex)
-            : m_writeMutex(writeMutex)
-        {
-        }
-
-        /**
-         * Called on "ping" frame.
-         */
-        void onPing(const WebSocket &socket, const oatpp::String &message) override
-        {
-            OATPP_LOGD(TAG, "onPing");
-            std::lock_guard<std::mutex> lock(m_writeMutex);
-            socket.sendPong(message);
-        }
-
-        /**
-         * Called on "pong" frame
-         */
-        void onPong(const WebSocket &socket, const oatpp::String &message) override
-        {
-            OATPP_LOGD(TAG, "onPong");
-        }
-
-        /**
-         * Called on "close" frame
-         */
-        void onClose(const WebSocket &socket, v_uint16 code, const oatpp::String &message) override
-        {
-            OATPP_LOGD(TAG, "onClose code=%d", code);
-        }
-
-        /**
-         * Called on each message frame. After the last message will be called once-again with size == 0 to designate end of the message.
-         */
-        void readMessage(const WebSocket &socket, v_uint8 opcode, p_char8 data, oatpp::v_io_size size) override
-        {
-            if (size == 0)
-            { // message transfer finished
-
-                auto wholeMessage = m_messageBuffer.toString();
-                m_messageBuffer.setCurrentPosition(0);
-
-                OATPP_LOGD(TAG, "on message received '%s'", wholeMessage->c_str());
-
-                /* Send message in reply */
-                // std::lock_guard<std::mutex> lock(m_writeMutex);
-                // socket.sendOneFrameText( "Hello from oatpp!: " + wholeMessage);
-            }
-            else if (size > 0)
-            { // message frame received
-                m_messageBuffer.writeSimple(data, size);
-            }
-        }
-    };
-}
+#include "websocket_listener.hpp"
 
 namespace cloud
 {
@@ -103,17 +28,20 @@ namespace cloud
             bool init();
             bool run();
 
+            void run_socket_task();
+
         private:
             const ClientConfig kConfig_;
 
             std::shared_ptr<oatpp::network::tcp::client::ConnectionProvider> connection_provider_;
             std::shared_ptr<oatpp::websocket::Connector> socket_connector_;
-            std::shared_ptr<oatpp::websocket::WebSocket> socket_;
+            std::shared_ptr<oatpp::websocket::WebSocket> web_socket_;
+
+            std::mutex web_socket_write_mtx_;
         };
 
         OatppClient::OatppClientImpl::OatppClientImpl(const ClientConfig &config)
             : kConfig_(config)
-
         {
         }
 
@@ -140,29 +68,32 @@ namespace cloud
                 return false;
             }
 
-            auto connection = socket_connector_->connect("v3/channel_1?api_key=VCXCEuvhGcBDP7XhiJJUDvR1e1D3eiVjgZ9VRiaV&notify_self");
-            LOG(INFO) << "Connected";
+            auto connection = socket_connector_->connect("");
 
-            socket_.reset();
-            socket_ = oatpp::websocket::WebSocket::createShared(connection, true /* maskOutgoingMessages must be true for clients */);
-            if (!socket_)
+            web_socket_.reset();
+            web_socket_ = oatpp::websocket::WebSocket::createShared(connection, true /* maskOutgoingMessages must be true for clients */);
+            if (!web_socket_)
             {
                 LOG(ERROR) << "WebSocket is not created";
                 return false;
             }
 
-            std::mutex socket_write_mutex;
-
-            socket_->setListener(std::make_shared<WSListener>(socket_write_mutex));
+            web_socket_->setListener(std::make_shared<WebSocketListener>(web_socket_write_mtx_));
 
             return true;
         }
 
         bool OatppClient::OatppClientImpl::run()
         {
-            socket_->sendOneFrameText("hello");
+            web_socket_->sendOneFrameText("hello");
+            run_socket_task();
 
             return true;
+        }
+
+        void OatppClient::OatppClientImpl::run_socket_task()
+        {
+            web_socket_->listen();
         }
 
         bool OatppClient::OatppClientImpl::start()
@@ -178,7 +109,7 @@ namespace cloud
 
         void OatppClient::OatppClientImpl::stop()
         {
-            socket_.reset();
+            web_socket_.reset();
             socket_connector_.reset();
             connection_provider_.reset();
 
