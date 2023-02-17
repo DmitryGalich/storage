@@ -21,6 +21,8 @@ namespace server
     {
         Config load_config(const std::string &path)
         {
+            LOG(INFO) << "Loading config: " << path;
+
             nlohmann::json json_object;
             json_object[kJsonArgs_.kHost_] = "127.0.0.1";
             json_object[kJsonArgs_.kPort_] = 8000;
@@ -32,7 +34,7 @@ namespace server
             std::fstream file(path);
             if (!file.is_open())
             {
-                LOG(INFO) << "Creeating default server config...";
+                LOG(INFO) << "Creeating default config...";
 
                 std::ofstream default_config_file(path);
                 if (!default_config_file.is_open())
@@ -54,7 +56,7 @@ namespace server
                 file.close();
             }
 
-            LOG(INFO) << "Current server config: \n"
+            LOG(INFO) << "Current config: \n"
                       << json_object.dump(4);
 
             Config config;
