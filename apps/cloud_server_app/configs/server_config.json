@@ -1,6 +1,5 @@
 {
     "host": "127.0.0.1",
-    "network_lib": "oatpp",
     "port": 8000,
     "is_ip_v6_family": false,
     "executor_data_processing_threads": 9,

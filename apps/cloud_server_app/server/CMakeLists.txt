@@ -1,18 +1,22 @@
 cmake_minimum_required(VERSION 3.5)
 
-set(MODULE_NAME server)
+add_subdirectory(config_handling)
 
-add_subdirectory(internal)
+find_package(oatpp              1.3.0 REQUIRED)
+find_package(oatpp-websocket    1.3.0 REQUIRED)
+
+set(MODULE_NAME server)
 
 add_library(${MODULE_NAME}
     ${MODULE_NAME}.cpp
-    ${MODULE_NAME}.h
+    ${MODULE_NAME}.hpp
 )
-add_library(cloud::server ALIAS ${MODULE_NAME})
+add_library(server::server ALIAS ${MODULE_NAME})
 
-target_link_libraries(${MODULE_NAME}
-    PRIVATE
-        easylogging::easylogging
-        cloud::internal::server_fabric
-        cloud::internal::abstract_server 
+target_link_libraries(${MODULE_NAME} 
+PRIVATE
+    easylogging::easylogging
+    oatpp::oatpp
+    oatpp::oatpp-websocket
+    server::config_handling
 )
