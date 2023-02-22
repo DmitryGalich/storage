@@ -9,6 +9,13 @@
 
 namespace server
 {
+    bool kek()
+    {
+        server::NetworkComponents network_components;
+
+        return true;
+    }
+
     bool run(const std::string &config_path)
     {
         const auto kConfig = server::config::load_config(config_path);
@@ -18,8 +25,7 @@ namespace server
         {
             oatpp::base::Environment::init();
 
-            server::NetworkComponents network_components(kConfig);
-
+            kek();
             is_need_server_running = false;
 
             oatpp::base::Environment::destroy();

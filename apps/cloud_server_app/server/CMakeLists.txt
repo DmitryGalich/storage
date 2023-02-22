@@ -11,6 +11,8 @@ add_library(${MODULE_NAME}
     ${MODULE_NAME}.cpp
     ${MODULE_NAME}.hpp
     network_components.hpp
+    WSListener.hpp
+    WSListener.cpp
 )
 add_library(server::server ALIAS ${MODULE_NAME})
 
