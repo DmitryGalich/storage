@@ -23,16 +23,13 @@ namespace cloud
             void stop();
 
         private:
-            bool init();
-            bool run();
-
-        private:
             const ServerConfig kConfig_;
+            std::shared_ptr<oatpp::network::Server> server_;
         };
 
         OatppServer::OatppServerImpl::OatppServerImpl(const ServerConfig &config) : kConfig_(config) {}
 
-        bool OatppServer::OatppServerImpl::init()
+        bool OatppServer::OatppServerImpl::start()
         {
             oatpp::base::Environment::init();
 
@@ -51,33 +48,17 @@ namespace cloud
             /* Get connection provider component */
             OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connectionProvider);
 
-            /* Create server which takes provided TCP connections and passes them to HTTP connection handler */
-            oatpp::network::Server server(connectionProvider, connectionHandler);
-
-            /* Run server */
-            server.run();
-
-            return true;
-        }
-
-        bool OatppServer::OatppServerImpl::run()
-        {
-            return true;
-        }
-
-        bool OatppServer::OatppServerImpl::start()
-        {
-            if (!init())
-                return false;
-
-            if (!run())
-                return false;
+            server_.reset();
+            server_ = std::make_shared<oatpp::network::Server>(connectionProvider, connectionHandler);
+            server_->run();
 
             return true;
         }
 
         void OatppServer::OatppServerImpl::stop()
         {
+            server_.reset();
+
             oatpp::base::Environment::destroy();
         }
     }
