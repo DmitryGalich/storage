@@ -33,19 +33,27 @@ namespace cloud
         {
             oatpp::base::Environment::init();
 
-            /* Register Components in scope of run() method */
+            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::async::Executor>, executor)
+            ([&]
+             { return std::make_shared<oatpp::async::Executor>(
+                   kConfig_.executor_data_processing_threads_,
+                   kConfig_.executor_io_threads_,
+                   kConfig_.executor_timer_threads_); }());
+
+            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)
+            ([&]
+             { return oatpp::network::tcp::server::ConnectionProvider::createShared(
+                   {kConfig_.host_, static_cast<v_uint16>(kConfig_.port_),
+                    (kConfig_.is_ip_v6_family_ ? oatpp::network::Address::IP_6
+                                               : oatpp::network::Address::IP_4)}); }());
+
             AppComponent components;
 
-            /* Get router component */
             OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
-
-            /* Create MyController and add all of its endpoints to router */
             router->addController(std::make_shared<MyController>());
 
-            /* Get connection handler component */
             OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connectionHandler, "http");
 
-            /* Get connection provider component */
             OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connectionProvider);
 
             server_.reset();
@@ -57,6 +65,7 @@ namespace cloud
 
         void OatppServer::OatppServerImpl::stop()
         {
+            server_->stop();
             server_.reset();
 
             oatpp::base::Environment::destroy();
