@@ -2,8 +2,6 @@
 
 #include "easylogging++.h"
 
-#include "../abstract_server.h"
-
 namespace cloud
 {
     namespace internal
@@ -36,8 +34,6 @@ namespace cloud
 
         bool OatppServer::OatppServerImpl::run()
         {
-            server_->run();
-
             return true;
         }
 

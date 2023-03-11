@@ -7,7 +7,7 @@
 #include "json.hpp"
 
 #include "abstract_server.h"
-// #include "oatpp_server/oatpp_server.h"
+#include "oatpp_server/oatpp_server.h"
 
 namespace
 {
@@ -95,15 +95,13 @@ namespace cloud
         {
             const auto config = load_config(config_path);
 
-            // if (config.network_lib_ == kConfigSupport.kNetworkLibsTitles_.kOatpp_)
-            //     return new OatppServer(config);
-            // else
-            // {
-            //     LOG(ERROR) << "Unknown title of network lib: \"" << config.network_lib_ << "\"";
-            //     return nullptr;
-            // }
-
-            return nullptr;
+            if (config.network_lib_ == kConfigSupport.kNetworkLibsTitles_.kOatpp_)
+                return new OatppServer(config);
+            else
+            {
+                LOG(ERROR) << "Unknown title of network lib: \"" << config.network_lib_ << "\"";
+                return nullptr;
+            }
         }
     }
 }

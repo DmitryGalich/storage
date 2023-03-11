@@ -18,7 +18,7 @@ target_link_libraries(${SERVER_FABRIC_MODULE_NAME}
     PRIVATE
         easylogging::easylogging
         server::internal::abstract_server
-        # server::internal::server_oatpp
+        server::internal::server_oatpp
 )
 target_include_directories(${SERVER_FABRIC_MODULE_NAME}
     PRIVATE 
