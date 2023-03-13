@@ -1,6 +1,8 @@
 
 #include "websocket_listener.hpp"
 
+#include "easylogging++.h"
+
 oatpp::async::CoroutineStarter WebSocketListener::onPing(const std::shared_ptr<AsyncWebSocket> &socket, const oatpp::String &message)
 {
   return socket->sendPongAsync(message);
@@ -35,9 +37,12 @@ oatpp::async::CoroutineStarter WebSocketListener::readMessage(const std::shared_
 
 void WebSocketInstanceListener::onAfterCreate_NonBlocking(const std::shared_ptr<WebSocketListener::AsyncWebSocket> &socket, const std::shared_ptr<const ParameterMap> &params)
 {
+  LOG(INFO) << "New socket connection adding...";
   socket->setListener(std::make_shared<WebSocketListener>());
+  LOG(INFO) << "New socket connection added";
 }
 
 void WebSocketInstanceListener::onBeforeDestroy_NonBlocking(const std::shared_ptr<WebSocketListener::AsyncWebSocket> &socket)
 {
+  LOG(INFO) << "Socket connection removed";
 }
