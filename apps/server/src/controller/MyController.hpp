@@ -16,54 +16,59 @@
 /**
  * Controller with WebSocket-connect endpoint.
  */
-class MyController : public oatpp::web::server::api::ApiController {
+class ServerApiController : public oatpp::web::server::api::ApiController
+{
 private:
   typedef MyController __ControllerType;
+
 private:
   OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, websocketConnectionHandler, "websocket");
+
 public:
   MyController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper))
-    : oatpp::web::server::api::ApiController(objectMapper)
-  {}
+      : oatpp::web::server::api::ApiController(objectMapper)
+  {
+  }
+
 public:
-  
-  ENDPOINT_ASYNC("GET", "/", Root) {
-    
+  ENDPOINT_ASYNC("GET", "/", Root)
+  {
+
     ENDPOINT_ASYNC_INIT(Root)
 
-    const char* pageTemplate =
-      "<html lang='en'>"
+    const char *pageTemplate =
+        "<html lang='en'>"
         "<head>"
-          "<meta charset=utf-8/>"
+        "<meta charset=utf-8/>"
         "</head>"
         "<body>"
-          "<p>Hello Async WebSocket Server!</p>"
-          "<p>"
-            "<code>websocket endpoint is: localhost:8000/ws</code>"
-          "</p>"
+        "<p>Hello Async WebSocket Server!</p>"
+        "<p>"
+        "<code>websocket endpoint is: localhost:8000/ws</code>"
+        "</p>"
         "</body>"
-      "</html>";
+        "</html>";
 
-    Action act() override {
+    Action act() override
+    {
       return _return(controller->createResponse(Status::CODE_200, pageTemplate));
     }
-    
   };
 
-  ENDPOINT_ASYNC("GET", "ws", WS) {
+  ENDPOINT_ASYNC("GET", "ws", WS){
 
-    ENDPOINT_ASYNC_INIT(WS)
+      ENDPOINT_ASYNC_INIT(WS)
 
-    Action act() override {
-      auto response = oatpp::websocket::Handshaker::serversideHandshake(request->getHeaders(), controller->websocketConnectionHandler);
-      return _return(response);
-    }
+          Action act() override{
+              auto response = oatpp::websocket::Handshaker::serversideHandshake(request->getHeaders(), controller->websocketConnectionHandler);
+  return _return(response);
+}
+}
+;
 
-  };
-  
-  // TODO Insert Your endpoints here !!!
-
-};
+// TODO Insert Your endpoints here !!!
+}
+;
 
 #include OATPP_CODEGEN_END(ApiController) //<-- codegen end
 

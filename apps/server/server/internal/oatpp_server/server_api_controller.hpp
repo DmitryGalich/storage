@@ -16,16 +16,16 @@
 /**
  * Controller with WebSocket-connect endpoint.
  */
-class MyController : public oatpp::web::server::api::ApiController
+class ServerApiController : public oatpp::web::server::api::ApiController
 {
 private:
-  typedef MyController __ControllerType;
+  typedef ServerApiController __ControllerType;
 
 private:
   OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, websocketConnectionHandler, "websocket");
 
 public:
-  MyController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper))
+  ServerApiController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper))
       : oatpp::web::server::api::ApiController(objectMapper)
   {
   }
@@ -56,9 +56,7 @@ public:
   };
 
   ENDPOINT_ASYNC("GET", "ws", WS){
-
       ENDPOINT_ASYNC_INIT(WS)
-
           Action act() override{
               auto response = oatpp::websocket::Handshaker::serversideHandshake(request->getHeaders(), controller->websocketConnectionHandler);
   return _return(response);

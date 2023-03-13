@@ -9,7 +9,7 @@
 #include "oatpp/web/server/AsyncHttpConnectionHandler.hpp"
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 
-#include "./controller/MyController.hpp"
+#include "server_api_controller.hpp"
 
 #include "websocket/WSListener.hpp"
 
@@ -71,18 +71,18 @@ namespace cloud
             ("websocket", []
              {
                 OATPP_COMPONENT(std::shared_ptr<oatpp::async::Executor>, executor);
-                auto connectionHandler = oatpp::websocket::AsyncConnectionHandler::createShared(executor);
-                connectionHandler->setSocketInstanceListener(std::make_shared<WSInstanceListener>());
-                return connectionHandler; }());
+                auto connection_handler = oatpp::websocket::AsyncConnectionHandler::createShared(executor);
+                connection_handler->setSocketInstanceListener(std::make_shared<WSInstanceListener>());
+                return connection_handler; }());
 
             OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
-            router->addController(std::make_shared<MyController>());
+            router->addController(std::make_shared<ServerApiController>());
 
-            OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connectionHandler, "http");
+            OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connection_handler, "http");
             OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connectionProvider);
 
             server_.reset();
-            server_ = std::make_shared<oatpp::network::Server>(connectionProvider, connectionHandler);
+            server_ = std::make_shared<oatpp::network::Server>(connectionProvider, connection_handler);
             server_->run();
 
             return true;
