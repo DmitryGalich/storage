@@ -63,11 +63,11 @@ namespace cloud
                 OATPP_COMPONENT(std::shared_ptr<oatpp::async::Executor>, executor); 
                 return oatpp::web::server::AsyncHttpConnectionHandler::createShared(router, executor); }());
 
-            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, apiObjectMapper)
+            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, api_object_mapper)
             ([]
              { return oatpp::parser::json::mapping::ObjectMapper::createShared(); }());
 
-            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, websocketConnectionHandler)
+            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, websocket_connection_handler)
             ("websocket", []
              {
                 OATPP_COMPONENT(std::shared_ptr<oatpp::async::Executor>, executor);
@@ -79,10 +79,10 @@ namespace cloud
             router->addController(std::make_shared<ServerApiController>());
 
             OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connection_handler, "http");
-            OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connectionProvider);
+            OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connection_provider);
 
             server_.reset();
-            server_ = std::make_shared<oatpp::network::Server>(connectionProvider, connection_handler);
+            server_ = std::make_shared<oatpp::network::Server>(connection_provider, connection_handler);
             server_->run();
 
             return true;
