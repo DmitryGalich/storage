@@ -1,11 +1,9 @@
-
-#ifndef WSListener_hpp
-#define WSListener_hpp
+#pragma once
 
 #include "oatpp-websocket/AsyncConnectionHandler.hpp"
 #include "oatpp-websocket/AsyncWebSocket.hpp"
 
-class WSListener : public oatpp::websocket::AsyncWebSocket::Listener
+class WebSocketListener : public oatpp::websocket::AsyncWebSocket::Listener
 {
 public:
   CoroutineStarter onPing(const std::shared_ptr<AsyncWebSocket> &socket, const oatpp::String &message) override;
@@ -17,11 +15,9 @@ private:
   oatpp::data::stream::BufferOutputStream m_messageBuffer;
 };
 
-class WSInstanceListener : public oatpp::websocket::AsyncConnectionHandler::SocketInstanceListener
+class WebSocketInstanceListener : public oatpp::websocket::AsyncConnectionHandler::SocketInstanceListener
 {
 public:
-  void onAfterCreate_NonBlocking(const std::shared_ptr<WSListener::AsyncWebSocket> &socket, const std::shared_ptr<const ParameterMap> &params) override;
-  void onBeforeDestroy_NonBlocking(const std::shared_ptr<WSListener::AsyncWebSocket> &socket) override;
+  void onAfterCreate_NonBlocking(const std::shared_ptr<WebSocketListener::AsyncWebSocket> &socket, const std::shared_ptr<const ParameterMap> &params) override;
+  void onBeforeDestroy_NonBlocking(const std::shared_ptr<WebSocketListener::AsyncWebSocket> &socket) override;
 };
-
-#endif // WSListener_hpp

@@ -10,8 +10,7 @@
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 
 #include "server_api_controller.hpp"
-
-#include "websocket/WSListener.hpp"
+#include "websocket_listener.hpp"
 
 namespace cloud
 {
@@ -72,7 +71,7 @@ namespace cloud
              {
                 OATPP_COMPONENT(std::shared_ptr<oatpp::async::Executor>, executor);
                 auto connection_handler = oatpp::websocket::AsyncConnectionHandler::createShared(executor);
-                connection_handler->setSocketInstanceListener(std::make_shared<WSInstanceListener>());
+                connection_handler->setSocketInstanceListener(std::make_shared<WebSocketInstanceListener>());
                 return connection_handler; }());
 
             OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);

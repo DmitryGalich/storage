@@ -9,9 +9,9 @@ add_library(${MODULE_NAME}
     ${MODULE_NAME}.cpp
     ${MODULE_NAME}.h
     server_api_controller.hpp
-    websocket/WSListener.cpp
-    websocket/WSListener.hpp
-)
+    websocket_listener.cpp
+    websocket_listener.hpp)
+    
 add_library(server::internal::server_oatpp ALIAS ${MODULE_NAME})
 target_include_directories(${MODULE_NAME}
     PRIVATE 
