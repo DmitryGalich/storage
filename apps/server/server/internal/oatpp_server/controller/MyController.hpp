@@ -42,7 +42,7 @@ public:
         "<meta charset=utf-8/>"
         "</head>"
         "<body>"
-        "<p>Hello Async WebSocket Server! KKKKKEEEEK</p>"
+        "<p>Hello Async WebSocket Server! Hochu smeyatsya pyat minut</p>"
         "<p>"
         "<code>websocket endpoint is: localhost:8000/ws</code>"
         "</p>"

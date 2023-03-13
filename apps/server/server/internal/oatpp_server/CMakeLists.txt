@@ -8,7 +8,7 @@ set(MODULE_NAME oatpp_server)
 add_library(${MODULE_NAME}
     ${MODULE_NAME}.cpp
     ${MODULE_NAME}.h
-    AppComponent.hpp
+    # AppComponent.hpp
     controller/MyController.hpp
     websocket/WSListener.cpp
     websocket/WSListener.hpp
