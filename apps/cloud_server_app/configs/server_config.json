@@ -1,4 +1,5 @@
 {
+    "network_lib": "oatpp",
     "host": "127.0.0.1",
     "port": 8000,
     "is_ip_v6_family": false,

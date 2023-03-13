@@ -1,8 +1,20 @@
 #pragma once
 
-#include <string>
+#include <memory>
 
-namespace server
+namespace cloud
 {
-    bool run(const std::string &config_path);
+    class Server
+    {
+    public:
+        Server();
+        ~Server();
+
+        bool start(const std::string &config_path);
+        void stop() noexcept;
+
+    private:
+        class ServerImpl;
+        std::unique_ptr<ServerImpl> server_impl_;
+    };
 }
