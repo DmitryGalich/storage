@@ -45,7 +45,7 @@ namespace cloud
                    kConfig_.executor_io_threads_,
                    kConfig_.executor_timer_threads_); }());
 
-            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)
+            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, server_connection_provider)
             ([&]
              { return oatpp::network::tcp::server::ConnectionProvider::createShared(
                    {kConfig_.host_,
@@ -53,11 +53,11 @@ namespace cloud
                     (kConfig_.is_ip_v6_family_ ? oatpp::network::Address::IP_6
                                                : oatpp::network::Address::IP_4)}); }());
 
-            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, httpRouter)
+            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, http_router)
             ([]
              { return oatpp::web::server::HttpRouter::createShared(); }());
 
-            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, serverConnectionHandler)
+            OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, server_connection_handler)
             ("http", []
              {  OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);  
                 OATPP_COMPONENT(std::shared_ptr<oatpp::async::Executor>, executor); 
