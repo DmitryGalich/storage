@@ -29,10 +29,6 @@ void WebSocketListener::readMessage(const WebSocket &socket, v_uint8 opcode, p_c
     m_messageBuffer.setCurrentPosition(0);
 
     OATPP_LOGD("KEK", "on message received '%s'", wholeMessage->c_str());
-
-    /* Send message in reply */
-    // std::lock_guard<std::mutex> lock(m_writeMutex);
-    // socket.sendOneFrameText( "Hello from oatpp!: " + wholeMessage);
   }
   else if (size > 0)
   { // message frame received

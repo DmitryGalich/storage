@@ -44,7 +44,7 @@ public:
   std::ostringstream string_stream;
   string_stream << file.rdbuf();
   const std::string content = string_stream.str();
-  return _return(controller->createResponse(Status::CODE_200, content));
+  return _return(controller->createResponse(Status::CODE_201, content));
 }
 }
 ;

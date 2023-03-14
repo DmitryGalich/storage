@@ -58,8 +58,8 @@ namespace cloud
 
             OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, server_connection_handler)
             ("http", []
-             {  OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);  
-                OATPP_COMPONENT(std::shared_ptr<oatpp::async::Executor>, executor); 
+             {  OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
+                OATPP_COMPONENT(std::shared_ptr<oatpp::async::Executor>, executor);
                 return oatpp::web::server::AsyncHttpConnectionHandler::createShared(router, executor); }());
 
             OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, api_object_mapper)
