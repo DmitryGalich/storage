@@ -5,12 +5,12 @@ import websockets
 
 
 async def hello(websocket, path):
-    name = await websocket.recv()
-    print("< {}".format(name))
+    client_message = await websocket.recv()
+    print("< {}".format(client_message))
 
-    greeting = "Hello {}!".format(name)
-    await websocket.send(greeting)
-    print("> {}".format(greeting))
+    server_message = "Server KEK"
+    await websocket.send(server_message)
+    print("> {}".format(server_message))
 
 start_server = websockets.serve(hello, 'localhost', 8000)
 

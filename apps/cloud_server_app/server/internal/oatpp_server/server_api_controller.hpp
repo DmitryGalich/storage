@@ -18,11 +18,11 @@ private:
   typedef ServerApiController __ControllerType;
 
 private:
-  OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, websocketConnectionHandler, "websocket");
+  OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, websocket_connection_handler, "websocket");
 
 public:
-  ServerApiController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, object_mapper))
-      : oatpp::web::server::api::ApiController(object_mapper)
+  ServerApiController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, api_object_mapper))
+      : oatpp::web::server::api::ApiController(api_object_mapper)
   {
   }
 
@@ -44,7 +44,7 @@ public:
   std::ostringstream string_stream;
   string_stream << file.rdbuf();
   const std::string content = string_stream.str();
-  return _return(controller->createResponse(Status::CODE_201, content));
+  return _return(controller->createResponse(Status::CODE_200, content));
 }
 }
 ;
@@ -52,8 +52,11 @@ public:
 ENDPOINT_ASYNC("GET", "ws", WS){
     ENDPOINT_ASYNC_INIT(WS)
         Action act() override{
-            auto response = oatpp::websocket::Handshaker::serversideHandshake(
-                request->getHeaders(), controller->websocketConnectionHandler);
+
+            LOG(INFO) << "KEK";
+
+auto response = oatpp::websocket::Handshaker::serversideHandshake(
+    request->getHeaders(), controller->websocket_connection_handler);
 return _return(response);
 }
 }

@@ -64,14 +64,24 @@ namespace cloud
 
             OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, api_object_mapper)
             ([]
-             { return oatpp::parser::json::mapping::ObjectMapper::createShared(); }());
+             { 
+                auto mapper = oatpp::parser::json::mapping::ObjectMapper::createShared(); 
+                mapper->getSerializer()->getConfig()->includeNullFields = false;
+                return mapper; }());
+
+            OATPP_CREATE_COMPONENT(std::shared_ptr<WebSocketInstanceListener>, websocket_listener)
+            ([]
+             { return std::make_shared<WebSocketInstanceListener>(); }());
 
             OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, websocket_connection_handler)
             ("websocket", []
              {
                 OATPP_COMPONENT(std::shared_ptr<oatpp::async::Executor>, executor);
+                OATPP_COMPONENT(std::shared_ptr<WebSocketInstanceListener>, websocket_listener);
+
                 auto connection_handler = oatpp::websocket::AsyncConnectionHandler::createShared(executor);
-                connection_handler->setSocketInstanceListener(std::make_shared<WebSocketInstanceListener>());
+
+                connection_handler->setSocketInstanceListener(websocket_listener);
                 return connection_handler; }());
 
             OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
