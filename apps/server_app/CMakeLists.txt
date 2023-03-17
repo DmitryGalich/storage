@@ -6,16 +6,6 @@ project(server
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# # Boost =======================================
-
-# set(Boost_USE_STATIC_LIBS ON)
-# set(Boost_USE_STATIC_RUNTIME ON)
-
-# find_package(Boost COMPONENTS system)
-# IF(Boost_FOUND)
-#     include_directories(${Boost_INCLUDE_DIRS})
-# ENDIF(Boost_FOUND)
-
 # Logger ======================================
 
 include_directories(
@@ -32,8 +22,6 @@ add_executable(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        # boost_system
         easylogging::easylogging
-
         storage::server
 )

@@ -1,4 +1,3 @@
 add_subdirectory(crc_module)
 add_subdirectory(filesystem_module)
 add_subdirectory(logger_module)
-add_subdirectory(network_module)
