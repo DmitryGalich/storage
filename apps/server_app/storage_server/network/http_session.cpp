@@ -1,5 +1,7 @@
 #include "http_session.hpp"
 
+#include "easylogging++.h"
+
 HttpSession::HttpSession(SessionsManager &sessions_manager,
                          boost::asio::ip::tcp::socket &socket)
     : sessions_manager_(sessions_manager),
@@ -15,8 +17,14 @@ void HttpSession::run()
                                    });
 }
 
-void HttpSession::process_fail(boost::system::error_code &error_code,
-                               char const *reason) {}
+void HttpSession::process_fail(const boost::system::error_code &error_code,
+                               char const *reason)
+{
+    if (error_code == boost::asio::error::operation_aborted)
+        return;
+
+    LOG(ERROR) << reason << " : " << error_code.message();
+}
 
 void HttpSession::process_read(boost::system::error_code &error_code,
                                std::size_t)
@@ -25,6 +33,12 @@ void HttpSession::process_read(boost::system::error_code &error_code,
     {
         socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send,
                          error_code);
+        return;
+    }
+
+    if (error_code)
+    {
+        process_fail(error_code, "read");
         return;
     }
 }

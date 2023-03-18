@@ -20,7 +20,7 @@ public:
     void run();
 
 private:
-    void process_fail(boost::system::error_code &error_code,
+    void process_fail(const boost::system::error_code &error_code,
                       char const *reason);
     void process_read(boost::system::error_code &eerror_codec,
                       std::size_t);
