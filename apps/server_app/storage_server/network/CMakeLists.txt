@@ -19,6 +19,12 @@ add_library(${MODULE_NAME}
     ${MODULE_NAME}.hpp
     listener.hpp
     listener.cpp
+    sessions_manager.hpp
+    sessions_manager.cpp
+    http_session.hpp
+    http_session.cpp
+    websocket_session.hpp
+    websocket_session.cpp
 )
 add_library(storage::server::network ALIAS ${MODULE_NAME})
 

@@ -33,21 +33,27 @@ namespace storage
             {
                 stop();
 
-                boost::asio::ip::tcp::endpoint kEndpoint(
-                    {boost::asio::ip::make_address(config.host_)},
-                    config.port_);
-
-                listener_ = std::make_unique<Listener>(io_context_, kEndpoint);
+                listener_ = std::make_unique<Listener>(io_context_);
                 if (!listener_)
                 {
                     LOG(ERROR) << "Can't create Listener";
                     return false;
                 }
 
-                io_context_.run();
+                boost::asio::ip::tcp::endpoint kEndpoint(
+                    {boost::asio::ip::make_address(config.host_)},
+                    config.port_);
 
+                if (!listener_->run(kEndpoint))
+                {
+                    LOG(ERROR) << "Can't run Listener";
+                    return false;
+                }
+
+                io_context_.run();
                 is_running_ = true;
-                return true;
+
+                return is_running_;
             }
 
             void NetworkModule::NetworkModuleImpl::stop()
@@ -55,8 +61,8 @@ namespace storage
                 if (!is_running_)
                     return;
 
-                listener_.reset();
                 io_context_.stop();
+                listener_.reset();
 
                 is_running_ = false;
             }
