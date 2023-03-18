@@ -48,6 +48,8 @@ bool Listener::run(const ip::tcp::endpoint &endpoint)
     return false;
   }
 
+  prepare_for_accept();
+
   return true;
 }
 
@@ -55,9 +57,9 @@ void Listener::prepare_for_accept()
 {
   acceptor_.async_accept(
       socket_,
-      [self = shared_from_this()](boost::system::error_code error_code)
+      [&](boost::system::error_code error_code)
       {
-        self->process_accept(error_code);
+        process_accept(error_code);
       });
 }
 

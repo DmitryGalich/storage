@@ -51,8 +51,10 @@ namespace storage
                 }
 
                 io_context_.run();
-                is_running_ = true;
 
+                // Not reaching this point
+
+                is_running_ = true;
                 return is_running_;
             }
 
