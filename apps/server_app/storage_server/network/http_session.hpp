@@ -31,4 +31,6 @@ private:
 private:
     SessionsManager &sessions_manager_;
     boost::asio::ip::tcp::socket &socket_;
+    boost::beast::flat_buffer buffer_;
+    boost::beast::http::request<boost::beast::http::string_body> request_;
 };

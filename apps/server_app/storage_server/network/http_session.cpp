@@ -2,7 +2,8 @@
 
 HttpSession::HttpSession(SessionsManager &sessions_manager,
                          boost::asio::ip::tcp::socket &socket)
-    : sessions_manager_(sessions_manager), socket_(socket) {}
+    : sessions_manager_(sessions_manager),
+      socket_(socket) {}
 
 void HttpSession::run() {}
 
