@@ -79,7 +79,8 @@ void Listener::process_accept(const boost::system::error_code &error_code)
       });
 }
 
-void Listener::process_fail(const boost::system::error_code &error_code, char const *reason)
+void Listener::process_fail(const boost::system::error_code &error_code,
+                            char const *reason)
 {
   if (error_code == error::operation_aborted)
     return;

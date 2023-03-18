@@ -5,6 +5,7 @@
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/beast.hpp>
 
 #include "sessions_manager.hpp"
 

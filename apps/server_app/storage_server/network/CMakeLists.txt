@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
+if(NOT WIN32)
+  find_package(Threads)
+endif()
+
 # Boost =======================================
 
 set(Boost_USE_STATIC_LIBS ON)
@@ -32,4 +36,5 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         easylogging::easylogging
         boost_system
+        Threads::Threads
 )

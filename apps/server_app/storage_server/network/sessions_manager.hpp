@@ -2,6 +2,8 @@
 
 #include <unordered_set>
 
+class websocket_session;
+
 class SessionsManager
 {
 public:
