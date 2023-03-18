@@ -12,6 +12,7 @@ namespace storage
             {
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
+                bool is_ip_v6_{false};
             };
 
             class NetworkModule

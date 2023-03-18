@@ -2,6 +2,11 @@
 
 #include "easylogging++.h"
 
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/signal_set.hpp>
+
+#include "listener.hpp"
+
 namespace storage
 {
     namespace server
@@ -18,13 +23,43 @@ namespace storage
                 void stop();
 
             private:
-                Config config_;
+                bool is_running_;
+
+                boost::asio::io_context io_context_;
+                std::unique_ptr<Listener> listener_;
             };
 
-            bool NetworkModule::NetworkModuleImpl::start(const Config &config) { return true; }
+            bool NetworkModule::NetworkModuleImpl::start(const Config &config)
+            {
+                stop();
 
-            void NetworkModule::NetworkModuleImpl::stop() {}
+                boost::asio::ip::tcp::endpoint kEndpoint(
+                    {boost::asio::ip::make_address(config.host_)},
+                    config.port_);
 
+                listener_ = std::make_unique<Listener>(io_context_, kEndpoint);
+                if (!listener_)
+                {
+                    LOG(ERROR) << "Can't create Listener";
+                    return false;
+                }
+
+                io_context_.run();
+
+                is_running_ = true;
+                return true;
+            }
+
+            void NetworkModule::NetworkModuleImpl::stop()
+            {
+                if (!is_running_)
+                    return;
+
+                listener_.reset();
+                io_context_.stop();
+
+                is_running_ = false;
+            }
         }
     }
 }
