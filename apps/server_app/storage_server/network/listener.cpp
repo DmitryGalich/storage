@@ -57,7 +57,7 @@ void Listener::prepare_for_accept()
 {
   acceptor_.async_accept(
       socket_,
-      [=](boost::system::error_code error_code)
+      [&](boost::system::error_code error_code)
       {
         process_accept(error_code);
       });
