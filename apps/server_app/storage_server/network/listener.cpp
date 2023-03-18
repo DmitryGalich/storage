@@ -57,7 +57,7 @@ void Listener::prepare_for_accept()
 {
   acceptor_.async_accept(
       socket_,
-      [&](boost::system::error_code error_code)
+      [=](boost::system::error_code error_code)
       {
         process_accept(error_code);
       });
@@ -73,9 +73,9 @@ void Listener::process_accept(const boost::system::error_code &error_code)
 
   acceptor_.async_accept(
       socket_,
-      [self = shared_from_this()](boost::system::error_code error_code)
+      [&](boost::system::error_code error_code)
       {
-        self->process_accept(error_code);
+        prepare_for_accept();
       });
 }
 

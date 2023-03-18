@@ -41,6 +41,8 @@ void HttpSession::process_read(boost::system::error_code &error_code,
         process_fail(error_code, "read");
         return;
     }
+
+    LOG(INFO) << "KEK";
 }
 
 void HttpSession::process_write(boost::system::error_code &error_code,
