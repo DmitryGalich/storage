@@ -11,6 +11,14 @@
 
 using namespace boost::asio;
 
+namespace
+{
+  bool is_error_important(const boost::system::error_code &error_code)
+  {
+    return !(error_code == error::operation_aborted);
+  }
+}
+
 Listener::Listener(io_context &io_context)
     : acceptor_(io_context),
       socket_(io_context)
@@ -24,21 +32,24 @@ bool Listener::run(const ip::tcp::endpoint &endpoint)
   acceptor_.open(endpoint.protocol(), error_code);
   if (error_code)
   {
-    process_fail(error_code, "open");
+    LOG(ERROR) << "Code(" << error_code.value() << ") - "
+               << error_code.message();
     return false;
   }
 
   acceptor_.set_option(socket_base::reuse_address(true), error_code);
   if (error_code)
   {
-    process_fail(error_code, "set_option");
+    LOG(ERROR) << "Code(" << error_code.value() << ") - "
+               << error_code.message();
     return false;
   }
 
   acceptor_.bind(endpoint, error_code);
   if (error_code)
   {
-    process_fail(error_code, "bind");
+    LOG(ERROR) << "Code(" << error_code.value() << ") - "
+               << error_code.message();
     return false;
   }
 
@@ -46,7 +57,8 @@ bool Listener::run(const ip::tcp::endpoint &endpoint)
       socket_base::max_listen_connections, error_code);
   if (error_code)
   {
-    process_fail(error_code, "listen");
+    LOG(ERROR) << "Code(" << error_code.value() << ") - "
+               << error_code.message();
     return false;
   }
 
@@ -60,7 +72,14 @@ bool Listener::run(const ip::tcp::endpoint &endpoint)
 void Listener::process_accept(const boost::system::error_code &error_code)
 {
   if (error_code)
-    return process_fail(error_code, "accept");
+  {
+    if (is_error_important(error_code))
+    {
+      LOG(ERROR) << "Code(" << error_code.value() << ") - "
+                 << error_code.message();
+      return;
+    }
+  }
 
   std::make_shared<HttpSession>(sessions_manager_, socket_)
       ->run();
@@ -68,13 +87,4 @@ void Listener::process_accept(const boost::system::error_code &error_code)
   acceptor_.async_accept(
       socket_, [&](const boost::system::error_code &error_code)
       { process_accept(error_code); });
-}
-
-void Listener::process_fail(const boost::system::error_code &error_code,
-                            char const *reason)
-{
-  if (error_code == error::operation_aborted)
-    return;
-
-  LOG(ERROR) << reason << " : " << error_code.message();
 }
