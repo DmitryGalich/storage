@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <string>
-#include <bits/shared_ptr.h>
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/io_context.hpp>
