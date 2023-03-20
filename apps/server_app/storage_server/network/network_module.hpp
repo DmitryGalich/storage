@@ -18,7 +18,7 @@ namespace storage
             class NetworkModule
             {
             public:
-                NetworkModule();
+                NetworkModule(const int &available_processors_cores);
                 ~NetworkModule();
 
                 bool start(const Config &config);

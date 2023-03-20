@@ -4,6 +4,7 @@
 #include <boost/asio/basic_socket_acceptor.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/bind.hpp>
+#include <boost/asio/strand.hpp>
 
 #include "easylogging++.h"
 
@@ -19,8 +20,11 @@ namespace
   }
 }
 
-Listener::Listener(io_context &io_context)
-    : acceptor_(io_context),
+Listener::Listener(const int &available_processors_cores,
+                   io_context &io_context)
+    : kAvailableProcessorsCores_(available_processors_cores),
+      io_context_(io_context),
+      acceptor_(io_context),
       socket_(io_context)
 {
 }
@@ -72,6 +76,12 @@ void Listener::prepare_for_accept()
   acceptor_.async_accept(
       socket_, [&](const boost::system::error_code &error_code)
       { process_accept(error_code); });
+
+  // acceptor_.async_accept(
+  //     make_strand(io_context_),
+  //     boost::beast::bind_front_handler(
+  //         &Listener::process_accept,
+  //         shared_from_this()));
 }
 
 void Listener::process_accept(const boost::system::error_code &error_code)
@@ -86,7 +96,7 @@ void Listener::process_accept(const boost::system::error_code &error_code)
     }
   }
 
-  sessions_manager_.join(std::make_shared<HttpSession>(socket_));
+  sessions_manager_.add(std::make_shared<HttpSession>(socket_));
 
   prepare_for_accept();
 }

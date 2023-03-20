@@ -16,18 +16,24 @@ namespace storage
             class NetworkModule::NetworkModuleImpl
             {
             public:
-                NetworkModuleImpl() = default;
+                NetworkModuleImpl() = delete;
+                NetworkModuleImpl(const int &available_processors_cores);
                 ~NetworkModuleImpl() = default;
 
                 bool start(const Config &config);
                 void stop();
 
             private:
+                const int kAvailableProcessorsCores_;
+
                 bool is_running_;
 
                 boost::asio::io_context io_context_;
                 std::unique_ptr<Listener> listener_;
             };
+
+            NetworkModule::NetworkModuleImpl::NetworkModuleImpl(const int &available_processors_cores)
+                : kAvailableProcessorsCores_(available_processors_cores) {}
 
             bool NetworkModule::NetworkModuleImpl::start(const Config &config)
             {
@@ -35,7 +41,8 @@ namespace storage
 
                 LOG(DEBUG) << "Starting...";
 
-                listener_ = std::make_unique<Listener>(io_context_);
+                listener_ = std::make_unique<Listener>(kAvailableProcessorsCores_,
+                                                       io_context_);
                 if (!listener_)
                 {
                     LOG(ERROR) << "Can't create Listener";
@@ -87,7 +94,7 @@ namespace storage
     {
         namespace network
         {
-            NetworkModule::NetworkModule() : network_module_impl_(std::make_unique<storage::server::network::NetworkModule::NetworkModuleImpl>()) {}
+            NetworkModule::NetworkModule(const int &available_processors_cores) : network_module_impl_(std::make_unique<storage::server::network::NetworkModule::NetworkModuleImpl>(available_processors_cores)) {}
 
             NetworkModule::~NetworkModule() {}
 

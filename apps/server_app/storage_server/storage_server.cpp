@@ -1,6 +1,7 @@
 #include "storage_server.hpp"
 
 #include <fstream>
+#include <thread>
 
 #include "easylogging++.h"
 #include "json.hpp"
@@ -73,7 +74,9 @@ namespace storage
     {
         LOG(INFO) << "Starting...";
 
-        netowrk_module_.reset(new server::network::NetworkModule());
+        const auto kProcessorsCores = std::thread::hardware_concurrency();
+
+        netowrk_module_.reset(new server::network::NetworkModule(kProcessorsCores));
         if (!netowrk_module_)
             return false;
 

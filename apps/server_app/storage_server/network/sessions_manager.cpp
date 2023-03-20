@@ -4,7 +4,7 @@
 
 #include "http_session.hpp"
 
-bool SessionsManager::join(std::shared_ptr<HttpSession> session)
+bool SessionsManager::add(std::shared_ptr<HttpSession> session)
 {
   if (!session)
   {
@@ -18,7 +18,7 @@ bool SessionsManager::join(std::shared_ptr<HttpSession> session)
   http_sessions_.insert(session);
 }
 
-void SessionsManager::leave(std::shared_ptr<HttpSession> session)
+void SessionsManager::remove(std::shared_ptr<HttpSession> session)
 {
   // Need to make thread-safe
 

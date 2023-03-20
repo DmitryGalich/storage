@@ -12,8 +12,8 @@ public:
     SessionsManager() = default;
     ~SessionsManager() = default;
 
-    bool join(std::shared_ptr<HttpSession> session);
-    void leave(std::shared_ptr<HttpSession> session);
+    bool add(std::shared_ptr<HttpSession> session);
+    void remove(std::shared_ptr<HttpSession> session);
     void send(const std::string &message);
 
 private:
