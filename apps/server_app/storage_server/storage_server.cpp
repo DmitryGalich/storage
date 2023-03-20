@@ -18,7 +18,7 @@ namespace
         std::fstream file(config_path);
         if (!file.is_open())
         {
-            LOG(INFO) << "Creeating default client config...";
+            LOG(INFO) << "Creeating default config...";
 
             std::ofstream default_config_file(config_path);
             if (!default_config_file.is_open())
@@ -39,7 +39,7 @@ namespace
             file.close();
         }
 
-        LOG(INFO) << "Current client config: \n"
+        LOG(INFO) << "Current config: \n"
                   << json_object.dump(4);
 
         storage::server::network::Config config;

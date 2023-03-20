@@ -33,6 +33,8 @@ namespace storage
             {
                 stop();
 
+                LOG(DEBUG) << "Starting...";
+
                 listener_ = std::make_unique<Listener>(io_context_);
                 if (!listener_)
                 {
@@ -60,13 +62,20 @@ namespace storage
 
             void NetworkModule::NetworkModuleImpl::stop()
             {
+                LOG(DEBUG) << "Stopping...";
+
                 if (!is_running_)
+                {
+                    LOG(DEBUG) << "Stopped";
                     return;
+                }
 
                 io_context_.stop();
                 listener_.reset();
 
                 is_running_ = false;
+
+                LOG(DEBUG) << "Stopped";
             }
         }
     }

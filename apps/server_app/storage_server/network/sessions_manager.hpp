@@ -2,8 +2,9 @@
 
 #include <unordered_set>
 #include <string>
+#include <memory>
 
-class websocket_session;
+class HttpSession;
 
 class SessionsManager
 {
@@ -11,11 +12,12 @@ public:
     SessionsManager() = default;
     ~SessionsManager() = default;
 
-    void join(websocket_session &session);
-    void leave(websocket_session &session);
+    bool join(std::shared_ptr<HttpSession> session);
+    void leave(std::shared_ptr<HttpSession> session);
     void send(const std::string &message);
 
 private:
     // Need to make thread-safe
-    std::unordered_set<websocket_session *> websocket_sessions_;
+
+    std::unordered_set<std::shared_ptr<HttpSession>> http_sessions_;
 };

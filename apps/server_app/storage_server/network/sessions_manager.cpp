@@ -1,19 +1,28 @@
 #include "sessions_manager.hpp"
 
-#include "websocket_session.hpp"
+#include "easylogging++.h"
 
-void SessionsManager::join(websocket_session &session)
+#include "http_session.hpp"
+
+bool SessionsManager::join(std::shared_ptr<HttpSession> session)
 {
-  // Need to make thread-safe
+  if (!session)
+  {
+    LOG(ERROR) << "Http session is null";
+    return false;
+  }
 
-  // sessions_.insert(&session);
+  session->run();
+
+  // Need to make thread-safe
+  http_sessions_.insert(session);
 }
 
-void SessionsManager::leave(websocket_session &session)
+void SessionsManager::leave(std::shared_ptr<HttpSession> session)
 {
   // Need to make thread-safe
 
-  // sessions_.erase(&session);
+  http_sessions_.erase(session);
 }
 
 void SessionsManager::send(const std::string &message)

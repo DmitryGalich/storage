@@ -15,7 +15,7 @@ namespace
 {
   bool is_error_important(const boost::system::error_code &error_code)
   {
-    return !(error_code == error::operation_aborted);
+    return !(error_code == boost::asio::error::operation_aborted);
   }
 }
 
@@ -62,11 +62,16 @@ bool Listener::run(const ip::tcp::endpoint &endpoint)
     return false;
   }
 
+  prepare_for_accept();
+
+  return true;
+}
+
+void Listener::prepare_for_accept()
+{
   acceptor_.async_accept(
       socket_, [&](const boost::system::error_code &error_code)
       { process_accept(error_code); });
-
-  return true;
 }
 
 void Listener::process_accept(const boost::system::error_code &error_code)
@@ -81,10 +86,7 @@ void Listener::process_accept(const boost::system::error_code &error_code)
     }
   }
 
-  std::make_shared<HttpSession>(sessions_manager_, socket_)
-      ->run();
+  sessions_manager_.join(std::make_shared<HttpSession>(socket_));
 
-  acceptor_.async_accept(
-      socket_, [&](const boost::system::error_code &error_code)
-      { process_accept(error_code); });
+  prepare_for_accept();
 }
