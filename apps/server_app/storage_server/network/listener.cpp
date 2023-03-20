@@ -1,5 +1,6 @@
 #include "listener.hpp"
 
+#define BOOST_BIND_NO_PLACEHOLDERS
 #include <boost/asio/basic_socket_acceptor.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/bind.hpp>
@@ -49,27 +50,11 @@ bool Listener::run(const ip::tcp::endpoint &endpoint)
     return false;
   }
 
-  prepare_for_accept();
+  acceptor_.async_accept(
+      socket_, [&](const boost::system::error_code &error_code)
+      { process_accept(error_code); });
 
   return true;
-}
-
-void handle(const boost::system::error_code &error)
-{
-  LOG(INFO) << error.message();
-}
-
-void Listener::prepare_for_accept()
-{
-  // acceptor_.async_accept(
-  //     socket_,
-  //     [self = shared_from_this()](boost::system::error_code error_code)
-  //     {
-  //       self->process_accept(error_code);
-  //     });
-
-  acceptor_.async_accept(
-      socket_, process_accept);
 }
 
 void Listener::process_accept(const boost::system::error_code &error_code)
@@ -80,11 +65,9 @@ void Listener::process_accept(const boost::system::error_code &error_code)
   std::make_shared<HttpSession>(sessions_manager_, socket_)
       ->run();
 
-  // acceptor_.async_accept(
-  //     socket_, boost::bind()
-  //                  [self = shared_from_this()](boost::system::error_code error_code) {
-  //                    self->prepare_for_accept();
-  //                  });
+  acceptor_.async_accept(
+      socket_, [&](const boost::system::error_code &error_code)
+      { process_accept(error_code); });
 }
 
 void Listener::process_fail(const boost::system::error_code &error_code,
