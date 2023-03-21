@@ -76,12 +76,6 @@ void Listener::prepare_for_accept()
   acceptor_.async_accept(
       socket_, [&](const boost::system::error_code &error_code)
       { process_accept(error_code); });
-
-  // acceptor_.async_accept(
-  //     make_strand(io_context_),
-  //     boost::beast::bind_front_handler(
-  //         &Listener::process_accept,
-  //         shared_from_this()));
 }
 
 void Listener::process_accept(const boost::system::error_code &error_code)
