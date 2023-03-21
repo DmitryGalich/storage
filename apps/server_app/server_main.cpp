@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <thread>
 
 #include "configs/cmake_config.h"
 
@@ -31,7 +32,9 @@ int main()
     LOG(INFO) << PROJECT_NAME;
     LOG(INFO) << "version " << PROJECT_VERSION;
 
-    storage::Server server;
+    const auto kProcessorsCores = std::thread::hardware_concurrency();
+    const auto kProcessorsCoresForServer = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
+    storage::Server server(kProcessorsCoresForServer);
 
     shutdown_handler = [&](int)
     {

@@ -1,5 +1,7 @@
 #include "network_module.hpp"
 
+#include <thread>
+
 #include "easylogging++.h"
 
 #include <boost/asio/io_context.hpp>
@@ -30,6 +32,8 @@ namespace storage
 
                 boost::asio::io_context io_context_;
                 std::unique_ptr<Listener> listener_;
+
+                std::vector<std::thread> workers_;
             };
 
             NetworkModule::NetworkModuleImpl::NetworkModuleImpl(const int &available_processors_cores)
@@ -57,6 +61,10 @@ namespace storage
                 {
                     LOG(ERROR) << "Can't run Listener";
                     return false;
+                }
+
+                for (int i = 0; i < kAvailableProcessorsCores_; ++i)
+                {
                 }
 
                 io_context_.run();

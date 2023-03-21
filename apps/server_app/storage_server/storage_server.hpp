@@ -7,7 +7,8 @@ namespace storage
     class Server
     {
     public:
-        Server();
+        Server() = delete;
+        Server(const int available_processors_cores);
         ~Server();
 
         bool start(const std::string &config_path);

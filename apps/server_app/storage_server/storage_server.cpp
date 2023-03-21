@@ -1,7 +1,6 @@
 #include "storage_server.hpp"
 
 #include <fstream>
-#include <thread>
 
 #include "easylogging++.h"
 #include "json.hpp"
@@ -56,17 +55,21 @@ namespace storage
     class Server::ServerImpl
     {
     public:
-        ServerImpl();
+        ServerImpl() = delete;
+        ServerImpl(const int available_processors_cores);
         ~ServerImpl() = default;
 
         bool start(const std::string &config_path);
         void stop() noexcept;
 
     private:
+        const int kAvailableProcessorsCores_;
+
         std::unique_ptr<server::network::NetworkModule> netowrk_module_;
     };
 
-    Server::ServerImpl::ServerImpl()
+    Server::ServerImpl::ServerImpl(const int available_processors_cores)
+        : kAvailableProcessorsCores_(available_processors_cores)
     {
     }
 
@@ -74,9 +77,7 @@ namespace storage
     {
         LOG(INFO) << "Starting...";
 
-        const auto kProcessorsCores = std::thread::hardware_concurrency();
-
-        netowrk_module_.reset(new server::network::NetworkModule(kProcessorsCores));
+        netowrk_module_.reset(new server::network::NetworkModule(kAvailableProcessorsCores_));
         if (!netowrk_module_)
             return false;
 
@@ -102,7 +103,7 @@ namespace storage
 
 namespace storage
 {
-    Server::Server() : server_impl_(std::make_unique<storage::Server::ServerImpl>())
+    Server::Server(const int available_processors_cores) : server_impl_(std::make_unique<storage::Server::ServerImpl>(available_processors_cores))
     {
     }
 
