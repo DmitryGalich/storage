@@ -230,6 +230,10 @@ namespace storage
 
             private:
                 const int kAvailableProcessorsCores_;
+
+                std::shared_ptr<boost::asio::io_context> io_context_;
+                std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
+                std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
             };
 
             NetworkModule::NetworkModuleImpl::NetworkModuleImpl(const int &available_processors_cores)
@@ -256,16 +260,37 @@ namespace storage
 
                 // // Not reaching this point
 
-                auto const address = net::ip::make_address("127.0.0.1");
-                unsigned short port = 8080;
+                // auto const address = net::ip::make_address("127.0.0.1");
+                // unsigned short port = 8080;
 
-                net::io_context ioc{1};
+                boost::asio::ip::tcp::endpoint endpoint(
+                    {boost::asio::ip::make_address(config.host_)},
+                    config.port_);
 
-                tcp::acceptor acceptor{ioc, {address, port}};
-                tcp::socket socket{ioc};
-                http_server(acceptor, socket);
+                io_context_.reset(new boost::asio::io_context());
+                if (!io_context_)
+                {
+                    LOG(ERROR) << "Can't create io_context";
+                    return false;
+                }
 
-                ioc.run();
+                acceptor_.reset(new boost::asio::ip::tcp::acceptor(*io_context_, endpoint));
+                if (!acceptor_)
+                {
+                    LOG(ERROR) << "Can't create acceptor";
+                    return false;
+                }
+
+                socket_.reset(new boost::asio::ip::tcp::socket(*io_context_));
+                if (!acceptor_)
+                {
+                    LOG(ERROR) << "Can't create acceptor";
+                    return false;
+                }
+
+                http_server(*acceptor_, *socket_);
+
+                io_context_->run();
 
                 return true;
             }
@@ -273,6 +298,18 @@ namespace storage
             void NetworkModule::NetworkModuleImpl::stop()
             {
                 LOG(DEBUG) << "Stopping...";
+
+                if (!io_context_)
+                {
+                    LOG(DEBUG) << "Stopped";
+                    return;
+                }
+
+                io_context_->stop();
+
+                socket_.reset();
+                acceptor_.reset();
+                io_context_.reset();
 
                 LOG(DEBUG) << "Stopped";
             }
