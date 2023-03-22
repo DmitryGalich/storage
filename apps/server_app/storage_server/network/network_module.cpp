@@ -27,28 +27,27 @@ using tcp = boost::asio::ip::tcp; // from <boost/asio/ip/tcp.hpp>
 
 namespace my_program_state
 {
-    std::size_t
-    request_count()
+    std::size_t request_count()
     {
         static std::size_t count = 0;
         return ++count;
     }
 
-    std::time_t
-    now()
+    std::time_t now()
     {
         return std::time(0);
     }
 }
 
-class http_connection : public std::enable_shared_from_this<http_connection>
+class HttpConnection : public std::enable_shared_from_this<HttpConnection>
 {
 public:
-    http_connection() = delete;
-    http_connection(tcp::socket socket)
+    HttpConnection() = delete;
+    HttpConnection(tcp::socket socket)
         : socket_(std::move(socket))
     {
     }
+    ~HttpConnection() = default;
 
     void start()
     {
@@ -68,16 +67,23 @@ private:
     {
         auto self = shared_from_this();
 
-        http::async_read(
+        boost::beast::http::async_read(
             socket_,
             buffer_,
             request_,
-            [self](beast::error_code ec,
+            [self](boost::beast::error_code error_code,
                    std::size_t bytes_transferred)
             {
                 boost::ignore_unused(bytes_transferred);
-                if (!ec)
+
+                if (error_code)
+                {
+                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                }
+                else
+                {
                     self->process_request();
+                }
             });
     }
 
@@ -88,18 +94,16 @@ private:
 
         switch (request_.method())
         {
-        case http::verb::get:
-            response_.result(http::status::ok);
-            response_.set(http::field::server, "Beast");
+        case boost::beast::http::verb::get:
+            response_.result(boost::beast::http::status::ok);
+            response_.set(boost::beast::http::field::server, "Beast");
             create_response();
             break;
 
         default:
-            // We return responses indicating an error if
-            // we do not recognize the request method.
-            response_.result(http::status::bad_request);
-            response_.set(http::field::content_type, "text/plain");
-            beast::ostream(response_.body())
+            response_.result(boost::beast::http::status::bad_request);
+            response_.set(boost::beast::http::field::content_type, "text/plain");
+            boost::beast::ostream(response_.body())
                 << "Invalid request-method '"
                 << std::string(request_.method_string())
                 << "'";
@@ -113,8 +117,10 @@ private:
     {
         if (request_.target() == "/count")
         {
-            response_.set(http::field::content_type, "text/html");
-            beast::ostream(response_.body())
+            response_.set(boost::beast::http::field::content_type,
+                          "text/html");
+
+            boost::beast::ostream(response_.body())
                 << "<html>\n"
                 << "<head><title>Request count</title></head>\n"
                 << "<body>\n"
@@ -127,8 +133,9 @@ private:
         }
         else if (request_.target() == "/time")
         {
-            response_.set(http::field::content_type, "text/html");
-            beast::ostream(response_.body())
+            response_.set(boost::beast::http::field::content_type,
+                          "text/html");
+            boost::beast::ostream(response_.body())
                 << "<html>\n"
                 << "<head><title>Current time</title></head>\n"
                 << "<body>\n"
@@ -141,9 +148,9 @@ private:
         }
         else
         {
-            response_.result(http::status::not_found);
-            response_.set(http::field::content_type, "text/plain");
-            beast::ostream(response_.body()) << "File not found\r\n";
+            response_.result(boost::beast::http::status::not_found);
+            response_.set(boost::beast::http::field::content_type, "text/plain");
+            boost::beast::ostream(response_.body()) << "File not found\r\n";
         }
     }
 
@@ -153,12 +160,12 @@ private:
 
         response_.content_length(response_.body().size());
 
-        http::async_write(
+        boost::beast::http::async_write(
             socket_,
             response_,
-            [self](beast::error_code ec, std::size_t)
+            [self](boost::beast::error_code error_code, std::size_t)
             {
-                self->socket_.shutdown(tcp::socket::shutdown_send, ec);
+                self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
                 self->deadline_.cancel();
             });
     }
@@ -168,11 +175,15 @@ private:
         auto self = shared_from_this();
 
         deadline_.async_wait(
-            [self](beast::error_code ec)
+            [self](beast::error_code error_code)
             {
-                if (!ec)
+                if (error_code)
                 {
-                    self->socket_.close(ec);
+                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                }
+                else
+                {
+                    self->socket_.close(error_code);
                 }
             });
     }
@@ -259,7 +270,7 @@ namespace storage
                                             else
                                             {
                                                 LOG(INFO) << "Creating new http connection...";
-                                                std::make_shared<http_connection>(std::move(*socket_))->start();
+                                                std::make_shared<HttpConnection>(std::move(*socket_))->start();
                                             }
 
                                             listen_for_accept();
