@@ -229,6 +229,9 @@ namespace storage
                 void stop();
 
             private:
+                void listen_for_accept();
+
+            private:
                 const int kAvailableProcessorsCores_;
 
                 std::shared_ptr<boost::asio::io_context> io_context_;
@@ -288,11 +291,23 @@ namespace storage
                     return false;
                 }
 
-                http_server(*acceptor_, *socket_);
+                listen_for_accept();
 
                 io_context_->run();
 
                 return true;
+            }
+
+            void NetworkModule::NetworkModuleImpl::listen_for_accept()
+            {
+                acceptor_->async_accept(*socket_,
+                                        [&](boost::beast::error_code error_code)
+                                        {
+                                            if (!error_code)
+                                                std::make_shared<http_connection>(std::move(*socket_))->start();
+
+                                            listen_for_accept();
+                                        });
             }
 
             void NetworkModule::NetworkModuleImpl::stop()
