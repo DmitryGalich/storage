@@ -300,11 +300,20 @@ namespace storage
 
             void NetworkModule::NetworkModuleImpl::listen_for_accept()
             {
+                LOG(INFO) << "Listening for accepting...";
+
                 acceptor_->async_accept(*socket_,
                                         [&](boost::beast::error_code error_code)
                                         {
-                                            if (!error_code)
+                                            if (error_code)
+                                            {
+                                                LOG(ERROR) << "async_accept - (" << error_code.value() << ") " << error_code.message();
+                                            }
+                                            else
+                                            {
+                                                LOG(INFO) << "Creating new http connection...";
                                                 std::make_shared<http_connection>(std::move(*socket_))->start();
+                                            }
 
                                             listen_for_accept();
                                         });
