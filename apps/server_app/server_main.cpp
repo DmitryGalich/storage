@@ -22,7 +22,7 @@ namespace
     {
         shutdown_handler(signal);
     }
-} // namespace
+}
 
 int main()
 {
@@ -34,12 +34,14 @@ int main()
 
     const auto kProcessorsCores = std::thread::hardware_concurrency();
     const auto kProcessorsCoresForServer = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
+
     storage::Server server(kProcessorsCoresForServer);
 
     shutdown_handler = [&](int)
     {
         server.stop();
     };
+
     struct sigaction signal_handler;
     signal_handler.sa_handler = handle_interruption;
     sigemptyset(&signal_handler.sa_mask);

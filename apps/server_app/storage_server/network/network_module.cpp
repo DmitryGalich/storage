@@ -63,14 +63,15 @@ namespace storage
                     return false;
                 }
 
-                workers_.reserve(kAvailableProcessorsCores_);
-                for (int i = 0; i < kAvailableProcessorsCores_ - 1; ++i)
-                {
-                    workers_.push_back(std::thread([&]()
-                                                   { io_context_.run(); }));
-                }
+                // workers_.reserve(kAvailableProcessorsCores_);
+                // for (int i = 0; i < kAvailableProcessorsCores_ - 1; ++i)
+                // {
+                //     workers_.push_back(std::thread([&]()
+                //                                    { io_context_.run(); }));
+                // }
 
                 io_context_.run();
+
                 // Not reaching this point
 
                 is_running_ = true;
@@ -87,11 +88,11 @@ namespace storage
                     return;
                 }
 
-                for (int i = 0; i < workers_.size(); i++)
-                {
-                    workers_[i].join();
-                }
-                workers_.clear();
+                // for (int i = 0; i < workers_.size(); i++)
+                // {
+                //     workers_[i].join();
+                // }
+                // workers_.clear();
 
                 io_context_.stop();
                 listener_.reset();
