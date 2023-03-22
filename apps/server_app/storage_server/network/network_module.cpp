@@ -44,39 +44,29 @@ namespace my_program_state
 class http_connection : public std::enable_shared_from_this<http_connection>
 {
 public:
-    http_connection(tcp::socket socket)
+    http_connection() = delete;
+    http_connection(
+        tcp::socket socket)
         : socket_(std::move(socket))
     {
     }
 
-    // Initiate the asynchronous operations associated with the connection.
-    void
-    start()
+    void start()
     {
         read_request();
         check_deadline();
     }
 
 private:
-    // The socket for the currently connected client.
-    tcp::socket socket_;
+    boost::asio::ip::tcp::socket socket_;
+    boost::beast::flat_buffer buffer_{8192};
+    boost::beast::http::request<boost::beast::http::dynamic_body> request_;
+    boost::beast::http::response<boost::beast::http::dynamic_body> response_;
 
-    // The buffer for performing reads.
-    beast::flat_buffer buffer_{8192};
-
-    // The request message.
-    http::request<http::dynamic_body> request_;
-
-    // The response message.
-    http::response<http::dynamic_body> response_;
-
-    // The timer for putting a deadline on connection processing.
     net::steady_timer deadline_{
         socket_.get_executor(), std::chrono::seconds(60)};
 
-    // Asynchronously receive a complete request message.
-    void
-    read_request()
+    void read_request()
     {
         auto self = shared_from_this();
 
@@ -93,9 +83,7 @@ private:
             });
     }
 
-    // Determine what needs to be done with the request message.
-    void
-    process_request()
+    void process_request()
     {
         response_.version(request_.version());
         response_.keep_alive(false);
@@ -123,9 +111,7 @@ private:
         write_response();
     }
 
-    // Construct a response message based on the program state.
-    void
-    create_response()
+    void create_response()
     {
         if (request_.target() == "/count")
         {
@@ -163,9 +149,7 @@ private:
         }
     }
 
-    // Asynchronously transmit the response message.
-    void
-    write_response()
+    void write_response()
     {
         auto self = shared_from_this();
 
@@ -181,9 +165,7 @@ private:
             });
     }
 
-    // Check whether we have spent enough time on this connection.
-    void
-    check_deadline()
+    void check_deadline()
     {
         auto self = shared_from_this();
 
@@ -192,24 +174,11 @@ private:
             {
                 if (!ec)
                 {
-                    // Close socket to cancel any outstanding operation.
                     self->socket_.close(ec);
                 }
             });
     }
 };
-
-// "Loop" forever accepting new connections.
-void http_server(tcp::acceptor &acceptor, tcp::socket &socket)
-{
-    acceptor.async_accept(socket,
-                          [&](beast::error_code ec)
-                          {
-                              if (!ec)
-                                  std::make_shared<http_connection>(std::move(socket))->start();
-                              http_server(acceptor, socket);
-                          });
-}
 
 namespace storage
 {
@@ -244,33 +213,13 @@ namespace storage
 
             bool NetworkModule::NetworkModuleImpl::start(const Config &config)
             {
-                // stop();
-
-                // LOG(DEBUG) << "Starting...";
-
-                // io_context_.reset(new boost::asio::io_context(/* num of threads */));
-
-                // boost::asio::ip::tcp::endpoint endpoint(
-                //     {boost::asio::ip::make_address(config.host_)},
-                //     config.port_);
-
-                // acceptor_.reset(new boost::asio::ip::tcp::acceptor(*io_context_.get(), endpoint));
-                // socket_.reset(new boost::asio::ip::tcp::socket(*io_context_.get()));
-
-                // listen_for_accept();
-
-                // io_context_->run();
-
-                // // Not reaching this point
-
-                // auto const address = net::ip::make_address("127.0.0.1");
-                // unsigned short port = 8080;
+                stop();
 
                 boost::asio::ip::tcp::endpoint endpoint(
                     {boost::asio::ip::make_address(config.host_)},
                     config.port_);
 
-                io_context_.reset(new boost::asio::io_context());
+                io_context_.reset(new boost::asio::io_context(/* num of threads */));
                 if (!io_context_)
                 {
                     LOG(ERROR) << "Can't create io_context";
