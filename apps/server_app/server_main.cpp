@@ -15,14 +15,14 @@ void configure_logger()
     el::Loggers::reconfigureAllLoggers(config);
 }
 
-namespace
-{
-    std::function<void(int)> shutdown_handler;
-    void handle_interruption(int signal)
-    {
-        shutdown_handler(signal);
-    }
-}
+// namespace
+// {
+//     std::function<void(int)> shutdown_handler;
+//     void handle_interruption(int signal)
+//     {
+//         shutdown_handler(signal);
+//     }
+// }
 
 int main()
 {
@@ -37,20 +37,19 @@ int main()
 
     storage::Server server(kProcessorsCoresForServer);
 
-    shutdown_handler = [&](int)
-    {
-        server.stop();
-    };
+    // shutdown_handler = [&](int)
+    // {
+    //     server.stop();
+    // };
 
-    struct sigaction signal_handler;
-    signal_handler.sa_handler = handle_interruption;
-    sigemptyset(&signal_handler.sa_mask);
-    signal_handler.sa_flags = 0;
-    sigaction(SIGINT, &signal_handler, NULL);
+    // struct sigaction signal_handler;
+    // signal_handler.sa_handler = handle_interruption;
+    // sigemptyset(&signal_handler.sa_mask);
+    // signal_handler.sa_flags = 0;
+    // sigaction(SIGINT, &signal_handler, NULL);
 
     try
     {
-
         if (!server.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
         {
             LOG(ERROR) << "Can't start server";
