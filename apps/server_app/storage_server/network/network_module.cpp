@@ -45,8 +45,7 @@ class http_connection : public std::enable_shared_from_this<http_connection>
 {
 public:
     http_connection() = delete;
-    http_connection(
-        tcp::socket socket)
+    http_connection(tcp::socket socket)
         : socket_(std::move(socket))
     {
     }
@@ -63,8 +62,7 @@ private:
     boost::beast::http::request<boost::beast::http::dynamic_body> request_;
     boost::beast::http::response<boost::beast::http::dynamic_body> response_;
 
-    net::steady_timer deadline_{
-        socket_.get_executor(), std::chrono::seconds(60)};
+    boost::asio::steady_timer deadline_{socket_.get_executor(), std::chrono::seconds(60)};
 
     void read_request()
     {
