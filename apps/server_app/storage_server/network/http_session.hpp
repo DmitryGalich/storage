@@ -1,32 +1,31 @@
 #pragma once
 
 #include <memory>
-#include <bits/shared_ptr.h>
 
 #include <boost/asio/ip/tcp.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/beast.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/http/dynamic_body.hpp>
 
-#include "sessions_manager.hpp"
-
-class HttpSession : public std::enable_shared_from_this<HttpSession>
+class HttpConnection : public std::enable_shared_from_this<HttpConnection>
 {
 public:
-    HttpSession() = delete;
-    HttpSession(boost::asio::ip::tcp::socket &socket);
-    ~HttpSession();
+    HttpConnection() = delete;
+    HttpConnection(boost::asio::ip::tcp::socket socket);
+    ~HttpConnection() = default;
 
-    void run();
-
-private:
-    void process_read(boost::system::error_code &eerror_codec,
-                      std::size_t);
-    void process_write(boost::system::error_code &error_code,
-                       std::size_t,
-                       bool is_need_close);
+    void start();
 
 private:
-    boost::asio::ip::tcp::socket &socket_;
-    boost::beast::flat_buffer buffer_;
-    boost::beast::http::request<boost::beast::http::string_body> request_;
+    void read_request();
+    void process_request();
+    void create_response();
+    void write_response();
+    void check_deadline();
+
+private:
+    boost::asio::ip::tcp::socket socket_;
+    boost::beast::flat_buffer buffer_{8192};
+    boost::beast::http::request<boost::beast::http::dynamic_body> request_;
+    boost::beast::http::response<boost::beast::http::dynamic_body> response_;
+    boost::asio::steady_timer deadline_;
 };

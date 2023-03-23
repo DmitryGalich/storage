@@ -4,20 +4,18 @@
 #include <string>
 #include <memory>
 
-class HttpSession;
+// class HttpSession;
 
-class SessionsManager
-{
-public:
-    SessionsManager() = default;
-    ~SessionsManager() = default;
+// class SessionsManager
+// {
+// public:
+//     SessionsManager() = default;
+//     ~SessionsManager() = default;
 
-    bool add(std::shared_ptr<HttpSession> session);
-    void remove(std::shared_ptr<HttpSession> session);
-    void send(const std::string &message);
+//     bool add(std::shared_ptr<HttpSession> session);
+//     void remove(std::shared_ptr<HttpSession> session);
+//     void send(const std::string &message);
 
-private:
-    // Need to make thread-safe
-
-    std::unordered_set<std::shared_ptr<HttpSession>> http_sessions_;
-};
+// private:
+//     // Need to make thread-safe
+// };
