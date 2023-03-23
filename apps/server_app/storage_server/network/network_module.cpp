@@ -20,10 +20,13 @@
 #include <memory>
 #include <string>
 
-namespace beast = boost::beast;   // from <boost/beast.hpp>
-namespace http = beast::http;     // from <boost/beast/http.hpp>
-namespace net = boost::asio;      // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp; // from <boost/asio/ip/tcp.hpp>
+namespace
+{
+    bool is_error_important(const boost::system::error_code &error_code)
+    {
+        return !(error_code == boost::asio::error::operation_aborted);
+    }
+}
 
 namespace my_program_state
 {
@@ -43,7 +46,7 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection>
 {
 public:
     HttpConnection() = delete;
-    HttpConnection(tcp::socket socket)
+    HttpConnection(boost::asio::ip::tcp::socket socket)
         : socket_(std::move(socket))
     {
     }
@@ -175,11 +178,12 @@ private:
         auto self = shared_from_this();
 
         deadline_.async_wait(
-            [self](beast::error_code error_code)
+            [self](boost::beast::error_code error_code)
             {
                 if (error_code)
                 {
-                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                    if (is_error_important(error_code))
+                        LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
                 }
                 else
                 {
@@ -258,7 +262,7 @@ namespace storage
 
                 // Configuring
 
-                acceptor_->set_option(net::socket_base::reuse_address(true));
+                acceptor_->set_option(boost::asio::socket_base::reuse_address(true));
                 if (error_code)
                 {
                     LOG(ERROR) << "Can't set_option - (" << error_code.value() << ") " << error_code.message();
@@ -282,7 +286,8 @@ namespace storage
                                         {
                                             if (error_code)
                                             {
-                                                LOG(ERROR) << "async_accept - (" << error_code.value() << ") " << error_code.message();
+                                                if (is_error_important(error_code))
+                                                    LOG(ERROR) << "async_accept - (" << error_code.value() << ") " << error_code.message();
                                             }
                                             else
                                             {
