@@ -228,24 +228,41 @@ namespace storage
                     {boost::asio::ip::make_address(config.host_)},
                     config.port_);
 
-                io_context_.reset(new boost::asio::io_context(/* num of threads */));
+                boost::system::error_code error_code;
+
+                // Here compute number of threads
+
+                // Creating
+
+                io_context_.reset(new boost::asio::io_context(/* number of threads */));
                 if (!io_context_)
                 {
                     LOG(ERROR) << "Can't create io_context";
+                    stop();
                     return false;
                 }
-
                 acceptor_.reset(new boost::asio::ip::tcp::acceptor(*io_context_, endpoint));
                 if (!acceptor_)
                 {
                     LOG(ERROR) << "Can't create acceptor";
+                    stop();
                     return false;
                 }
-
                 socket_.reset(new boost::asio::ip::tcp::socket(*io_context_));
                 if (!acceptor_)
                 {
                     LOG(ERROR) << "Can't create acceptor";
+                    stop();
+                    return false;
+                }
+
+                // Configuring
+
+                acceptor_->set_option(net::socket_base::reuse_address(true));
+                if (error_code)
+                {
+                    LOG(ERROR) << "Can't set_option - (" << error_code.value() << ") " << error_code.message();
+                    stop();
                     return false;
                 }
 
