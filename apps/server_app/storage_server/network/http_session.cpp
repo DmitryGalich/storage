@@ -37,18 +37,20 @@ namespace my_program_state
     }
 }
 
-HttpConnection::HttpConnection(boost::asio::ip::tcp::socket socket)
-    : socket_(std::move(socket)), deadline_(socket_.get_executor(), std::chrono::seconds(60))
+HttpSession::HttpSession(boost::asio::ip::tcp::socket socket)
+    : socket_(std::move(socket)),
+      deadline_(socket_.get_executor(),
+                std::chrono::seconds(60))
 {
 }
 
-void HttpConnection::start()
+void HttpSession::start()
 {
     read_request();
     check_deadline();
 }
 
-void HttpConnection::read_request()
+void HttpSession::read_request()
 {
     auto self = shared_from_this();
 
@@ -72,20 +74,23 @@ void HttpConnection::read_request()
         });
 }
 
-void HttpConnection::process_request()
+void HttpSession::process_request()
 {
     response_.version(request_.version());
     response_.keep_alive(false);
 
     switch (request_.method())
     {
+
     case boost::beast::http::verb::get:
+    {
         response_.result(boost::beast::http::status::ok);
         response_.set(boost::beast::http::field::server, "Beast");
         create_response();
         break;
-
+    }
     default:
+    {
         response_.result(boost::beast::http::status::bad_request);
         response_.set(boost::beast::http::field::content_type, "text/plain");
         boost::beast::ostream(response_.body())
@@ -94,11 +99,12 @@ void HttpConnection::process_request()
             << "'";
         break;
     }
+    }
 
     write_response();
 }
 
-void HttpConnection::create_response()
+void HttpSession::create_response()
 {
     if (request_.target() == "/count")
     {
@@ -139,7 +145,7 @@ void HttpConnection::create_response()
     }
 }
 
-void HttpConnection::write_response()
+void HttpSession::write_response()
 {
     auto self = shared_from_this();
 
@@ -155,7 +161,7 @@ void HttpConnection::write_response()
         });
 }
 
-void HttpConnection::check_deadline()
+void HttpSession::check_deadline()
 {
     auto self = shared_from_this();
 

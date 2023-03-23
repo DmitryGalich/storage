@@ -21,12 +21,12 @@ set(MODULE_NAME network_module)
 add_library(${MODULE_NAME}
     ${MODULE_NAME}.cpp
     ${MODULE_NAME}.hpp
-    # listener.hpp
-    # listener.cpp
-    # sessions_manager.hpp
-    # sessions_manager.cpp
     http_session.hpp
     http_session.cpp
+    
+    # sessions_manager.hpp
+    # sessions_manager.cpp
+
     # websocket_session.hpp
     # websocket_session.cpp
 )

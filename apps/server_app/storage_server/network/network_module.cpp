@@ -127,7 +127,7 @@ namespace storage
                                             else
                                             {
                                                 LOG(INFO) << "Creating new http connection...";
-                                                std::make_shared<HttpConnection>(std::move(*socket_))->start();
+                                                std::make_shared<HttpSession>(std::move(*socket_))->start();
                                             }
 
                                             listen_for_accept();

@@ -6,12 +6,12 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/dynamic_body.hpp>
 
-class HttpConnection : public std::enable_shared_from_this<HttpConnection>
+class HttpSession : public std::enable_shared_from_this<HttpSession>
 {
 public:
-    HttpConnection() = delete;
-    HttpConnection(boost::asio::ip::tcp::socket socket);
-    ~HttpConnection() = default;
+    HttpSession() = delete;
+    HttpSession(boost::asio::ip::tcp::socket socket);
+    ~HttpSession() = default;
 
     void start();
 
