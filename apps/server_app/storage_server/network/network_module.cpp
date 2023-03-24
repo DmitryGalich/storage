@@ -4,20 +4,6 @@
 
 #include "easylogging++.h"
 
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/signal_set.hpp>
-
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio.hpp>
-#include <chrono>
-#include <cstdlib>
-#include <ctime>
-#include <iostream>
-#include <memory>
-#include <string>
-
 #include "http_session.hpp"
 
 namespace

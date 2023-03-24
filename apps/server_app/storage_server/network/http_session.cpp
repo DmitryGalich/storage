@@ -65,7 +65,11 @@ void HttpSession::read_request()
 
             if (error_code)
             {
-                LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                if (is_error_important(error_code))
+                {
+                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                    self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
+                }
             }
             else
             {
@@ -156,7 +160,17 @@ void HttpSession::write_response()
         response_,
         [self](boost::beast::error_code error_code, std::size_t)
         {
-            self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
+            // Is need shutdown here?
+
+            if (error_code)
+            {
+                if (is_error_important(error_code))
+                {
+                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                    self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
+                }
+            }
+
             self->deadline_.cancel();
         });
 }
