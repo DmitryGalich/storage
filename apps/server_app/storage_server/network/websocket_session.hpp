@@ -2,23 +2,41 @@
 
 #include <memory>
 
-// class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
-// {
-// public:
-//     WebSocketSession() = delete;
-//     WebSocketSession(SessionsManager &sessions_manager);
-//     ~WebSocketSession() = default;
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/beast/websocket/stream.hpp>
+#include <boost/beast/http/dynamic_body.hpp>
+#include <boost/beast/http/fields.hpp>
+#include <boost/beast/websocket/impl/accept.hpp>
 
-//     void run();
+#include "easylogging++.h"
 
-// private:
-//     void process_fail(const error_code &error_code,
-//                       char const *reason);
-//     void process_read(const error_code &eerror_codec,
-//                       std::size_t);
-//     void process_write(const error_code &error_code,
-//                        std::size_t,
-//                        bool is_need_close);
+class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
+{
+public:
+    WebSocketSession() = delete;
+    WebSocketSession(boost::asio::ip::tcp::socket socket);
+    ~WebSocketSession() = default;
 
-// private:
-// };
+    template <class Body, class Allocator>
+    void run(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request);
+
+private:
+    void process_accept();
+
+private:
+    boost::beast::websocket::stream<boost::asio::ip::tcp::socket> websocket_;
+};
+
+template <class Body, class Allocator>
+void WebSocketSession::run(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request)
+{
+    auto self = shared_from_this();
+
+    // websocket_.async_accept(
+    //     boost::asio::bind_executor(
+    //         strand_,
+    //         std::bind(
+    //             &session::on_accept,
+    //             shared_from_this(),
+    //             std::placeholders::_1)));
+}

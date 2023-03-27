@@ -2,8 +2,6 @@
 
 #include "easylogging++.h"
 
-#include <chrono>
-
 #include <boost/beast.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -15,6 +13,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
+
+#include "websocket_session.hpp"
 
 namespace
 {
@@ -76,10 +76,13 @@ void HttpSession::read_request()
             {
                 if (boost::beast::websocket::is_upgrade(self->request_))
                 {
-                    LOG(INFO) << "Socket request " +
-                                     self->socket_.remote_endpoint().address().to_string() +
-                                     ":" +
-                                     std::to_string(self->socket_.remote_endpoint().port());
+                    // LOG(INFO) << "Socket request " +
+                    //                  self->socket_.remote_endpoint().address().to_string() +
+                    //                  ":" +
+                    //                  std::to_string(self->socket_.remote_endpoint().port());
+
+                    std::make_shared<WebSocketSession>(std::move(self->socket_))
+                        ->run(std::move(self->request_));
                 }
                 else
                 {

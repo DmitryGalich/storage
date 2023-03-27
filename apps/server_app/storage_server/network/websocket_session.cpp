@@ -1,6 +1,14 @@
 #include "websocket_session.hpp"
 
-// void WebSocketSession::run() {}
+WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket)
+    : websocket_(std::move(socket))
+{
+}
+
+void WebSocketSession::process_accept()
+{
+    LOG(INFO) << "KEK";
+}
 
 // void WebSocketSession::process_fail(const error_code &error_code,
 //                                     char const *reason) {}
