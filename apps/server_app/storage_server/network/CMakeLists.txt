@@ -22,13 +22,11 @@ add_library(${MODULE_NAME}
     ${MODULE_NAME}.cpp
     ${MODULE_NAME}.hpp
     http_session.hpp
-    http_session.cpp
-    
-    # sessions_manager.hpp
-    # sessions_manager.cpp
-
-    # websocket_session.hpp
-    # websocket_session.cpp
+    http_session.cpp    
+    websocket_session.hpp
+    websocket_session.cpp
+    sessions_manager.hpp
+    sessions_manager.cpp
 )
 add_library(storage::server::network ALIAS ${MODULE_NAME})
 

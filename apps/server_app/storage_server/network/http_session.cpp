@@ -4,6 +4,7 @@
 
 #include <chrono>
 
+#include <boost/beast.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -73,7 +74,17 @@ void HttpSession::read_request()
             }
             else
             {
-                self->process_request();
+                if (boost::beast::websocket::is_upgrade(self->request_))
+                {
+                    LOG(INFO) << "Socket request " +
+                                     self->socket_.remote_endpoint().address().to_string() +
+                                     ":" +
+                                     std::to_string(self->socket_.remote_endpoint().port());
+                }
+                else
+                {
+                    self->process_request();
+                }
             }
         });
 }
