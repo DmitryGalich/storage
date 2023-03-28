@@ -66,12 +66,12 @@ bool Listener::run(const ip::tcp::endpoint &endpoint)
     return false;
   }
 
-  prepare_for_accept();
+  prepare_for_accepting();
 
   return true;
 }
 
-void Listener::prepare_for_accept()
+void Listener::prepare_for_accepting()
 {
   acceptor_.async_accept(
       socket_, [&](const boost::system::error_code &error_code)
@@ -92,5 +92,5 @@ void Listener::process_accept(const boost::system::error_code &error_code)
 
   sessions_manager_.add(std::make_shared<HttpSession>(socket_));
 
-  prepare_for_accept();
+  prepare_for_accepting();
 }

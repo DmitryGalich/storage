@@ -76,6 +76,12 @@ void HttpSession::read_request()
 
             if (boost::beast::websocket::is_upgrade(self->request_))
             {
+                LOG(INFO) << "Request to update to websocket("
+                          << self->socket_.remote_endpoint().address().to_string()
+                          << ":"
+                          << std::to_string(self->socket_.remote_endpoint().port())
+                          << ")";
+
                 std::make_shared<WebSocketSession>(std::move(self->socket_))
                     ->run(std::move(self->request_));
                 return;
