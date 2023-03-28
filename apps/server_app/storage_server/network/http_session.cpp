@@ -71,19 +71,17 @@ void HttpSession::read_request()
                     LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
                     self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
                 }
+                return;
             }
-            else
+
+            if (boost::beast::websocket::is_upgrade(self->request_))
             {
-                if (boost::beast::websocket::is_upgrade(self->request_))
-                {
-                    std::make_shared<WebSocketSession>(std::move(self->socket_))
-                        ->run(std::move(self->request_));
-                }
-                else
-                {
-                    self->process_request();
-                }
+                std::make_shared<WebSocketSession>(std::move(self->socket_))
+                    ->run(std::move(self->request_));
+                return;
             }
+
+            self->process_request();
         });
 }
 
@@ -195,10 +193,10 @@ void HttpSession::check_deadline()
             {
                 if (is_error_important(error_code))
                     LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+
+                return;
             }
-            else
-            {
-                self->socket_.close(error_code);
-            }
+
+            self->socket_.close(error_code);
         });
 }
