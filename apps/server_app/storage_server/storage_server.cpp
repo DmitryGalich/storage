@@ -9,7 +9,7 @@
 
 namespace
 {
-    storage::server::network::Config load_config(const std::string &config_path)
+    storage::client::network::Config load_config(const std::string &config_path)
     {
         nlohmann::json json_object;
         json_object["host"] = "127.0.0.1";
@@ -42,7 +42,7 @@ namespace
         LOG(INFO) << "Current config: \n"
                   << json_object.dump(4);
 
-        storage::server::network::Config config;
+        storage::client::network::Config config;
         json_object.at("host").get_to(config.host_);
         json_object.at("port").get_to(config.port_);
 
@@ -65,7 +65,7 @@ namespace storage
     private:
         const int kAvailableProcessorsCores_;
 
-        std::unique_ptr<server::network::NetworkModule> netowrk_module_;
+        std::unique_ptr<client::network::NetworkModule> netowrk_module_;
     };
 
     Server::ServerImpl::ServerImpl(const int available_processors_cores)
@@ -77,7 +77,7 @@ namespace storage
     {
         LOG(INFO) << "Starting...";
 
-        netowrk_module_.reset(new server::network::NetworkModule(kAvailableProcessorsCores_));
+        netowrk_module_.reset(new client::network::NetworkModule(kAvailableProcessorsCores_));
         if (!netowrk_module_)
             return false;
 

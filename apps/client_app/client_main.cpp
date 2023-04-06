@@ -1,9 +1,6 @@
-#include <signal.h>
-#include <thread>
-
 #include "configs/cmake_config.h"
 
-// #include "storage_server/storage_server.hpp"
+#include "storage_client/storage_client.hpp"
 
 #include "easylogging++.h"
 
@@ -32,29 +29,15 @@ int main()
     LOG(INFO) << PROJECT_NAME;
     LOG(INFO) << "version " << PROJECT_VERSION;
 
-    const auto kProcessorsCores = std::thread::hardware_concurrency();
-    const auto kProcessorsCoresForServer = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
-
-    // storage::Server server(kProcessorsCoresForServer);
-
-    // shutdown_handler = [&](int)
-    // {
-    //     server.stop();
-    // };
-
-    // struct sigaction signal_handler;
-    // signal_handler.sa_handler = handle_interruption;
-    // sigemptyset(&signal_handler.sa_mask);
-    // signal_handler.sa_flags = 0;
-    // sigaction(SIGINT, &signal_handler, NULL);
+    storage::Client client;
 
     // try
     // {
-    //     if (!server.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
+    //     if (!client.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
     //     {
-    //         LOG(ERROR) << "Can't start server";
+    //         LOG(ERROR) << "Can't start client";
     //         LOG(INFO) << "Shutting down the application";
-    //         server.stop();
+    //         client.stop();
     //         return -1;
     //     }
     // }
@@ -62,11 +45,11 @@ int main()
     // {
     //     LOG(ERROR) << e.what();
     //     LOG(INFO) << "Shutting down the application";
-    //     server.stop();
+    //     client.stop();
     //     return -1;
     // }
 
-    // server.stop();
+    // client.stop();
 
     return 0;
 }

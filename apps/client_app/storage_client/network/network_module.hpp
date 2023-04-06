@@ -4,7 +4,7 @@
 
 namespace storage
 {
-    namespace client
+    namespace server
     {
         namespace network
         {

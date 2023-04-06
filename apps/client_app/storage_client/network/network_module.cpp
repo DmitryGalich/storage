@@ -16,7 +16,7 @@ namespace
 
 namespace storage
 {
-    namespace client
+    namespace server
     {
         namespace network
         {
@@ -144,11 +144,11 @@ namespace storage
 
 namespace storage
 {
-    namespace client
+    namespace server
     {
         namespace network
         {
-            NetworkModule::NetworkModule(const int &available_processors_cores) : network_module_impl_(std::make_unique<storage::client::network::NetworkModule::NetworkModuleImpl>(available_processors_cores)) {}
+            NetworkModule::NetworkModule(const int &available_processors_cores) : network_module_impl_(std::make_unique<storage::server::network::NetworkModule::NetworkModuleImpl>(available_processors_cores)) {}
 
             NetworkModule::~NetworkModule() {}
 
