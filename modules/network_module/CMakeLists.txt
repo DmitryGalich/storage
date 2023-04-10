@@ -29,10 +29,13 @@ add_library(${MODULE_NAME}
     server/server.cpp
 )
 add_library(modules::network ALIAS ${MODULE_NAME})
-
 target_link_libraries(${MODULE_NAME}
     PRIVATE
         easylogging::easylogging
+)
+target_include_directories(${MODULE_NAME}
+    PRIVATE 
+        ${CMAKE_BINARY_DIR}/third_party/nlohmann_json/
 )
 
 # Testing ======================================
