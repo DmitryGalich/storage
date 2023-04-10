@@ -14,7 +14,7 @@ namespace network_module
         std::fstream file(config_path);
         if (!file.is_open())
         {
-            LOG(INFO) << "Creeating default config...";
+            LOG(INFO) << "Creating default config...";
 
             std::ofstream default_config_file(config_path);
             if (!default_config_file.is_open())

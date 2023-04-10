@@ -41,6 +41,9 @@ target_include_directories(${MODULE_NAME}
 
 # Testing ======================================
 
+configure_file(${CMAKE_CURRENT_LIST_DIR}/configs/cmake_config.h.cmake 
+               ${CMAKE_CURRENT_LIST_DIR}/configs/cmake_config.h @ONLY)
+
 enable_testing()
 
 set(MODULE_NAME_TESTS ${MODULE_NAME}_tests)
