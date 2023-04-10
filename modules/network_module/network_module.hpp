@@ -30,6 +30,7 @@ namespace network_module
             std::unique_ptr<ServerImpl> server_impl_;
         };
     }
+
     // Client
 
     // class Client
