@@ -39,7 +39,7 @@ set(MODULE_NAME network_module)
 add_library(${MODULE_NAME}
     ${MODULE_NAME}.hpp
     ${SERVER_FILES}
-    # ${CLIENT_FILES}
+    ${CLIENT_FILES}
 )
 add_library(modules::network ALIAS ${MODULE_NAME})
 target_link_libraries(${MODULE_NAME}

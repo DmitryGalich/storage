@@ -3,7 +3,7 @@
 
 #include "configs/cmake_config.h"
 
-// #include "storage_server/storage_server.hpp"
+#include "storage_server/storage_server.hpp"
 
 #include "easylogging++.h"
 
@@ -32,10 +32,10 @@ int main()
     LOG(INFO) << PROJECT_NAME;
     LOG(INFO) << "version " << PROJECT_VERSION;
 
-    // const auto kProcessorsCores = std::thread::hardware_concurrency();
-    // const auto kProcessorsCoresForServer = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
+    const auto kProcessorsCores = std::thread::hardware_concurrency();
+    const auto kProcessorsCoresForServer = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
 
-    // storage::Server server(kProcessorsCoresForServer);
+    storage::Server server(kProcessorsCoresForServer);
 
     // // shutdown_handler = [&](int)
     // // {
@@ -48,25 +48,25 @@ int main()
     // // signal_handler.sa_flags = 0;
     // // sigaction(SIGINT, &signal_handler, NULL);
 
-    // try
-    // {
-    //     if (!server.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
-    //     {
-    //         LOG(ERROR) << "Can't start server";
-    //         LOG(INFO) << "Shutting down the application";
-    //         server.stop();
-    //         return -1;
-    //     }
-    // }
-    // catch (const std::exception &e)
-    // {
-    //     LOG(ERROR) << e.what();
-    //     LOG(INFO) << "Shutting down the application";
-    //     server.stop();
-    //     return -1;
-    // }
+    try
+    {
+        if (!server.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
+        {
+            LOG(ERROR) << "Can't start server";
+            LOG(INFO) << "Shutting down the application";
+            server.stop();
+            return -1;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        LOG(ERROR) << e.what();
+        LOG(INFO) << "Shutting down the application";
+        server.stop();
+        return -1;
+    }
 
-    // server.stop();
+    server.stop();
 
     return 0;
 }

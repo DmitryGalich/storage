@@ -16,7 +16,7 @@ include_directories(
 configure_file(${CMAKE_CURRENT_LIST_DIR}/configs/cmake_config.h.cmake 
                ${CMAKE_CURRENT_LIST_DIR}/configs/cmake_config.h @ONLY)
 
-# add_subdirectory(storage_server)
+add_subdirectory(storage_server)
 
 add_executable(${PROJECT_NAME}
     ${PROJECT_NAME}_main.cpp
@@ -24,5 +24,5 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         easylogging::easylogging
-        # storage::server
+        storage::server
 )
