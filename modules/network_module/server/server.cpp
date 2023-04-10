@@ -3,9 +3,9 @@
 #include "easylogging++.h"
 #include "json.hpp"
 
-namespace
+namespace network_module
 {
-    network_module::Server::Config load_config(const std::string &config_path)
+    Server::Config Server::Config::load_config(const std::string &config_path)
     {
         nlohmann::json json_object;
         json_object["host"] = "127.0.0.1";

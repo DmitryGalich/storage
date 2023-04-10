@@ -148,7 +148,8 @@ namespace storage
     {
         namespace network
         {
-            NetworkModule::NetworkModule(const int &available_processors_cores) : network_module_impl_(std::make_unique<storage::client::network::NetworkModule::NetworkModuleImpl>(available_processors_cores)) {}
+            NetworkModule::NetworkModule(const int &available_processors_cores)
+                : network_module_impl_(std::make_unique<storage::client::network::NetworkModule::NetworkModuleImpl>(available_processors_cores)) {}
 
             NetworkModule::~NetworkModule() {}
 

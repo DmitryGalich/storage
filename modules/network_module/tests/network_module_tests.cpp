@@ -24,4 +24,5 @@ TEST(Server, SimpleTest)
     network_module::Server server(kProcessorsCoresForServer);
 
     EXPECT_TRUE(server.start({}));
+    server.stop();
 }

@@ -5,13 +5,13 @@
 
 namespace network_module
 {
-    // Server
-
     class Server
     {
     public:
         struct Config
         {
+            static Config load_config(const std::string &config_path);
+
             std::string host_{"127.0.0.1"};
             int port_{8080};
             bool is_ip_v6_{false};
