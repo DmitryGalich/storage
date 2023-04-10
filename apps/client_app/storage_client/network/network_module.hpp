@@ -4,7 +4,7 @@
 
 namespace storage
 {
-    namespace server
+    namespace client
     {
         namespace network
         {
@@ -18,7 +18,7 @@ namespace storage
             class NetworkModule
             {
             public:
-                NetworkModule(const int &available_processors_cores);
+                NetworkModule();
                 ~NetworkModule();
 
                 bool start(const Config &config);
@@ -30,6 +30,6 @@ namespace storage
             };
         } // namespace network
 
-    } // namespace server
+    } // namespace client
 
 } // namespace storage

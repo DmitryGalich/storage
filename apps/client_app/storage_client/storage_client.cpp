@@ -7,48 +7,48 @@
 
 // #include "network/network_module.hpp"
 
-// namespace
-// {
-//     storage::client::network::Config load_config(const std::string &config_path)
-//     {
-//         nlohmann::json json_object;
-//         json_object["host"] = "127.0.0.1";
-//         json_object["port"] = 8080;
+namespace
+{
+    storage::client::network::Config load_config(const std::string &config_path)
+    {
+        nlohmann::json json_object;
+        json_object["host"] = "127.0.0.1";
+        json_object["port"] = 8080;
 
-//         std::fstream file(config_path);
-//         if (!file.is_open())
-//         {
-//             LOG(INFO) << "Creeating default config...";
+        std::fstream file(config_path);
+        if (!file.is_open())
+        {
+            LOG(INFO) << "Creeating default config...";
 
-//             std::ofstream default_config_file(config_path);
-//             if (!default_config_file.is_open())
-//             {
-//                 const std::string kErrorText{"Can't save default config to \"" + config_path + "\""};
-//                 LOG(ERROR) << kErrorText;
-//                 throw std::runtime_error(kErrorText);
-//             }
+            std::ofstream default_config_file(config_path);
+            if (!default_config_file.is_open())
+            {
+                const std::string kErrorText{"Can't save default config to \"" + config_path + "\""};
+                LOG(ERROR) << kErrorText;
+                throw std::runtime_error(kErrorText);
+            }
 
-//             default_config_file << json_object.dump(4);
-//             default_config_file.close();
+            default_config_file << json_object.dump(4);
+            default_config_file.close();
 
-//             LOG(INFO) << "Created";
-//         }
-//         else
-//         {
-//             json_object = nlohmann::json::parse(file);
-//             file.close();
-//         }
+            LOG(INFO) << "Created";
+        }
+        else
+        {
+            json_object = nlohmann::json::parse(file);
+            file.close();
+        }
 
-//         LOG(INFO) << "Current config: \n"
-//                   << json_object.dump(4);
+        LOG(INFO) << "Current config: \n"
+                  << json_object.dump(4);
 
-//         storage::client::network::Config config;
-//         json_object.at("host").get_to(config.host_);
-//         json_object.at("port").get_to(config.port_);
+        storage::client::network::Config config;
+        json_object.at("host").get_to(config.host_);
+        json_object.at("port").get_to(config.port_);
 
-//         return config;
-//     }
-// }
+        return config;
+    }
+}
 
 namespace storage
 {
