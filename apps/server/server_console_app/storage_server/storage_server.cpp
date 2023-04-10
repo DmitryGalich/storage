@@ -25,12 +25,15 @@ namespace storage
     {
         LOG(INFO) << "Starting...";
 
-        netowrk_module_.reset(new network_module::server::Server());
-        if (!netowrk_module_)
+        network_module_.reset(new network_module::server::Server());
+        if (!network_module_)
             return false;
 
-        if (!netowrk_module_->start(available_processors_cores,
-                                    config_path))
+        const auto kLoadedConfig =
+            network_module::server::Server::Config::load_config(config_path);
+
+        if (!network_module_->start(available_processors_cores,
+                                    kLoadedConfig))
             return false;
 
         return true;
@@ -40,11 +43,11 @@ namespace storage
     {
         LOG(INFO) << "Stopping...";
 
-        if (netowrk_module_)
+        if (network_module_)
         {
-            netowrk_module_->stop();
+            network_module_->stop();
         }
-        netowrk_module_.reset();
+        network_module_.reset();
 
         LOG(INFO) << "Stopped";
     }
