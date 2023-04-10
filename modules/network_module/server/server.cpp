@@ -66,31 +66,30 @@ namespace network_module
         class Server::ServerImpl
         {
         public:
-            ServerImpl(const int &available_processors_cores);
+            ServerImpl();
             ~ServerImpl();
 
-            bool start(const Server::Config &config);
+            bool start(const int &available_processors_cores,
+                       const Server::Config &config);
             void stop();
 
         private:
             void listen_for_accept();
 
         private:
-            const int kAvailableProcessorsCores_;
-
             std::shared_ptr<boost::asio::io_context> io_context_;
             std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
             std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
         };
 
-        Server::ServerImpl::ServerImpl(const int &available_processors_cores)
-            : kAvailableProcessorsCores_(available_processors_cores)
+        Server::ServerImpl::ServerImpl()
         {
         }
 
         Server::ServerImpl::~ServerImpl() {}
 
-        bool Server::ServerImpl::start(const Server::Config &config)
+        bool Server::ServerImpl::start(const int &available_processors_cores,
+                                       const Server::Config &config)
         {
             stop();
 
@@ -189,12 +188,12 @@ namespace network_module
 {
     namespace server
     {
-        Server::Server(const int &available_processors_cores)
-            : server_impl_(std::make_unique<ServerImpl>(available_processors_cores)) {}
+        Server::Server() : server_impl_(std::make_unique<ServerImpl>()) {}
 
         Server::~Server() {}
 
-        bool Server::start(const Config &config)
+        bool Server::start(const int &available_processors_cores,
+                           const Config &config)
         {
             LOG(INFO) << "Starting...";
 
@@ -205,7 +204,8 @@ namespace network_module
                 throw std::runtime_error(kErrorText);
             }
 
-            return server_impl_->start(config);
+            return server_impl_->start(available_processors_cores,
+                                       config);
         }
 
         void Server::stop()

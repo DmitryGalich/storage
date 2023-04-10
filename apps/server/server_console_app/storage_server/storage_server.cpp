@@ -15,6 +15,9 @@ namespace storage
         bool start(const int available_processors_cores,
                    const std::string &config_path);
         void stop() noexcept;
+
+    private:
+        std::unique_ptr<network_module::server::Server> network_module_;
     };
 
     bool Server::ServerImpl::start(const int available_processors_cores,
@@ -22,12 +25,13 @@ namespace storage
     {
         LOG(INFO) << "Starting...";
 
-        // netowrk_module_.reset(new client::network::NetworkModule(kAvailableProcessorsCores_));
-        // if (!netowrk_module_)
-        //     return false;
+        netowrk_module_.reset(new network_module::server::Server());
+        if (!netowrk_module_)
+            return false;
 
-        // if (!netowrk_module_->start(load_config(config_path)))
-        //     return false;
+        if (!netowrk_module_->start(available_processors_cores,
+                                    config_path))
+            return false;
 
         return true;
     }
@@ -36,11 +40,11 @@ namespace storage
     {
         LOG(INFO) << "Stopping...";
 
-        // if (netowrk_module_)
-        // {
-        //     netowrk_module_->stop();
-        // }
-        // netowrk_module_.reset();
+        if (netowrk_module_)
+        {
+            netowrk_module_->stop();
+        }
+        netowrk_module_.reset();
 
         LOG(INFO) << "Stopped";
     }
@@ -48,13 +52,9 @@ namespace storage
 
 namespace storage
 {
-    Server::Server() : server_impl_(std::make_unique<storage::Server::ServerImpl>())
-    {
-    }
+    Server::Server() : server_impl_(std::make_unique<storage::Server::ServerImpl>()) {}
 
-    Server::~Server()
-    {
-    }
+    Server::~Server() {}
 
     bool Server::start(const int available_processors_cores,
                        const std::string &config_path)
@@ -80,5 +80,4 @@ namespace storage
 
         server_impl_->stop();
     }
-
 }

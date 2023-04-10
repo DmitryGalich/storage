@@ -19,10 +19,10 @@ namespace network_module
             };
 
         public:
-            Server(const int &available_processors_cores);
+            Server();
             ~Server();
 
-            bool start(const Config &config);
+            bool start(const int &available_processors_cores, const Config &config);
             void stop();
 
         private:
