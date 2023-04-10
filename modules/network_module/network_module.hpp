@@ -5,29 +5,31 @@
 
 namespace network_module
 {
-    class Server
+    namespace server
     {
-    public:
-        struct Config
+        class Server
         {
-            static Config load_config(const std::string &config_path);
+        public:
+            struct Config
+            {
+                static Config load_config(const std::string &config_path);
 
-            std::string host_{"127.0.0.1"};
-            int port_{8080};
+                std::string host_{"127.0.0.1"};
+                int port_{8080};
+            };
+
+        public:
+            Server(const int &available_processors_cores);
+            ~Server();
+
+            bool start(const Config &config);
+            void stop();
+
+        private:
+            class ServerImpl;
+            std::unique_ptr<ServerImpl> server_impl_;
         };
-
-    public:
-        Server(const int &available_processors_cores);
-        ~Server();
-
-        bool start(const Config &config);
-        void stop();
-
-    private:
-        class ServerImpl;
-        std::unique_ptr<ServerImpl> server_impl_;
-    };
-
+    }
     // Client
 
     // class Client
