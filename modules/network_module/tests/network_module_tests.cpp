@@ -11,7 +11,8 @@ INITIALIZE_EASYLOGGINGPP
 class ServerTests : public ::testing::Test
 {
 public:
-    const std::string kConfigPath{CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}};
+    const std::string kConfigPath{CMAKE_CURRENT_SOURCE_DIR +
+                                  std::string{"/configs/server_config.json"}};
 
 protected:
     void SetUp() override {}

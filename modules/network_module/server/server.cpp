@@ -1,7 +1,10 @@
 #include "../network_module.hpp"
 
 #include "easylogging++.h"
+
 #include "json.hpp"
+
+#include "http_session.hpp"
 
 namespace network_module
 {
@@ -70,6 +73,8 @@ namespace network_module
 
     bool Server::ServerImpl::start(const Server::Config &config)
     {
+        stop();
+
         return true;
     }
 
