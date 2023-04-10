@@ -2,30 +2,23 @@
 
 #include "easylogging++.h"
 
-// #include "network/network_module.hpp"
+#include "network_module.hpp"
 
 namespace storage
 {
     class Server::ServerImpl
     {
     public:
-        ServerImpl() = delete;
-        ServerImpl(const int available_processors_cores);
+        ServerImpl() = default;
         ~ServerImpl() = default;
 
-        bool start(const std::string &config_path);
+        bool start(const int available_processors_cores,
+                   const std::string &config_path);
         void stop() noexcept;
-
-    private:
-        const int kAvailableProcessorsCores_;
     };
 
-    Server::ServerImpl::ServerImpl(const int available_processors_cores)
-        : kAvailableProcessorsCores_(available_processors_cores)
-    {
-    }
-
-    bool Server::ServerImpl::start(const std::string &config_path)
+    bool Server::ServerImpl::start(const int available_processors_cores,
+                                   const std::string &config_path)
     {
         LOG(INFO) << "Starting...";
 
@@ -55,7 +48,7 @@ namespace storage
 
 namespace storage
 {
-    Server::Server(const int available_processors_cores) : server_impl_(std::make_unique<storage::Server::ServerImpl>(available_processors_cores))
+    Server::Server() : server_impl_(std::make_unique<storage::Server::ServerImpl>())
     {
     }
 
@@ -63,7 +56,8 @@ namespace storage
     {
     }
 
-    bool Server::start(const std::string &config_path)
+    bool Server::start(const int available_processors_cores,
+                       const std::string &config_path)
     {
         if (!server_impl_)
         {
@@ -72,7 +66,8 @@ namespace storage
             throw std::runtime_error(kErrorText);
         }
 
-        return server_impl_->start(config_path);
+        return server_impl_->start(available_processors_cores,
+                                   config_path);
     }
 
     void Server::stop() noexcept

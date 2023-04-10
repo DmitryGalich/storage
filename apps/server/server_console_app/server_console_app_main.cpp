@@ -35,7 +35,7 @@ int main()
     const auto kProcessorsCores = std::thread::hardware_concurrency();
     const auto kProcessorsCoresForServer = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
 
-    storage::Server server(kProcessorsCoresForServer);
+    storage::Server server;
 
     // // shutdown_handler = [&](int)
     // // {
@@ -50,7 +50,8 @@ int main()
 
     try
     {
-        if (!server.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
+        if (!server.start(kProcessorsCoresForServer,
+                          CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
         {
             LOG(ERROR) << "Can't start server";
             LOG(INFO) << "Shutting down the application";
