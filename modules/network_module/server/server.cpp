@@ -62,6 +62,10 @@ namespace network_module
 
     private:
         const int kAvailableProcessorsCores_;
+
+        std::shared_ptr<boost::asio::io_context> io_context_;
+        std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
+        std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
     };
 
     Server::ServerImpl::ServerImpl(const int &available_processors_cores)
