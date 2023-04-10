@@ -19,14 +19,18 @@ ENDIF(Boost_FOUND)
 
 # =============================================
 
-set(MODULE_NAME network_module)
+set(SERVER_FILES
+    server/server.cpp
+)
 
+set(CLIENT_FILES
+)
+
+set(MODULE_NAME network_module)
 add_library(${MODULE_NAME}
     ${MODULE_NAME}.hpp
-
-    # client/client.cpp
-
-    server/server.cpp
+    ${SERVER_FILES}
+    ${CLIENT_FILES}
 )
 add_library(modules::network ALIAS ${MODULE_NAME})
 target_link_libraries(${MODULE_NAME}
