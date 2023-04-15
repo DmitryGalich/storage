@@ -138,6 +138,18 @@ void HttpSession::create_response()
             << "</body>\n"
             << "</html>\n";
     }
+    else if (request_.target() == "/")
+    {
+        response_.set(boost::beast::http::field::content_type,
+                      "text/html");
+        boost::beast::ostream(response_.body())
+            << "<html>\n"
+            << "<head><title>HOME</title></head>\n"
+            << "<body>\n"
+            << "<h1>HOME</h1>\n"
+            << "</body>\n"
+            << "</html>\n";
+    }
     else if (request_.target() == "/time")
     {
         response_.set(boost::beast::http::field::content_type,

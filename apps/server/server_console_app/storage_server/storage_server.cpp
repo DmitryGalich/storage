@@ -3,6 +3,7 @@
 #include "easylogging++.h"
 
 #include "network_module.hpp"
+#include "pages_manager/pages_manager.hpp"
 
 namespace storage
 {
@@ -20,6 +21,7 @@ namespace storage
 
         private:
             std::unique_ptr<network_module::server::Server> network_module_;
+            PagesManager pages_manager_;
         };
 
         bool Server::ServerImpl::start(const int available_processors_cores,

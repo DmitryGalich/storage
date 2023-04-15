@@ -7,7 +7,7 @@ namespace storage
         class PagesManager
         {
         public:
-            PagesManager() = default;
+            PagesManager();
             ~PagesManager() = default;
         };
     }
