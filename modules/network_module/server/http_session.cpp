@@ -23,22 +23,10 @@ namespace
     }
 }
 
-namespace my_program_state
-{
-    std::size_t request_count()
-    {
-        static std::size_t count = 0;
-        return ++count;
-    }
-
-    std::time_t now()
-    {
-        return std::time(0);
-    }
-}
-
-HttpSession::HttpSession(boost::asio::ip::tcp::socket socket)
+HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
+                         std::list<std::pair<std::string, std::function<std::string()>>> callbacks)
     : socket_(std::move(socket)),
+      callbacks_(callbacks),
       deadline_(socket_.get_executor(),
                 std::chrono::seconds(60))
 {
@@ -122,48 +110,19 @@ void HttpSession::process_request()
 
 void HttpSession::create_response()
 {
-    if (request_.target() == "/count")
+    if (request_.target() == "/")
     {
         response_.set(boost::beast::http::field::content_type,
                       "text/html");
 
-        boost::beast::ostream(response_.body())
-            << "<html>\n"
-            << "<head><title>Request count</title></head>\n"
-            << "<body>\n"
-            << "<h1>Request count</h1>\n"
-            << "<p>There have been "
-            << my_program_state::request_count()
-            << " requests so far.</p>\n"
-            << "</body>\n"
-            << "</html>\n";
-    }
-    else if (request_.target() == "/")
-    {
-        response_.set(boost::beast::http::field::content_type,
-                      "text/html");
-        boost::beast::ostream(response_.body())
-            << "<html>\n"
-            << "<head><title>HOME</title></head>\n"
-            << "<body>\n"
-            << "<h1>HOME</h1>\n"
-            << "</body>\n"
-            << "</html>\n";
-    }
-    else if (request_.target() == "/time")
-    {
-        response_.set(boost::beast::http::field::content_type,
-                      "text/html");
-        boost::beast::ostream(response_.body())
-            << "<html>\n"
-            << "<head><title>Current time</title></head>\n"
-            << "<body>\n"
-            << "<h1>Current time</h1>\n"
-            << "<p>The current time is "
-            << my_program_state::now()
-            << " seconds since the epoch.</p>\n"
-            << "</body>\n"
-            << "</html>\n";
+        for (auto &callback : callbacks_)
+        {
+            if (callback.first != "/")
+                continue;
+
+            boost::beast::ostream(response_.body()) << callback.second();
+            return;
+        }
     }
     else
     {

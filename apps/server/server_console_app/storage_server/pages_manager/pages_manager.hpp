@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 namespace storage
 {
     namespace server
@@ -9,6 +10,8 @@ namespace storage
         public:
             PagesManager();
             ~PagesManager() = default;
+
+            std::string getHomePage();
         };
     }
 }

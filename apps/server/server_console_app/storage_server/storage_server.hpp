@@ -20,5 +20,5 @@ namespace storage
             class ServerImpl;
             std::unique_ptr<ServerImpl> server_impl_;
         };
-    } // namespace server
-} // namespace storage
+    }
+}

@@ -36,6 +36,11 @@ namespace storage
             auto config =
                 network_module::server::Server::Config::load_config(config_path);
 
+            config.http_callbacks_.push_back({"/", [&]()
+                                              {
+                                                  return pages_manager_.getHomePage();
+                                              }});
+
             if (!network_module_->start(available_processors_cores,
                                         config))
                 return false;

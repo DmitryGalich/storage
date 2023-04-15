@@ -74,7 +74,7 @@ namespace network_module
             void stop();
 
         private:
-            void listen_for_accept();
+            void listen_for_accept(const Server::Config &config);
 
         private:
             std::shared_ptr<boost::asio::io_context> io_context_;
@@ -135,14 +135,14 @@ namespace network_module
                 return false;
             }
 
-            listen_for_accept();
+            listen_for_accept(config);
 
             io_context_->run();
 
             return true;
         }
 
-        void Server::ServerImpl::listen_for_accept()
+        void Server::ServerImpl::listen_for_accept(const Server::Config &config)
         {
             LOG(INFO) << "Listening for accepting...";
 
@@ -157,10 +157,10 @@ namespace network_module
                                         else
                                         {
                                             LOG(INFO) << "Creating new http connection...";
-                                            std::make_shared<HttpSession>(std::move(*socket_))->start();
+                                            std::make_shared<HttpSession>(std::move(*socket_), config.http_callbacks_)->start();
                                         }
 
-                                        listen_for_accept();
+                                        listen_for_accept(config);
                                     });
         }
 
