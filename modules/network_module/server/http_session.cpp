@@ -67,7 +67,7 @@ void HttpSession::read_request()
             {
                 if (is_error_important(error_code))
                 {
-                    // LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
                     self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
                 }
                 return;
@@ -75,11 +75,11 @@ void HttpSession::read_request()
 
             if (boost::beast::websocket::is_upgrade(self->request_))
             {
-                // LOG(INFO) << "Request to update to websocket("
-                //           << self->socket_.remote_endpoint().address().to_string()
-                //           << ":"
-                //           << std::to_string(self->socket_.remote_endpoint().port())
-                //           << ")";
+                LOG(INFO) << "Request to update to websocket("
+                          << self->socket_.remote_endpoint().address().to_string()
+                          << ":"
+                          << std::to_string(self->socket_.remote_endpoint().port())
+                          << ")";
 
                 std::make_shared<WebSocketSession>(std::move(self->socket_))
                     ->run(std::move(self->request_));
@@ -178,7 +178,7 @@ void HttpSession::write_response()
             {
                 if (is_error_important(error_code))
                 {
-                    // LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
                     self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
                 }
             }
@@ -196,8 +196,8 @@ void HttpSession::check_deadline()
         {
             if (error_code)
             {
-                // if (is_error_important(error_code))
-                //     LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                if (is_error_important(error_code))
+                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
 
                 return;
             }

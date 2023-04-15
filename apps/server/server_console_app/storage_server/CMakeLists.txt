@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
+add_subdirectory(pages_manager)
+
 set(MODULE_NAME storage_server)
 
 add_library(${MODULE_NAME}

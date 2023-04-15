@@ -2,6 +2,8 @@
 
 #include <memory>
 #include <string>
+#include <utility>
+#include <functional>
 
 namespace network_module
 {
@@ -16,6 +18,8 @@ namespace network_module
 
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
+
+                std::pair<std::string, std::function<void()>> http_callbacks_;
             };
 
         public:

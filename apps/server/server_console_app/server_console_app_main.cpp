@@ -35,7 +35,7 @@ int main()
     const auto kProcessorsCores = std::thread::hardware_concurrency();
     const auto kProcessorsCoresForServer = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
 
-    storage::Server server;
+    storage::server::Server server;
 
     // // shutdown_handler = [&](int)
     // // {
