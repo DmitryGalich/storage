@@ -5,7 +5,7 @@
 #include <fstream>
 namespace
 {
-    std::string load_file(const std::string file_path)
+    std::string load_file(const std::string &file_path)
     {
         std::fstream file_stream(file_path);
         if (!file_stream)
@@ -14,9 +14,9 @@ namespace
             return {};
         }
 
-        std::ostringstream ss;
-        ss << f.rdbuf();
-        return ss.str();
+        std::ostringstream string_stream;
+        string_stream << file_stream.rdbuf();
+        return string_stream.str();
     }
 }
 
@@ -26,10 +26,10 @@ namespace storage
     {
         PagesManager::PagesManager() {}
 
-        std::string PagesManager::getHomePage()
+        std::string PagesManager::getHomePage(const std::string &file_path)
         {
-            LOG(INFO) << "KEK";
-            return "<html>\n<head><title> Home</title></head>\n<body>\n<h1> Home</h1>\n</body>\n</html>\n";
+            LOG(INFO) << "Loading file: \"" << file_path << "\"";
+            return load_file(file_path);
         }
     }
 }

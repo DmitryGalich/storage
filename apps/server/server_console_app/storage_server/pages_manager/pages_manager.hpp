@@ -11,7 +11,7 @@ namespace storage
             PagesManager();
             ~PagesManager() = default;
 
-            std::string getHomePage();
+            std::string getHomePage(const std::string &file_path);
         };
     }
 }

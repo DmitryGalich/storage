@@ -40,7 +40,7 @@ namespace storage
 
             config.http_callbacks_.push_back({"/", [&]()
                                               {
-                                                  return pages_manager_.getHomePage();
+                                                  return pages_manager_.getHomePage(html_folder_path + "index.html");
                                               }});
 
             if (!network_module_->start(available_processors_cores,
