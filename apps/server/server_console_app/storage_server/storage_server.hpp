@@ -13,7 +13,8 @@ namespace storage
             ~Server();
 
             bool start(const int available_processors_cores,
-                       const std::string &config_path);
+                       const std::string &config_path,
+                       const std::string &html_folder_path);
             void stop() noexcept;
 
         private:

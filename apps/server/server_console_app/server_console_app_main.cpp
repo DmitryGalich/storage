@@ -51,7 +51,8 @@ int main()
     try
     {
         if (!server.start(kProcessorsCoresForServer,
-                          CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
+                          CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"},
+                          CMAKE_CURRENT_SOURCE_DIR + std::string{"/html/"}))
         {
             LOG(ERROR) << "Can't start server";
             LOG(INFO) << "Shutting down the application";

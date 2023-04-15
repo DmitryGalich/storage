@@ -16,7 +16,8 @@ namespace storage
             ~ServerImpl() = default;
 
             bool start(const int available_processors_cores,
-                       const std::string &config_path);
+                       const std::string &config_path,
+                       const std::string &html_folder_path);
             void stop() noexcept;
 
         private:
@@ -25,7 +26,8 @@ namespace storage
         };
 
         bool Server::ServerImpl::start(const int available_processors_cores,
-                                       const std::string &config_path)
+                                       const std::string &config_path,
+                                       const std::string &html_folder_path)
         {
             LOG(INFO) << "Starting...";
 
@@ -72,7 +74,8 @@ namespace storage
         Server::~Server() {}
 
         bool Server::start(const int available_processors_cores,
-                           const std::string &config_path)
+                           const std::string &config_path,
+                           const std::string &html_folder_path)
         {
             if (!server_impl_)
             {
@@ -82,7 +85,8 @@ namespace storage
             }
 
             return server_impl_->start(available_processors_cores,
-                                       config_path);
+                                       config_path,
+                                       html_folder_path);
         }
 
         void Server::stop() noexcept
