@@ -1,7 +1,8 @@
 #include "../network_module.hpp"
 
-#include "easylogging++.h"
+#include <thread>
 
+#include "easylogging++.h"
 #include "json.hpp"
 
 #include "http_session.hpp"
@@ -80,6 +81,9 @@ namespace network_module
             std::shared_ptr<boost::asio::io_context> io_context_;
             std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
             std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
+
+            std::vector<std::thread> workers_;
+            std::mutex mutex_;
         };
 
         Server::ServerImpl::ServerImpl()
@@ -136,6 +140,41 @@ namespace network_module
             }
 
             listen_for_accept(config);
+
+            // Starting
+
+            if (available_processors_cores < 1)
+            {
+                LOG(ERROR) << "Number of available cores in too small";
+                stop();
+                return false;
+            }
+
+            LOG(INFO) << "Starting " << available_processors_cores << " worker-threads...";
+
+            if (available_processors_cores > 1)
+            {
+                workers_.reserve(available_processors_cores);
+
+                for (int thread_i = 0; thread_i < (available_processors_cores - 1); ++thread_i)
+                {
+                    workers_.emplace_back(
+                        [&]
+                        {
+                            {
+                                const std::lock_guard<std::mutex> lock(mutex_);
+                                LOG(INFO) << "Starting thread [" << std::this_thread::get_id() << "]";
+                            }
+
+                            io_context_->run();
+                        });
+                }
+            }
+
+            {
+                const std::lock_guard<std::mutex> lock(mutex_);
+                LOG(INFO) << "Starting thread [" << std::this_thread::get_id() << "]";
+            }
 
             io_context_->run();
 
