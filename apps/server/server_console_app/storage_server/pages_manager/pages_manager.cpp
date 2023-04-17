@@ -24,12 +24,14 @@ namespace storage
 {
     namespace server
     {
-        PagesManager::PagesManager() {}
+        PagesManager::PagesManager(const std::string &html_folder_path)
+            : kHtmlFolderPath_(html_folder_path) {}
 
-        std::string PagesManager::getHomePage(const std::string &file_path)
+        std::string PagesManager::getHomePage()
         {
-            LOG(INFO) << "Loading file: \"" << file_path << "\"";
-            return load_file(file_path);
+            static const std::string kFilepath(kHtmlFolderPath_ + "index.html");
+            LOG(INFO) << "Loading file: \"" << kFilepath << "\"";
+            return load_file(kFilepath);
         }
     }
 }
