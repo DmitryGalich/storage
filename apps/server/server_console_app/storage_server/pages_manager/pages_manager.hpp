@@ -12,7 +12,9 @@ namespace storage
             PagesManager(const std::string &html_folder_path);
             ~PagesManager() = default;
 
+            std::string getPageNotFoundPage();
             std::string getHomePage();
+            std::string getKekPage();
 
         private:
             const std::string kHtmlFolderPath_;

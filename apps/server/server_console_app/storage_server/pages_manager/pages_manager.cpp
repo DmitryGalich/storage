@@ -29,7 +29,21 @@ namespace storage
 
         std::string PagesManager::getHomePage()
         {
-            static const std::string kFilepath(kHtmlFolderPath_ + "index.html");
+            static const std::string kFilepath(kHtmlFolderPath_ + "/home/index.html");
+            LOG(INFO) << "Loading file: \"" << kFilepath << "\"";
+            return load_file(kFilepath);
+        }
+
+        std::string PagesManager::getPageNotFoundPage()
+        {
+            static const std::string kFilepath(kHtmlFolderPath_ + "statuses/404/index.html");
+            LOG(INFO) << "Loading file: \"" << kFilepath << "\"";
+            return load_file(kFilepath);
+        }
+
+        std::string PagesManager::getKekPage()
+        {
+            static const std::string kFilepath(kHtmlFolderPath_ + "kek/index.html");
             LOG(INFO) << "Loading file: \"" << kFilepath << "\"";
             return load_file(kFilepath);
         }
