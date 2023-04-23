@@ -58,6 +58,38 @@ namespace network_module
 
             return config;
         }
+
+    }
+}
+
+namespace network_module
+{
+    namespace server
+    {
+        const std::pair<Server::Config::Http::Url,
+                        Server::Config::Http::Callback>
+        Server::Config::Http::get404() const
+        {
+            return status_404_;
+        }
+
+        void Server::Config::Http::set404(const Url &url, const Callback &callback)
+        {
+            status_404_ = {url, callback};
+            setCallback(url, callback);
+        }
+
+        const std::map<Server::Config::Http::Url,
+                       Server::Config::Http::Callback> &
+        Server::Config::Http::getCallbacks() const
+        {
+            return callbacks_;
+        }
+
+        void Server::Config::Http::setCallback(const Url &url, const Callback &callback)
+        {
+            callbacks_[url] = callback;
+        }
     }
 }
 namespace network_module

@@ -24,7 +24,9 @@ namespace
 }
 
 HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
-                         std::list<std::pair<std::string, std::function<std::string()>>> callbacks)
+                         std::map<std::string,
+                                  std::function<std::string()>>
+                             callbacks)
     : socket_(std::move(socket)),
       callbacks_(callbacks),
       deadline_(socket_.get_executor(),
@@ -110,26 +112,35 @@ void HttpSession::process_request()
 
 void HttpSession::create_response()
 {
-    if (request_.target() == "/")
-    {
-        response_.set(boost::beast::http::field::content_type,
-                      "text/html");
+    // if (request_.target() == "/")
+    // {
+    //     response_.set(boost::beast::http::field::content_type,
+    //                   "text/html");
 
-        for (auto &callback : callbacks_)
-        {
-            if (callback.first != "/")
-                continue;
+    //     for (auto &callback : callbacks_)
+    //     {
+    //         if (callback.first != "/")
+    //             continue;
 
-            boost::beast::ostream(response_.body()) << callback.second();
-            return;
-        }
-    }
-    else
-    {
-        response_.result(boost::beast::http::status::not_found);
-        response_.set(boost::beast::http::field::content_type, "text/plain");
-        boost::beast::ostream(response_.body()) << "File not found\r\n";
-    }
+    //         boost::beast::ostream(response_.body()) << callback.second();
+    //         return;
+    //     }
+    // }
+    // else
+    // {
+    //     response_.result(boost::beast::http::status::not_found);
+    //     response_.set(boost::beast::http::field::content_type, "text/plain");
+    //     boost::beast::ostream(response_.body()) << "File not found\r\n";
+    // }
+
+    // try
+    // {
+    //     boost::beast::ostream(response_.body()) << callbacks_.at(request_.target());
+    // }
+    // catch (const std::exception &e)
+    // {
+    //     boost::beast::ostream(response_.body()) << callbacks_.at("");
+    // }
 }
 
 void HttpSession::write_response()

@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 #include <functional>
-#include <list>
+#include <map>
 
 namespace network_module
 {
@@ -20,7 +20,23 @@ namespace network_module
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
 
-                std::list<std::pair<std::string, std::function<std::string()>>> http_callbacks_;
+                struct Http
+                {
+                public:
+                    typedef std::string Url;
+                    typedef std::function<std::string()> Callback;
+
+                public:
+                    const std::pair<Url, Callback> get404() const;
+                    void set404(const Url &url, const Callback &callback);
+
+                    const std::map<Url, Callback> &getCallbacks() const;
+                    void setCallback(const Url &url, const Callback &callback);
+
+                private:
+                    std::pair<Url, Callback> status_404_;
+                    std::map<Url, Callback> callbacks_;
+                };
             };
 
         public:

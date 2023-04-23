@@ -77,10 +77,11 @@ namespace storage
 
         void Server::ServerImpl::configureHtmlCallbacks(network_module::server::Server::Config &config)
         {
-            config.http_callbacks_.push_back({"/", [&]()
-                                              {
-                                                  return pages_manager_->getHomePage();
-                                              }});
+            config.http_callbacks_["/"] = [&]()
+            { return pages_manager_->getHomePage(); };
+
+            config.http_callbacks_["/kek"] = [&]()
+            { return pages_manager_->getKekPage(); };
         }
     }
 }
