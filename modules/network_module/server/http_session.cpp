@@ -131,14 +131,20 @@ void HttpSession::create_response()
     //     boost::beast::ostream(response_.body()) << "File not found\r\n";
     // }
 
-    // try
-    // {
-    //     boost::beast::ostream(response_.body()) << callbacks_.at(request_.target());
-    // }
-    // catch (const std::exception &e)
-    // {
-    //     boost::beast::ostream(response_.body()) << callbacks_.at("");
-    // }
+    // if (request_.target() != "/")
+    //     return;
+
+    response_.set(boost::beast::http::field::content_type, "text/html");
+
+    const auto kPosition = callbacks_.find(static_cast<network_module::Url>(request_.target()));
+    if (kPosition != callbacks_.end())
+    {
+        boost::beast::ostream(response_.body()) << kPosition->second();
+    }
+    else
+    {
+        // boost::beast::ostream(response_.body()) << kPosition.second();
+    }
 }
 
 void HttpSession::write_response()

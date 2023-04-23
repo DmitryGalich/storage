@@ -38,6 +38,7 @@ set(CLIENT_FILES
 set(MODULE_NAME network_module)
 add_library(${MODULE_NAME}
     ${MODULE_NAME}.hpp
+    ${MODULE_NAME}_common.cpp
     ${MODULE_NAME}_common.hpp
     ${SERVER_FILES}
     ${CLIENT_FILES}

@@ -58,7 +58,6 @@ namespace network_module
 
             return config;
         }
-
     }
 }
 

@@ -82,6 +82,9 @@ namespace storage
 
             config.http_callbacks_["/kek"] = [&]()
             { return pages_manager_->getKekPage(); };
+
+            config.http_callbacks_[network_module::Urls::kPageNotFound_] = [&]()
+            { return pages_manager_->getPageNotFoundPage(); };
         }
     }
 }
