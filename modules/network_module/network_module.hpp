@@ -6,6 +6,8 @@
 #include <functional>
 #include <map>
 
+#include "network_module_common.hpp"
+
 namespace network_module
 {
     namespace server
@@ -20,23 +22,7 @@ namespace network_module
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
 
-                struct Http
-                {
-                public:
-                    typedef std::string Url;
-                    typedef std::function<std::string()> Callback;
-
-                public:
-                    const std::pair<Url, Callback> get404() const;
-                    void set404(const Url &url, const Callback &callback);
-
-                    const std::map<Url, Callback> &getCallbacks() const;
-                    void setCallback(const Url &url, const Callback &callback);
-
-                private:
-                    std::pair<Url, Callback> status_404_;
-                    std::map<Url, Callback> callbacks_;
-                };
+                std::map<Url, Callback> http_callbacks_;
             };
 
         public:

@@ -10,14 +10,14 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/dynamic_body.hpp>
 
+#include "../network_module_common.hpp"
+
 class HttpSession : public std::enable_shared_from_this<HttpSession>
 {
 public:
     HttpSession() = delete;
     HttpSession(boost::asio::ip::tcp::socket socket,
-                std::map<std::string,
-                         std::function<std::string()>>
-                    callbacks);
+                std::map<network_module::Url, network_module::Callback> callbacks);
     ~HttpSession() = default;
 
     void start();
@@ -30,9 +30,7 @@ private:
     void check_deadline();
 
 private:
-    std::map<std::string,
-             std::function<std::string()>>
-        callbacks_;
+    std::map<network_module::Url, network_module::Callback> callbacks_;
 
     boost::asio::ip::tcp::socket socket_;
     boost::beast::flat_buffer buffer_{8192};
