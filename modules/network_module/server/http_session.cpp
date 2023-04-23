@@ -110,30 +110,6 @@ void HttpSession::process_request()
 
 void HttpSession::create_response()
 {
-    // if (request_.target() == "/")
-    // {
-    //     response_.set(boost::beast::http::field::content_type,
-    //                   "text/html");
-
-    //     for (auto &callback : callbacks_)
-    //     {
-    //         if (callback.first != "/")
-    //             continue;
-
-    //         boost::beast::ostream(response_.body()) << callback.second();
-    //         return;
-    //     }
-    // }
-    // else
-    // {
-    //     response_.result(boost::beast::http::status::not_found);
-    //     response_.set(boost::beast::http::field::content_type, "text/plain");
-    //     boost::beast::ostream(response_.body()) << "File not found\r\n";
-    // }
-
-    // if (request_.target() != "/")
-    //     return;
-
     response_.set(boost::beast::http::field::content_type, "text/html");
 
     const auto kPosition = callbacks_.find(static_cast<network_module::Url>(request_.target()));
