@@ -143,7 +143,7 @@ void HttpSession::create_response()
     }
     else
     {
-        // boost::beast::ostream(response_.body()) << kPosition.second();
+        boost::beast::ostream(response_.body()) << callbacks_.at(network_module::Urls::kPageNotFound_)();
     }
 }
 
