@@ -6,6 +6,54 @@
 #include "boost/asio/ip/tcp.hpp"
 #include "boost/beast.hpp"
 
+#include "easylogging++.h"
+#include "json.hpp"
+
+namespace network_module
+{
+    namespace client
+    {
+        Client::Config Client::Config::load_config(const std::string &config_path)
+        {
+            nlohmann::json json_object;
+            json_object["host"] = "127.0.0.1";
+            json_object["port"] = 8080;
+
+            std::fstream file(config_path);
+            if (!file.is_open())
+            {
+                LOG(INFO) << "Creating default config...";
+
+                std::ofstream default_config_file(config_path);
+                if (!default_config_file.is_open())
+                {
+                    const std::string kErrorText{"Can't save default config to \"" + config_path + "\""};
+                    LOG(ERROR) << kErrorText;
+                    throw std::runtime_error(kErrorText);
+                }
+
+                default_config_file << json_object.dump(4);
+                default_config_file.close();
+
+                LOG(INFO) << "Created";
+            }
+            else
+            {
+                json_object = nlohmann::json::parse(file);
+                file.close();
+            }
+
+            LOG(INFO) << "Current config: \n"
+                      << json_object.dump(4);
+
+            network_module::client::Client::Config config;
+            json_object.at("host").get_to(config.host_);
+            json_object.at("port").get_to(config.port_);
+
+            return config;
+        }
+    }
+}
 namespace network_module
 {
     namespace client

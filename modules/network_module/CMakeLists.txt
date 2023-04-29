@@ -33,6 +33,7 @@ set(SERVER_FILES
 )
 
 set(CLIENT_FILES
+    client/client.cpp
 )
 
 set(MODULE_NAME network_module)
