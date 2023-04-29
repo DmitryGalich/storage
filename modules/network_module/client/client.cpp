@@ -1,11 +1,15 @@
 #include "../network_module.hpp"
 
 #include <memory>
+#include <chrono>
 
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
 #include "boost/beast.hpp"
 #include "boost/asio/strand.hpp"
+
+#include "boost/asio.hpp"
+#include "boost/bind.hpp"
 
 #include "easylogging++.h"
 #include "json.hpp"
@@ -77,6 +81,16 @@ namespace network_module
             void stop();
 
         private:
+            void process_resolve(boost::beast::error_code error_code,
+                                 boost::asio::ip::tcp::resolver::results_type results);
+            void process_connect(boost::beast::error_code error_code,
+                                 boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint_type);
+            void process_handshake(boost::beast::error_code error_code);
+            void process_write(boost::beast::error_code ec, std::size_t bytes_transferred);
+            void process_read(boost::beast::error_code ec, std::size_t bytes_transferred);
+            void process_close(boost::beast::error_code ec);
+
+        private:
             std::shared_ptr<boost::asio::io_context> io_context_;
             std::shared_ptr<boost::asio::ip::tcp::resolver> resolver_;
             std::shared_ptr<boost::beast::websocket::stream<boost::beast::tcp_stream>> websocket_stream_;
@@ -101,7 +115,7 @@ namespace network_module
                 return false;
             }
 
-            resolver_.reset(new boost::asio::ip::tcp::resolver(boost::asio::make_strand(*io_context_.get())));
+            resolver_.reset(new boost::asio::ip::tcp::resolver(*io_context_.get()));
             if (!resolver_)
             {
                 LOG(ERROR) << "Can't create resolver";
@@ -109,7 +123,26 @@ namespace network_module
                 return false;
             }
 
-            io_context_->run();
+            websocket_stream_.reset(new boost::beast::websocket::stream<boost::beast::tcp_stream>(*io_context_.get()));
+            if (!websocket_stream_)
+            {
+                LOG(ERROR) << "Can't create tcp_stream";
+                stop();
+                return false;
+            }
+
+            resolver_->async_resolve(
+                config.host_,
+                config.port_, [&](boost::beast::error_code error_code)
+                { process_resolve(error_code); });
+
+            // resolver_->async_resolve(
+            //     config.host_,
+            //     config.port_,
+            //     boost::beast::bind_front_handler(
+            //         &Client::ClientImpl::process_resolve,
+            //         shared_from_this()));
+
             return true;
         }
 
@@ -125,10 +158,54 @@ namespace network_module
 
             io_context_->stop();
 
+            websocket_stream_.reset();
             resolver_.reset();
             io_context_.reset();
 
             LOG(INFO) << "Stopped";
+        }
+
+        void Client::ClientImpl::process_resolve(boost::beast::error_code error_code,
+                                                 boost::asio::ip::tcp::resolver::results_type results)
+        {
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code;
+            }
+
+            // Set the timeout for the operation
+            boost::beast::get_lowest_layer(*websocket_stream_.get()).expires_after(std::chrono::seconds(30));
+
+            // Make the connection on the IP address we get from a lookup
+            // boost::beast::get_lowest_layer(websocket_stream_).async_connect(results, boost::beast::bind_front_handler(&Client::ClientImpl::process_connect, shared_from_this()));
+        }
+
+        void Client::ClientImpl::process_connect(boost::beast::error_code error_code,
+                                                 boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint_type)
+        {
+        }
+
+        void Client::ClientImpl::process_handshake(boost::beast::error_code error_code)
+        {
+        }
+
+        void Client::ClientImpl::process_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        {
+        }
+
+        void Client::ClientImpl::process_read(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        {
+        }
+
+        void Client::ClientImpl::process_close(boost::beast::error_code error_code)
+        {
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code;
+            }
+
+            LOG(INFO) << "Closing...";
+            LOG(INFO) << boost::beast::make_printable(buffer_.data());
         }
     }
 }
