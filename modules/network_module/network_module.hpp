@@ -38,27 +38,29 @@ namespace network_module
         };
     }
 
-    // Client
+    namespace client
+    {
+        class Client
+        {
+        public:
+            struct Config
+            {
+                static Config load_config(const std::string &config_path);
 
-    // class Client
-    // {
-    // public:
-    //     struct Config
-    //     {
-    //         std::string host_{"127.0.0.1"};
-    //         int port_{8080};
-    //         bool is_ip_v6_{false};
-    //     };
+                std::string host_{"127.0.0.1"};
+                int port_{8080};
+            };
 
-    // public:
-    //     Client();
-    //     ~Client();
+        public:
+            Client();
+            ~Client();
 
-    //     bool start(const Config &config);
-    //     void stop();
+            bool start(const Config &config);
+            void stop();
 
-    // private:
-    //     class ClientImpl;
-    //     std::unique_ptr<ClientImpl> client_impl_;
-    // };
+        private:
+            class ClientImpl;
+            std::unique_ptr<ClientImpl> client_impl_;
+        };
+    }
 }

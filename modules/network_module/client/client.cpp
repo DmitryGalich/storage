@@ -2,14 +2,17 @@
 
 namespace network_module
 {
-    Client::Client() {}
-
-    Client::~Client() {}
-
-    bool Client::start(const Config &config)
+    namespace client
     {
-        return true;
-    }
+        Client::Client() : client_impl_(std::make_unique<ClientImpl>()) {}
 
-    void Client::stop() {}
+        Client::~Client() {}
+
+        bool Client::start(const Config &config)
+        {
+            return true;
+        }
+
+        void Client::stop() {}
+    }
 }
