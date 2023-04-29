@@ -5,9 +5,18 @@
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
 #include "boost/beast.hpp"
+#include "boost/asio/strand.hpp"
 
 #include "easylogging++.h"
 #include "json.hpp"
+
+namespace
+{
+    bool is_error_important(const boost::system::error_code &error_code)
+    {
+        return !(error_code == boost::asio::error::operation_aborted);
+    }
+}
 
 namespace network_module
 {
@@ -88,6 +97,14 @@ namespace network_module
             if (!io_context_)
             {
                 LOG(ERROR) << "Can't create io_context";
+                stop();
+                return false;
+            }
+
+            resolver_.reset(new boost::asio::ip::tcp::resolver(boost::asio::make_strand(*io_context_.get())));
+            if (!resolver_)
+            {
+                LOG(ERROR) << "Can't create resolver";
                 stop();
                 return false;
             }
