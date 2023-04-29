@@ -24,7 +24,7 @@ int main()
 
     try
     {
-        if (!client.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
+        if (!client.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/client_config.json"}))
         {
             LOG(ERROR) << "Can't start client";
             LOG(INFO) << "Shutting down the application";
