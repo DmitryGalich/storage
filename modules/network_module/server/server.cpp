@@ -206,11 +206,11 @@ namespace network_module
 
         void Server::ServerImpl::stop()
         {
-            LOG(DEBUG) << "Stopping...";
+            LOG(INFO) << "Stopping...";
 
             if (!io_context_)
             {
-                LOG(DEBUG) << "Stopped";
+                LOG(INFO) << "Stopped";
                 return;
             }
 
@@ -220,7 +220,7 @@ namespace network_module
             acceptor_.reset();
             io_context_.reset();
 
-            LOG(DEBUG) << "Stopped";
+            LOG(INFO) << "Stopped";
         }
     }
 }

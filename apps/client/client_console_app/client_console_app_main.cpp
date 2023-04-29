@@ -2,6 +2,8 @@
 
 #include "easylogging++.h"
 
+#include "storage_client/storage_client.hpp"
+
 INITIALIZE_EASYLOGGINGPP
 
 void configure_logger()
@@ -17,6 +19,28 @@ int main()
     LOG(INFO) << "================================";
     LOG(INFO) << PROJECT_NAME;
     LOG(INFO) << "version " << PROJECT_VERSION;
+
+    storage::client::Client client;
+
+    try
+    {
+        if (!client.start(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"}))
+        {
+            LOG(ERROR) << "Can't start client";
+            LOG(INFO) << "Shutting down the application";
+            client.stop();
+            return -1;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        LOG(ERROR) << e.what();
+        LOG(INFO) << "Shutting down the application";
+        client.stop();
+        return -1;
+    }
+
+    client.stop();
 
     return 0;
 }

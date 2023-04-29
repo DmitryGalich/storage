@@ -11,8 +11,8 @@ namespace storage
         class Client::ClientImpl
         {
         public:
-            ClientImpl() = default;
-            ~ClientImpl() = default;
+            ClientImpl();
+            ~ClientImpl();
 
             bool start(const std::string &config_path);
             void stop() noexcept;
@@ -20,6 +20,10 @@ namespace storage
         private:
             std::unique_ptr<network_module::client::Client> network_module_;
         };
+
+        Client::ClientImpl::ClientImpl() {}
+
+        Client::ClientImpl::~ClientImpl() {}
 
         bool Client::ClientImpl::start(const std::string &config_path)
         {
