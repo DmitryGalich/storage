@@ -68,7 +68,16 @@ int main()
         return -1;
     }
 
-    server.stop();
+    while (std::cin.good())
+    {
+        char c = std::cin.peek();
+
+        if (c == 'q')
+        {
+            server.stop();
+            break;
+        }
+    }
 
     return 0;
 }

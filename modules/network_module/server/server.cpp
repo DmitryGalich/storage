@@ -157,7 +157,7 @@ namespace network_module
             {
                 workers_.reserve(available_processors_cores);
 
-                for (int thread_i = 0; thread_i < (available_processors_cores - 1); ++thread_i)
+                for (int thread_i = 0; thread_i < (available_processors_cores); ++thread_i)
                 {
                     workers_.emplace_back(
                         [&]
@@ -171,13 +171,6 @@ namespace network_module
                         });
                 }
             }
-
-            {
-                const std::lock_guard<std::mutex> lock(mutex_);
-                LOG(INFO) << "Starting thread [" << std::this_thread::get_id() << "]";
-            }
-
-            io_context_->run();
 
             return true;
         }
@@ -213,8 +206,13 @@ namespace network_module
                 LOG(INFO) << "Stopped";
                 return;
             }
-
             io_context_->stop();
+
+            for (auto &worker : workers_)
+            {
+                worker.join();
+            }
+            workers_.clear();
 
             socket_.reset();
             acceptor_.reset();

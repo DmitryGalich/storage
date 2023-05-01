@@ -131,10 +131,10 @@ namespace network_module
                 return false;
             }
 
-            resolver_->async_resolve(
-                config.host_,
-                config.port_, [&](boost::beast::error_code error_code)
-                { process_resolve(error_code); });
+            // resolver_->async_resolve(
+            //     config.host_,
+            //     config.port_, [&](boost::beast::error_code error_code)
+            //     { process_resolve(error_code); });
 
             // resolver_->async_resolve(
             //     config.host_,
