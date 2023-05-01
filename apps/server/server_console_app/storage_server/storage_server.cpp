@@ -15,7 +15,7 @@ namespace storage
             ServerImpl() = default;
             ~ServerImpl() = default;
 
-            bool start(const int available_processors_cores,
+            bool start(const int workers_number,
                        const std::string &config_path,
                        const std::string &html_folder_path);
             void stop() noexcept;
@@ -28,7 +28,7 @@ namespace storage
             std::unique_ptr<PagesManager> pages_manager_;
         };
 
-        bool Server::ServerImpl::start(const int available_processors_cores,
+        bool Server::ServerImpl::start(const int workers_number,
                                        const std::string &config_path,
                                        const std::string &html_folder_path)
         {
@@ -53,7 +53,7 @@ namespace storage
 
             configureHtmlCallbacks(config);
 
-            if (!network_module_->start(available_processors_cores,
+            if (!network_module_->start(workers_number,
                                         config))
                 return false;
 
@@ -97,7 +97,7 @@ namespace storage
 
         Server::~Server() {}
 
-        bool Server::start(const int available_processors_cores,
+        bool Server::start(const int workers_number,
                            const std::string &config_path,
                            const std::string &html_folder_path)
         {
@@ -108,7 +108,7 @@ namespace storage
                 throw std::runtime_error(kErrorText);
             }
 
-            return server_impl_->start(available_processors_cores,
+            return server_impl_->start(workers_number,
                                        config_path,
                                        html_folder_path);
         }

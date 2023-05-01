@@ -12,7 +12,7 @@ namespace storage
             Server();
             ~Server();
 
-            bool start(const int available_processors_cores,
+            bool start(const int workers_number,
                        const std::string &config_path,
                        const std::string &html_folder_path);
             void stop() noexcept;

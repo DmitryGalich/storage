@@ -71,7 +71,7 @@ namespace network_module
             ServerImpl();
             ~ServerImpl();
 
-            bool start(const int &available_processors_cores,
+            bool start(const int &workers_number,
                        const Server::Config &config);
             void stop();
 
@@ -93,7 +93,7 @@ namespace network_module
 
         Server::ServerImpl::~ServerImpl() {}
 
-        bool Server::ServerImpl::start(const int &available_processors_cores,
+        bool Server::ServerImpl::start(const int &workers_number,
                                        const Server::Config &config)
         {
             stop();
@@ -144,27 +144,27 @@ namespace network_module
 
             // Starting
 
-            if (available_processors_cores < 1)
+            if (workers_number < 1)
             {
                 LOG(ERROR) << "Number of available cores in too small";
                 stop();
                 return false;
             }
 
-            LOG(INFO) << "Starting " << available_processors_cores << " worker-threads...";
+            LOG(INFO) << "Starting " << workers_number << " worker-threads...";
 
-            if (available_processors_cores > 1)
+            if (workers_number > 1)
             {
-                workers_.reserve(available_processors_cores);
+                workers_.reserve(workers_number);
 
-                for (int thread_i = 0; thread_i < (available_processors_cores); ++thread_i)
+                for (int thread_i = 0; thread_i < workers_number; ++thread_i)
                 {
                     workers_.emplace_back(
                         [&]
                         {
                             {
                                 const std::lock_guard<std::mutex> lock(mutex_);
-                                LOG(INFO) << "Starting thread [" << std::this_thread::get_id() << "]";
+                                LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
                             }
 
                             io_context_->run();
@@ -208,9 +208,12 @@ namespace network_module
             }
             io_context_->stop();
 
+            int worker_i = 0;
             for (auto &worker : workers_)
             {
+                LOG(INFO) << "Worker(" << worker_i << ") stopping...";
                 worker.join();
+                LOG(INFO) << "Worker(" << worker_i++ << ") stopped";
             }
             workers_.clear();
 
@@ -230,7 +233,7 @@ namespace network_module
 
         Server::~Server() {}
 
-        bool Server::start(const int &available_processors_cores,
+        bool Server::start(const int &workers_number,
                            const Config &config)
         {
             LOG(INFO) << "Starting...";
@@ -242,7 +245,7 @@ namespace network_module
                 throw std::runtime_error(kErrorText);
             }
 
-            return server_impl_->start(available_processors_cores,
+            return server_impl_->start(workers_number,
                                        config);
         }
 

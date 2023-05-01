@@ -33,7 +33,7 @@ int main()
     LOG(INFO) << "version " << PROJECT_VERSION;
 
     const auto kProcessorsCores = std::thread::hardware_concurrency();
-    const auto kProcessorsCoresForServer = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
+    const auto kServerWorkersNumber = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
 
     storage::server::Server server;
 
@@ -50,7 +50,7 @@ int main()
 
     try
     {
-        if (!server.start(kProcessorsCoresForServer,
+        if (!server.start(kServerWorkersNumber,
                           CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/server_config.json"},
                           CMAKE_CURRENT_SOURCE_DIR + std::string{"/web_pages/"}))
         {
