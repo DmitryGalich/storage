@@ -1,6 +1,10 @@
 #include "../network_module.hpp"
 
 #include <thread>
+#include <functional>
+
+#include <boost/bind.hpp>
+#include <boost/asio.hpp>
 
 #include "easylogging++.h"
 #include "json.hpp"
@@ -77,6 +81,7 @@ namespace network_module
 
         private:
             void listen_for_accept(const Server::Config &config);
+            void process_accept(const boost::system::error_code &error, const Server::Config &config);
 
         private:
             std::shared_ptr<boost::asio::io_context> io_context_;
@@ -179,22 +184,26 @@ namespace network_module
         {
             LOG(INFO) << "Listening for accepting...";
 
-            acceptor_->async_accept(*socket_,
-                                    [&](boost::beast::error_code error_code)
-                                    {
-                                        if (error_code)
-                                        {
-                                            if (is_error_important(error_code))
-                                                LOG(ERROR) << "async_accept - (" << error_code.value() << ") " << error_code.message();
-                                        }
-                                        else
-                                        {
-                                            LOG(INFO) << "Creating new http connection...";
-                                            std::make_shared<HttpSession>(std::move(*socket_), config.http_callbacks_)->start();
-                                        }
+            acceptor_->async_accept(*socket_, boost::bind(&Server::ServerImpl::process_accept, this,
+                                                          boost::asio::placeholders::error, config));
+        }
 
-                                        listen_for_accept(config);
-                                    });
+        void Server::ServerImpl::process_accept(const boost::system::error_code &error_code, const Server::Config &config)
+        {
+            LOG(INFO) << "Accepting...";
+
+            if (error_code)
+            {
+                if (is_error_important(error_code))
+                    LOG(ERROR) << "async_accept - (" << error_code.value() << ") " << error_code.message();
+            }
+            else
+            {
+                LOG(INFO) << "Creating new http connection...";
+                std::make_shared<HttpSession>(std::move(*socket_), config.http_callbacks_)->start();
+            }
+
+            listen_for_accept(config);
         }
 
         void Server::ServerImpl::stop()
@@ -225,6 +234,7 @@ namespace network_module
         }
     }
 }
+
 namespace network_module
 {
     namespace server
