@@ -82,9 +82,9 @@ namespace network_module
 
         private:
             void process_resolve(boost::beast::error_code error_code,
-                                 boost::asio::ip::tcp::resolver::results_type results);
+                                 boost::asio::ip::tcp::resolver::iterator iterator);
             void process_connect(boost::beast::error_code error_code,
-                                 boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint_type);
+                                 boost::asio::ip::tcp::resolver::iterator iterator);
             void process_handshake(boost::beast::error_code error_code);
             void process_write(boost::beast::error_code ec, std::size_t bytes_transferred);
             void process_read(boost::beast::error_code ec, std::size_t bytes_transferred);
@@ -93,7 +93,7 @@ namespace network_module
         private:
             std::shared_ptr<boost::asio::io_context> io_context_;
             std::shared_ptr<boost::asio::ip::tcp::resolver> resolver_;
-            std::shared_ptr<boost::beast::websocket::stream<boost::beast::tcp_stream>> websocket_stream_;
+            std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
             boost::beast::flat_buffer buffer_;
 
             std::vector<std::thread> workers_;
@@ -126,10 +126,10 @@ namespace network_module
                 return false;
             }
 
-            websocket_stream_.reset(new boost::beast::websocket::stream<boost::beast::tcp_stream>(*io_context_.get()));
-            if (!websocket_stream_)
+            socket_.reset(new boost::asio::ip::tcp::socket(*io_context_));
+            if (!socket_)
             {
-                LOG(ERROR) << "Can't create tcp_stream";
+                LOG(ERROR) << "Can't create socket";
                 stop();
                 return false;
             }
@@ -150,23 +150,20 @@ namespace network_module
 
             LOG(INFO) << "Starting " << kWorkersNumber << " worker-threads...";
 
-            if (kWorkersNumber > 1)
+            workers_.reserve(kWorkersNumber);
+
+            for (int thread_i = 0; thread_i < kWorkersNumber; ++thread_i)
             {
-                workers_.reserve(kWorkersNumber);
-
-                for (int thread_i = 0; thread_i < kWorkersNumber; ++thread_i)
-                {
-                    workers_.emplace_back(
-                        [&]
+                workers_.emplace_back(
+                    [&]
+                    {
                         {
-                            {
-                                const std::lock_guard<std::mutex> lock(mutex_);
-                                LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
-                            }
+                            const std::lock_guard<std::mutex> lock(mutex_);
+                            LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
+                        }
 
-                            io_context_->run();
-                        });
-                }
+                        io_context_->run();
+                    });
             }
 
             return true;
@@ -191,8 +188,7 @@ namespace network_module
                 LOG(INFO) << "Worker(" << worker_i++ << ") stopped";
             }
             workers_.clear();
-
-            websocket_stream_.reset();
+            socket_.reset();
             resolver_.reset();
             io_context_.reset();
 
@@ -200,23 +196,25 @@ namespace network_module
         }
 
         void Client::ClientImpl::process_resolve(boost::beast::error_code error_code,
-                                                 boost::asio::ip::tcp::resolver::results_type results)
+                                                 boost::asio::ip::tcp::resolver::iterator iterator)
         {
+            LOG(INFO) << "Process resolving...";
+
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code;
             }
 
-            // Set the timeout for the operation
-            boost::beast::get_lowest_layer(*websocket_stream_.get()).expires_after(std::chrono::seconds(30));
-
-            // Make the connection on the IP address we get from a lookup
-            boost::beast::get_lowest_layer(*websocket_stream_.get()).async_connect(results, boost::beast::bind_front_handler(&Client::ClientImpl::process_connect, shared_from_this()));
+            boost::asio::ip::tcp::endpoint end_point = *iterator;
+            socket_->async_connect(end_point, boost::bind(&Client::ClientImpl::process_connect, this,
+                                                          boost::asio::placeholders::error,
+                                                          ++iterator));
         }
 
         void Client::ClientImpl::process_connect(boost::beast::error_code error_code,
-                                                 boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint_type)
+                                                 boost::asio::ip::tcp::resolver::iterator iterator)
         {
+            LOG(INFO) << "Process connecting...";
         }
 
         void Client::ClientImpl::process_handshake(boost::beast::error_code error_code)

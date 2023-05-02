@@ -128,9 +128,9 @@ namespace network_module
                 return false;
             }
             socket_.reset(new boost::asio::ip::tcp::socket(*io_context_));
-            if (!acceptor_)
+            if (!socket_)
             {
-                LOG(ERROR) << "Can't create acceptor";
+                LOG(ERROR) << "Can't create socket";
                 stop();
                 return false;
             }
@@ -158,23 +158,20 @@ namespace network_module
 
             LOG(INFO) << "Starting " << workers_number << " worker-threads...";
 
-            if (workers_number > 1)
+            workers_.reserve(workers_number);
+
+            for (int thread_i = 0; thread_i < workers_number; ++thread_i)
             {
-                workers_.reserve(workers_number);
-
-                for (int thread_i = 0; thread_i < workers_number; ++thread_i)
-                {
-                    workers_.emplace_back(
-                        [&]
+                workers_.emplace_back(
+                    [&]
+                    {
                         {
-                            {
-                                const std::lock_guard<std::mutex> lock(mutex_);
-                                LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
-                            }
+                            const std::lock_guard<std::mutex> lock(mutex_);
+                            LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
+                        }
 
-                            io_context_->run();
-                        });
-                }
+                        io_context_->run();
+                    });
             }
 
             return true;
