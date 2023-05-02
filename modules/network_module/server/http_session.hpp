@@ -24,7 +24,7 @@ public:
 
 private:
     void read_request();
-    void process_request();
+    void do_request();
     void create_response();
     void write_response();
     void check_deadline();

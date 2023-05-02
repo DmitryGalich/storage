@@ -21,10 +21,10 @@ public:
     void run(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request);
 
 private:
-    void process_accept(boost::system::error_code error_code);
+    void do_accept(boost::system::error_code error_code);
     void prepare_for_reading();
-    void process_read(boost::system::error_code error_code, std::size_t bytes_transferred);
-    void process_write(boost::system::error_code error_code, std::size_t bytes_transferred);
+    void do_read(boost::system::error_code error_code, std::size_t bytes_transferred);
+    void do_write(boost::system::error_code error_code, std::size_t bytes_transferred);
 
 private:
     boost::beast::websocket::stream<boost::asio::ip::tcp::socket> websocket_;
@@ -38,7 +38,7 @@ void WebSocketSession::run(boost::beast::http::request<Body, boost::beast::http:
     websocket_.async_accept(
         request,
         std::bind(
-            &WebSocketSession::process_accept,
+            &WebSocketSession::do_accept,
             shared_from_this(),
             std::placeholders::_1));
 }

@@ -20,7 +20,7 @@ public:
 
 private:
     void prepare_for_accepting();
-    void process_accept(const boost::system::error_code &error_code);
+    void do_accept(const boost::system::error_code &error_code);
 
 private:
     const int &kAvailableProcessorsCores_;

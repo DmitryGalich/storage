@@ -75,10 +75,10 @@ void Listener::prepare_for_accepting()
 {
   acceptor_.async_accept(
       socket_, [&](const boost::system::error_code &error_code)
-      { process_accept(error_code); });
+      { do_accept(error_code); });
 }
 
-void Listener::process_accept(const boost::system::error_code &error_code)
+void Listener::do_accept(const boost::system::error_code &error_code)
 {
   if (error_code)
   {

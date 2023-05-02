@@ -74,11 +74,11 @@ void HttpSession::read_request()
                 return;
             }
 
-            self->process_request();
+            self->do_request();
         });
 }
 
-void HttpSession::process_request()
+void HttpSession::do_request()
 {
     response_.version(request_.version());
     response_.keep_alive(false);

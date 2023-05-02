@@ -22,7 +22,7 @@ WebSocketSession::~WebSocketSession()
     // LOG(DEBUG);
 }
 
-void WebSocketSession::process_accept(boost::system::error_code error_code)
+void WebSocketSession::do_accept(boost::system::error_code error_code)
 {
     if (error_code)
     {
@@ -44,12 +44,12 @@ void WebSocketSession::prepare_for_reading()
         [self = shared_from_this()](
             boost::system::error_code error_code, std::size_t bytes)
         {
-            self->process_read(error_code, bytes);
+            self->do_read(error_code, bytes);
         });
 }
 
-void WebSocketSession::process_read(boost::system::error_code error_code,
-                                    std::size_t bytes_transferred)
+void WebSocketSession::do_read(boost::system::error_code error_code,
+                               std::size_t bytes_transferred)
 {
     // LOG(INFO) << "Received message: " << buffer_.data();
 
@@ -58,7 +58,7 @@ void WebSocketSession::process_read(boost::system::error_code error_code,
     prepare_for_reading();
 }
 
-void WebSocketSession::process_write(boost::system::error_code error_code,
-                                     std::size_t bytes_transferred)
+void WebSocketSession::do_write(boost::system::error_code error_code,
+                                std::size_t bytes_transferred)
 {
 }

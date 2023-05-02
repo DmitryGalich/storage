@@ -81,14 +81,14 @@ namespace network_module
             void stop();
 
         private:
-            void process_resolve(boost::beast::error_code error_code,
-                                 boost::asio::ip::tcp::resolver::iterator iterator);
-            void process_connect(boost::beast::error_code error_code,
-                                 boost::asio::ip::tcp::resolver::iterator iterator);
-            void process_handshake(boost::beast::error_code error_code);
-            void process_write(boost::beast::error_code ec, std::size_t bytes_transferred);
-            void process_read(boost::beast::error_code ec, std::size_t bytes_transferred);
-            void process_close(boost::beast::error_code ec);
+            void do_resolve(boost::beast::error_code error_code,
+                            boost::asio::ip::tcp::resolver::iterator iterator);
+            void do_connect(boost::beast::error_code error_code,
+                            boost::asio::ip::tcp::resolver::iterator iterator);
+            void do_handshake(boost::beast::error_code error_code);
+            void do_write(boost::beast::error_code ec, std::size_t bytes_transferred);
+            void do_read(boost::beast::error_code ec, std::size_t bytes_transferred);
+            void do_close(boost::beast::error_code ec);
 
         private:
             std::shared_ptr<boost::asio::io_context> io_context_;
@@ -135,7 +135,7 @@ namespace network_module
             }
 
             resolver_->async_resolve(config.host_.c_str(), std::to_string(config.port_),
-                                     boost::bind(&Client::ClientImpl::process_resolve,
+                                     boost::bind(&Client::ClientImpl::do_resolve,
                                                  this,
                                                  boost::asio::placeholders::error,
                                                  boost::asio::placeholders::results));
@@ -195,8 +195,8 @@ namespace network_module
             LOG(INFO) << "Stopped";
         }
 
-        void Client::ClientImpl::process_resolve(boost::beast::error_code error_code,
-                                                 boost::asio::ip::tcp::resolver::iterator iterator)
+        void Client::ClientImpl::do_resolve(boost::beast::error_code error_code,
+                                            boost::asio::ip::tcp::resolver::iterator iterator)
         {
             LOG(INFO) << "Process resolving...";
 
@@ -206,30 +206,30 @@ namespace network_module
             }
 
             boost::asio::ip::tcp::endpoint end_point = *iterator;
-            socket_->async_connect(end_point, boost::bind(&Client::ClientImpl::process_connect, this,
+            socket_->async_connect(end_point, boost::bind(&Client::ClientImpl::do_connect, this,
                                                           boost::asio::placeholders::error,
                                                           ++iterator));
         }
 
-        void Client::ClientImpl::process_connect(boost::beast::error_code error_code,
-                                                 boost::asio::ip::tcp::resolver::iterator iterator)
+        void Client::ClientImpl::do_connect(boost::beast::error_code error_code,
+                                            boost::asio::ip::tcp::resolver::iterator iterator)
         {
             LOG(INFO) << "Process connecting...";
         }
 
-        void Client::ClientImpl::process_handshake(boost::beast::error_code error_code)
+        void Client::ClientImpl::do_handshake(boost::beast::error_code error_code)
         {
         }
 
-        void Client::ClientImpl::process_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        void Client::ClientImpl::do_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
         {
         }
 
-        void Client::ClientImpl::process_read(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        void Client::ClientImpl::do_read(boost::beast::error_code error_code, std::size_t bytes_transferred)
         {
         }
 
-        void Client::ClientImpl::process_close(boost::beast::error_code error_code)
+        void Client::ClientImpl::do_close(boost::beast::error_code error_code)
         {
             if (error_code)
             {

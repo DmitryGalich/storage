@@ -81,7 +81,7 @@ namespace network_module
 
         private:
             void listen_for_accept(const Server::Config &config);
-            void process_accept(const boost::system::error_code &error, const Server::Config &config);
+            void do_accept(const boost::system::error_code &error, const Server::Config &config);
 
         private:
             std::shared_ptr<boost::asio::io_context> io_context_;
@@ -181,11 +181,11 @@ namespace network_module
         {
             LOG(INFO) << "Listening for accepting...";
 
-            acceptor_->async_accept(*socket_, boost::bind(&Server::ServerImpl::process_accept, this,
+            acceptor_->async_accept(*socket_, boost::bind(&Server::ServerImpl::do_accept, this,
                                                           boost::asio::placeholders::error, config));
         }
 
-        void Server::ServerImpl::process_accept(const boost::system::error_code &error_code, const Server::Config &config)
+        void Server::ServerImpl::do_accept(const boost::system::error_code &error_code, const Server::Config &config)
         {
             LOG(INFO) << "Accepting...";
 
