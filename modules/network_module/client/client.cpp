@@ -83,8 +83,8 @@ namespace network_module
         private:
             void do_resolve(boost::beast::error_code error_code,
                             boost::asio::ip::tcp::resolver::results_type results);
-            // void do_connect(boost::beast::error_code error_code,
-            //                 boost::asio::ip::tcp::resolver::iterator iterator);
+            void do_connect(boost::beast::error_code error_code,
+                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint);
             // void do_handshake(boost::beast::error_code error_code);
             // void do_write(boost::beast::error_code ec, std::size_t bytes_transferred);
             // void do_read(boost::beast::error_code ec, std::size_t bytes_transferred);
@@ -209,22 +209,20 @@ namespace network_module
                 LOG(ERROR) << "Error " << error_code;
             }
 
-            // boost::asio::ip::tcp::endpoint end_point = *iterator;
-            // socket_->async_connect(end_point, boost::bind(&Client::ClientImpl::do_connect, this,
-            //                                               boost::asio::placeholders::error,
-            //                                               ++iterator));
+            boost::beast::get_lowest_layer(*websocket_stream_).expires_after(std::chrono::seconds(30));
+            boost::beast::get_lowest_layer(*websocket_stream_).async_connect(results, boost::bind(&Client::ClientImpl::do_connect, this, boost::asio::placeholders::error, boost::asio::placeholders::endpoint));
         }
 
-        // void Client::ClientImpl::do_connect(boost::beast::error_code error_code,
-        //                                     boost::asio::ip::tcp::resolver::iterator iterator)
-        // {
-        //     LOG(INFO) << "Process connecting...";
+        void Client::ClientImpl::do_connect(boost::beast::error_code error_code,
+                                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint)
+        {
+            LOG(INFO) << "Process connecting...";
 
-        //     if (error_code)
-        //     {
-        //         LOG(ERROR) << "Error " << error_code;
-        //     }
-        // }
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code;
+            }
+        }
 
         // void Client::ClientImpl::do_handshake(boost::beast::error_code error_code)
         // {
