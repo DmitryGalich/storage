@@ -40,7 +40,16 @@ int main()
         return -1;
     }
 
-    client.stop();
+    while (std::cin.good())
+    {
+        char c = std::cin.peek();
+
+        if (c == 'q')
+        {
+            client.stop();
+            break;
+        }
+    }
 
     return 0;
 }

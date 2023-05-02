@@ -95,6 +95,9 @@ namespace network_module
             std::shared_ptr<boost::asio::ip::tcp::resolver> resolver_;
             std::shared_ptr<boost::beast::websocket::stream<boost::beast::tcp_stream>> websocket_stream_;
             boost::beast::flat_buffer buffer_;
+
+            std::vector<std::thread> workers_;
+            std::mutex mutex_;
         };
 
         Client::ClientImpl::ClientImpl() {}
@@ -131,17 +134,40 @@ namespace network_module
                 return false;
             }
 
-            // resolver_->async_resolve(
-            //     config.host_,
-            //     config.port_, [&](boost::beast::error_code error_code)
-            //     { process_resolve(error_code); });
+            resolver_->async_resolve(config.host_.c_str(), std::to_string(config.port_),
+                                     boost::bind(&Client::ClientImpl::process_resolve,
+                                                 this,
+                                                 boost::asio::placeholders::error,
+                                                 boost::asio::placeholders::results));
 
-            // resolver_->async_resolve(
-            //     config.host_,
-            //     config.port_,
-            //     boost::beast::bind_front_handler(
-            //         &Client::ClientImpl::process_resolve,
-            //         shared_from_this()));
+            const int kWorkersNumber = 1;
+            if (kWorkersNumber < 1)
+            {
+                LOG(ERROR) << "Number of available cores in too small";
+                stop();
+                return false;
+            }
+
+            LOG(INFO) << "Starting " << kWorkersNumber << " worker-threads...";
+
+            if (kWorkersNumber > 1)
+            {
+                workers_.reserve(kWorkersNumber);
+
+                for (int thread_i = 0; thread_i < kWorkersNumber; ++thread_i)
+                {
+                    workers_.emplace_back(
+                        [&]
+                        {
+                            {
+                                const std::lock_guard<std::mutex> lock(mutex_);
+                                LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
+                            }
+
+                            io_context_->run();
+                        });
+                }
+            }
 
             return true;
         }
@@ -155,8 +181,16 @@ namespace network_module
                 LOG(INFO) << "Stopped";
                 return;
             }
-
             io_context_->stop();
+
+            int worker_i = 0;
+            for (auto &worker : workers_)
+            {
+                LOG(INFO) << "Worker(" << worker_i << ") stopping...";
+                worker.join();
+                LOG(INFO) << "Worker(" << worker_i++ << ") stopped";
+            }
+            workers_.clear();
 
             websocket_stream_.reset();
             resolver_.reset();
@@ -177,7 +211,7 @@ namespace network_module
             boost::beast::get_lowest_layer(*websocket_stream_.get()).expires_after(std::chrono::seconds(30));
 
             // Make the connection on the IP address we get from a lookup
-            // boost::beast::get_lowest_layer(websocket_stream_).async_connect(results, boost::beast::bind_front_handler(&Client::ClientImpl::process_connect, shared_from_this()));
+            boost::beast::get_lowest_layer(*websocket_stream_.get()).async_connect(results, boost::beast::bind_front_handler(&Client::ClientImpl::process_connect, shared_from_this()));
         }
 
         void Client::ClientImpl::process_connect(boost::beast::error_code error_code,
