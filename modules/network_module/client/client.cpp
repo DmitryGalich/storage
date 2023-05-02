@@ -215,6 +215,11 @@ namespace network_module
                                             boost::asio::ip::tcp::resolver::iterator iterator)
         {
             LOG(INFO) << "Process connecting...";
+
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code;
+            }
         }
 
         void Client::ClientImpl::do_handshake(boost::beast::error_code error_code)
