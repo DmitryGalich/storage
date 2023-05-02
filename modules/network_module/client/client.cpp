@@ -87,9 +87,9 @@ namespace network_module
             void do_connect(boost::beast::error_code error_code,
                             boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint, const Config &config);
             void do_handshake(boost::beast::error_code error_code);
-            // void do_write(boost::beast::error_code ec, std::size_t bytes_transferred);
-            // void do_read(boost::beast::error_code ec, std::size_t bytes_transferred);
-            // void do_close(boost::beast::error_code ec);
+            void do_write(boost::beast::error_code error_code, std::size_t bytes_transferred);
+            void do_read(boost::beast::error_code error_code, std::size_t bytes_transferred);
+            void do_close(boost::beast::error_code ec);
 
         private:
             std::shared_ptr<boost::asio::io_context> io_context_;
@@ -266,24 +266,24 @@ namespace network_module
             }
         }
 
-        // void Client::ClientImpl::do_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
-        // {
-        // }
+        void Client::ClientImpl::do_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        {
+        }
 
-        // void Client::ClientImpl::do_read(boost::beast::error_code error_code, std::size_t bytes_transferred)
-        // {
-        // }
+        void Client::ClientImpl::do_read(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        {
+        }
 
-        // void Client::ClientImpl::do_close(boost::beast::error_code error_code)
-        // {
-        //     if (error_code)
-        //     {
-        //         LOG(ERROR) << "Error " << error_code;
-        //     }
+        void Client::ClientImpl::do_close(boost::beast::error_code error_code)
+        {
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code;
+            }
 
-        //     LOG(INFO) << "Closing...";
-        //     LOG(INFO) << boost::beast::make_printable(buffer_.data());
-        // }
+            LOG(INFO) << "Closing...";
+            LOG(INFO) << boost::beast::make_printable(buffer_.data());
+        }
 
     }
 }
