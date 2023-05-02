@@ -7,7 +7,7 @@
 #include "boost/asio/ip/tcp.hpp"
 #include "boost/beast.hpp"
 #include "boost/asio/strand.hpp"
-
+#include "boost/enable_shared_from_this.hpp"
 #include "boost/asio.hpp"
 #include "boost/bind.hpp"
 
@@ -74,7 +74,7 @@ namespace network_module
         class Client::ClientImpl : public std::enable_shared_from_this<Client::ClientImpl>
         {
         public:
-            ClientImpl();
+            explicit ClientImpl();
             ~ClientImpl();
 
             bool start(const Config &config);
@@ -82,18 +82,19 @@ namespace network_module
 
         private:
             void do_resolve(boost::beast::error_code error_code,
-                            boost::asio::ip::tcp::resolver::iterator iterator);
-            void do_connect(boost::beast::error_code error_code,
-                            boost::asio::ip::tcp::resolver::iterator iterator);
-            void do_handshake(boost::beast::error_code error_code);
-            void do_write(boost::beast::error_code ec, std::size_t bytes_transferred);
-            void do_read(boost::beast::error_code ec, std::size_t bytes_transferred);
-            void do_close(boost::beast::error_code ec);
+                            boost::asio::ip::tcp::resolver::results_type results);
+            // void do_connect(boost::beast::error_code error_code,
+            //                 boost::asio::ip::tcp::resolver::iterator iterator);
+            // void do_handshake(boost::beast::error_code error_code);
+            // void do_write(boost::beast::error_code ec, std::size_t bytes_transferred);
+            // void do_read(boost::beast::error_code ec, std::size_t bytes_transferred);
+            // void do_close(boost::beast::error_code ec);
 
         private:
             std::shared_ptr<boost::asio::io_context> io_context_;
             std::shared_ptr<boost::asio::ip::tcp::resolver> resolver_;
-            std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
+            std::shared_ptr<boost::beast::websocket::stream<boost::beast::tcp_stream>> websocket_stream_;
+
             boost::beast::flat_buffer buffer_;
 
             std::vector<std::thread> workers_;
@@ -118,7 +119,7 @@ namespace network_module
                 return false;
             }
 
-            resolver_.reset(new boost::asio::ip::tcp::resolver(*io_context_.get()));
+            resolver_.reset(new boost::asio::ip::tcp::resolver(*io_context_));
             if (!resolver_)
             {
                 LOG(ERROR) << "Can't create resolver";
@@ -126,19 +127,20 @@ namespace network_module
                 return false;
             }
 
-            socket_.reset(new boost::asio::ip::tcp::socket(*io_context_));
-            if (!socket_)
+            websocket_stream_.reset(new boost::beast::websocket::stream<boost::beast::tcp_stream>(*io_context_));
+            if (!websocket_stream_)
             {
-                LOG(ERROR) << "Can't create socket";
+                LOG(ERROR) << "Can't create websocket_stream";
                 stop();
                 return false;
             }
 
-            resolver_->async_resolve(config.host_.c_str(), std::to_string(config.port_),
-                                     boost::bind(&Client::ClientImpl::do_resolve,
-                                                 this,
-                                                 boost::asio::placeholders::error,
-                                                 boost::asio::placeholders::results));
+            resolver_->async_resolve(
+                config.host_.c_str(), std::to_string(config.port_),
+                boost::bind(&Client::ClientImpl::do_resolve,
+                            this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::results));
 
             const int kWorkersNumber = 1;
             if (kWorkersNumber < 1)
@@ -188,7 +190,9 @@ namespace network_module
                 LOG(INFO) << "Worker(" << worker_i++ << ") stopped";
             }
             workers_.clear();
-            socket_.reset();
+
+            websocket_stream_.reset();
+
             resolver_.reset();
             io_context_.reset();
 
@@ -196,7 +200,7 @@ namespace network_module
         }
 
         void Client::ClientImpl::do_resolve(boost::beast::error_code error_code,
-                                            boost::asio::ip::tcp::resolver::iterator iterator)
+                                            boost::asio::ip::tcp::resolver::results_type results)
         {
             LOG(INFO) << "Process resolving...";
 
@@ -205,45 +209,46 @@ namespace network_module
                 LOG(ERROR) << "Error " << error_code;
             }
 
-            boost::asio::ip::tcp::endpoint end_point = *iterator;
-            socket_->async_connect(end_point, boost::bind(&Client::ClientImpl::do_connect, this,
-                                                          boost::asio::placeholders::error,
-                                                          ++iterator));
+            // boost::asio::ip::tcp::endpoint end_point = *iterator;
+            // socket_->async_connect(end_point, boost::bind(&Client::ClientImpl::do_connect, this,
+            //                                               boost::asio::placeholders::error,
+            //                                               ++iterator));
         }
 
-        void Client::ClientImpl::do_connect(boost::beast::error_code error_code,
-                                            boost::asio::ip::tcp::resolver::iterator iterator)
-        {
-            LOG(INFO) << "Process connecting...";
+        // void Client::ClientImpl::do_connect(boost::beast::error_code error_code,
+        //                                     boost::asio::ip::tcp::resolver::iterator iterator)
+        // {
+        //     LOG(INFO) << "Process connecting...";
 
-            if (error_code)
-            {
-                LOG(ERROR) << "Error " << error_code;
-            }
-        }
+        //     if (error_code)
+        //     {
+        //         LOG(ERROR) << "Error " << error_code;
+        //     }
+        // }
 
-        void Client::ClientImpl::do_handshake(boost::beast::error_code error_code)
-        {
-        }
+        // void Client::ClientImpl::do_handshake(boost::beast::error_code error_code)
+        // {
+        // }
 
-        void Client::ClientImpl::do_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
-        {
-        }
+        // void Client::ClientImpl::do_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        // {
+        // }
 
-        void Client::ClientImpl::do_read(boost::beast::error_code error_code, std::size_t bytes_transferred)
-        {
-        }
+        // void Client::ClientImpl::do_read(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        // {
+        // }
 
-        void Client::ClientImpl::do_close(boost::beast::error_code error_code)
-        {
-            if (error_code)
-            {
-                LOG(ERROR) << "Error " << error_code;
-            }
+        // void Client::ClientImpl::do_close(boost::beast::error_code error_code)
+        // {
+        //     if (error_code)
+        //     {
+        //         LOG(ERROR) << "Error " << error_code;
+        //     }
 
-            LOG(INFO) << "Closing...";
-            LOG(INFO) << boost::beast::make_printable(buffer_.data());
-        }
+        //     LOG(INFO) << "Closing...";
+        //     LOG(INFO) << boost::beast::make_printable(buffer_.data());
+        // }
+
     }
 }
 
