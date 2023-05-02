@@ -10,6 +10,7 @@
 #include "boost/enable_shared_from_this.hpp"
 #include "boost/asio.hpp"
 #include "boost/bind.hpp"
+#include "boost/beast/websocket/stream_base.hpp"
 
 #include "easylogging++.h"
 #include "json.hpp"
@@ -82,10 +83,10 @@ namespace network_module
 
         private:
             void do_resolve(boost::beast::error_code error_code,
-                            boost::asio::ip::tcp::resolver::results_type results);
+                            boost::asio::ip::tcp::resolver::results_type results, const Config &config);
             void do_connect(boost::beast::error_code error_code,
-                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint);
-            // void do_handshake(boost::beast::error_code error_code);
+                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint, const Config &config);
+            void do_handshake(boost::beast::error_code error_code);
             // void do_write(boost::beast::error_code ec, std::size_t bytes_transferred);
             // void do_read(boost::beast::error_code ec, std::size_t bytes_transferred);
             // void do_close(boost::beast::error_code ec);
@@ -140,7 +141,8 @@ namespace network_module
                 boost::bind(&Client::ClientImpl::do_resolve,
                             this,
                             boost::asio::placeholders::error,
-                            boost::asio::placeholders::results));
+                            boost::asio::placeholders::results,
+                            config));
 
             const int kWorkersNumber = 1;
             if (kWorkersNumber < 1)
@@ -200,33 +202,69 @@ namespace network_module
         }
 
         void Client::ClientImpl::do_resolve(boost::beast::error_code error_code,
-                                            boost::asio::ip::tcp::resolver::results_type results)
+                                            boost::asio::ip::tcp::resolver::results_type results,
+                                            const Config &config)
         {
-            LOG(INFO) << "Process resolving...";
+            LOG(INFO) << "Resolving...";
 
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code;
             }
 
+            // Set the timeout for the operation
             boost::beast::get_lowest_layer(*websocket_stream_).expires_after(std::chrono::seconds(30));
-            boost::beast::get_lowest_layer(*websocket_stream_).async_connect(results, boost::bind(&Client::ClientImpl::do_connect, this, boost::asio::placeholders::error, boost::asio::placeholders::endpoint));
+            // Make the connection on the IP address we get from a lookup
+            boost::beast::get_lowest_layer(*websocket_stream_).async_connect(results, boost::bind(&Client::ClientImpl::do_connect, this, boost::asio::placeholders::error, boost::asio::placeholders::endpoint, config));
         }
 
         void Client::ClientImpl::do_connect(boost::beast::error_code error_code,
-                                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint)
+                                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint,
+                                            const Config &config)
         {
-            LOG(INFO) << "Process connecting...";
+            LOG(INFO) << "Connecting...";
+
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code;
+            }
+
+            // Turn off the timeout on the tcp_stream, because
+            // the websocket stream has its own timeout system.
+            boost::beast::get_lowest_layer(*websocket_stream_).expires_never();
+
+            // Set suggested timeout settings for the websocket
+            websocket_stream_->set_option(boost::beast::websocket::stream_base::timeout::suggested(
+                boost::beast::role_type::client));
+
+            // Set a decorator to change the User-Agent of the handshake
+            websocket_stream_->set_option(boost::beast::websocket::stream_base::decorator(
+                [](boost::beast::websocket::request_type &req)
+                {
+                    req.set(boost::beast::http::field::user_agent,
+                            std::string(BOOST_BEAST_VERSION_STRING) +
+                                " websocket-client-async");
+                }));
+
+            const std::string kHostAndPort = config.host_ + std::string(":") + std::to_string(config.port_);
+
+            websocket_stream_->async_handshake(
+                kHostAndPort.c_str(),
+                "/",
+                boost::bind(&Client::ClientImpl::do_handshake,
+                            this,
+                            boost::asio::placeholders::error));
+        }
+
+        void Client::ClientImpl::do_handshake(boost::beast::error_code error_code)
+        {
+            LOG(INFO) << "Handshaking...";
 
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code;
             }
         }
-
-        // void Client::ClientImpl::do_handshake(boost::beast::error_code error_code)
-        // {
-        // }
 
         // void Client::ClientImpl::do_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
         // {
