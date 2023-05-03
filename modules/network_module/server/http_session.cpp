@@ -69,7 +69,7 @@ void HttpSession::read_request()
                           << std::to_string(self->socket_.remote_endpoint().port())
                           << ")";
 
-                std::make_shared<WebSocketSession>(std::move(self->socket_))
+                std::make_shared<WebSocketSession>(std::move(self->socket_), [&](const std::string &data) {})
                     ->run(std::move(self->request_));
                 return;
             }
