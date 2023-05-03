@@ -20,6 +20,8 @@ public:
     template <class Body, class Allocator>
     void run(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request);
 
+    void send();
+
 private:
     void do_accept(boost::system::error_code error_code);
     void prepare_for_reading();
