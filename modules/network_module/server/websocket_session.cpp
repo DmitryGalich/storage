@@ -39,14 +39,6 @@ void WebSocketSession::do_accept(boost::system::error_code error_code)
 
 void WebSocketSession::prepare_for_reading()
 {
-    // websocket_.async_read(
-    //     buffer_,
-    //     [self = shared_from_this()](
-    //         boost::system::error_code error_code, std::size_t bytes)
-    //     {
-    //         self->do_read(error_code, bytes);
-    //     });
-
     websocket_.async_read(
         buffer_,
         std::bind(
@@ -62,7 +54,7 @@ void WebSocketSession::do_read(boost::system::error_code error_code,
     if (error_code)
     {
         if (is_error_important(error_code))
-            LOG(ERROR) << "read - (" << error_code.value() << ") " << error_code.message();
+            LOG(ERROR) << "do_read - (" << error_code.value() << ") " << error_code.message();
 
         return;
     }
@@ -76,9 +68,42 @@ void WebSocketSession::do_read(boost::system::error_code error_code,
     prepare_for_reading();
 }
 
-void WebSocketSession::send() {}
+void WebSocketSession::send(std::shared_ptr<std::string const> const &data)
+{
+    queue_.push_back(data);
+
+    if (queue_.size() > 1)
+        return;
+
+    websocket_.async_write(
+        boost::asio::buffer(*queue_.front()),
+        [self = shared_from_this()](
+            boost::system::error_code error_code, std::size_t bytes_transferred)
+        {
+            self->do_write(error_code, bytes_transferred);
+        });
+}
 
 void WebSocketSession::do_write(boost::system::error_code error_code,
                                 std::size_t bytes_transferred)
 {
+    if (error_code)
+    {
+        if (is_error_important(error_code))
+            LOG(ERROR) << "do_write - (" << error_code.value() << ") " << error_code.message();
+
+        return;
+    }
+
+    queue_.erase(queue_.begin());
+
+    if (!queue_.empty())
+        websocket_.async_write(
+            boost::asio::buffer(*queue_.front()),
+            [self = shared_from_this()](
+                boost::system::error_code error_code,
+                std::size_t bytes_transferred)
+            {
+                self->do_write(error_code, bytes_transferred);
+            });
 }

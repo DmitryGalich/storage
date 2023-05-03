@@ -20,7 +20,7 @@ public:
     template <class Body, class Allocator>
     void run(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request);
 
-    void send();
+    void send(std::shared_ptr<std::string const> const &data);
 
 private:
     void do_accept(boost::system::error_code error_code);
@@ -41,6 +41,6 @@ void WebSocketSession::run(boost::beast::http::request<Body, boost::beast::http:
         request,
         std::bind(
             &WebSocketSession::do_accept,
-            shared_from_this(),
+            this,
             std::placeholders::_1));
 }
