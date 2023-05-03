@@ -13,8 +13,10 @@ namespace
     }
 }
 
-WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket)
-    : websocket_(std::move(socket))
+WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket,
+                                   const ReadingCallback callback)
+    : kReadingCallback_(callback),
+      websocket_(std::move(socket))
 {
 }
 
