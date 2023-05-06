@@ -68,11 +68,12 @@ int main()
         return -1;
     }
 
-    while (std::cin.good())
+    while (true)
     {
-        char c = std::cin.peek();
+        std::string input;
+        getline(std::cin, input);
 
-        if (c == 'q')
+        if (input == "q")
         {
             server.stop();
             break;
