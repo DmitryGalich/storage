@@ -24,7 +24,7 @@ namespace
 }
 
 HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
-                         std::map<network_module::Url, network_module::Callback> callbacks)
+                         std::map<network_module::Url, network_module::HttpCallback> callbacks)
     : socket_(std::move(socket)),
       callbacks_(callbacks),
       deadline_(socket_.get_executor(),

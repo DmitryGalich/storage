@@ -10,6 +10,7 @@
 #include <boost/beast/http/fields.hpp>
 #include <boost/beast/websocket/impl/accept.hpp>
 
+#include <iostream>
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
 {
 public:
@@ -42,6 +43,8 @@ private:
 template <class Body, class Allocator>
 void WebSocketSession::run(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request)
 {
+    std::cout << "async_accept" << std::endl;
+
     websocket_.async_accept(
         request,
         std::bind(

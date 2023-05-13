@@ -22,7 +22,10 @@ namespace network_module
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
 
-                std::map<Url, Callback> http_callbacks_;
+                std::map<Url, HttpCallback> http_callbacks_;
+
+                web_sockets::InputCallback input_callback_;
+                web_sockets::OutputCallback output_callback_;
             };
 
         public:
@@ -31,6 +34,8 @@ namespace network_module
 
             bool start(const int &available_processors_cores, const Config &config);
             void stop();
+
+            bool send(const std::string &data);
 
         private:
             class ServerImpl;

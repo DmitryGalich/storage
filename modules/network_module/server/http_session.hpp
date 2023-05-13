@@ -17,7 +17,7 @@ class HttpSession : public std::enable_shared_from_this<HttpSession>
 public:
     HttpSession() = delete;
     HttpSession(boost::asio::ip::tcp::socket socket,
-                std::map<network_module::Url, network_module::Callback> callbacks);
+                std::map<network_module::Url, network_module::HttpCallback> callbacks);
     ~HttpSession() = default;
 
     void start();
@@ -30,7 +30,7 @@ private:
     void check_deadline();
 
 private:
-    std::map<network_module::Url, network_module::Callback> callbacks_;
+    std::map<network_module::Url, network_module::HttpCallback> callbacks_;
 
     boost::asio::ip::tcp::socket socket_;
     boost::beast::flat_buffer buffer_{8192};

@@ -6,7 +6,13 @@
 namespace network_module
 {
     typedef std::string Url;
-    typedef std::function<std::string()> Callback;
+    typedef std::function<std::string()> HttpCallback;
+
+    namespace web_sockets
+    {
+        typedef std::function<void(const std::string &)> InputCallback;
+        typedef std::function<std::string()> OutputCallback;
+    }
 
     struct Urls
     {

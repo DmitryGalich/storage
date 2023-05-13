@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <chrono>
+#include <vector>
 
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
@@ -68,6 +69,7 @@ namespace network_module
         }
     }
 }
+
 namespace network_module
 {
     namespace client
@@ -81,13 +83,19 @@ namespace network_module
             bool start(const Config &config);
             void stop();
 
+            bool write(const std::string &data);
+
         private:
+            bool is_starteed();
+
             void do_resolve(boost::beast::error_code error_code,
                             boost::asio::ip::tcp::resolver::results_type results, const Config &config);
             void do_connect(boost::beast::error_code error_code,
                             boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint, const Config &config);
             void do_handshake(boost::beast::error_code error_code);
-            void do_write(boost::beast::error_code error_code, std::size_t bytes_transferred);
+
+            void on_write(boost::beast::error_code error_code, std::size_t bytes_transferred);
+
             void do_read(boost::beast::error_code error_code, std::size_t bytes_transferred);
             void do_close(boost::beast::error_code ec);
 
@@ -201,6 +209,23 @@ namespace network_module
             LOG(INFO) << "Stopped";
         }
 
+        bool Client::ClientImpl::is_started()
+        {
+            if (!io_context_)
+                return false;
+
+            if (!resolver_)
+                return false;
+
+            if (!websocket_stream_)
+                return false;
+
+            if (workers_.empty())
+                return false;
+
+            return true;
+        }
+
         void Client::ClientImpl::do_resolve(boost::beast::error_code error_code,
                                             boost::asio::ip::tcp::resolver::results_type results,
                                             const Config &config)
@@ -266,8 +291,25 @@ namespace network_module
             }
         }
 
-        void Client::ClientImpl::do_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        bool Client::ClientImpl::write(const std::string &data)
         {
+            websocket_stream_->async_write(
+                boost::asio::buffer(data),
+                boost::bind(&Client::ClientImpl::do_handshake,
+                            this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred));
+
+            return true;
+        }
+
+        void Client::ClientImpl::on_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        {
+            // websocket_stream_.async_write(
+            //     net::buffer(text_),
+            //     beast::bind_front_handler(
+            //         &session::on_write,
+            //         shared_from_this()));
         }
 
         void Client::ClientImpl::do_read(boost::beast::error_code error_code, std::size_t bytes_transferred)

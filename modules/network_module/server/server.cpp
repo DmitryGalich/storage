@@ -79,6 +79,8 @@ namespace network_module
                        const Server::Config &config);
             void stop();
 
+            bool send(const std::string &data);
+
         private:
             void listen_for_accept(const Server::Config &config);
             void do_accept(const boost::system::error_code &error, const Server::Config &config);
@@ -229,6 +231,11 @@ namespace network_module
 
             LOG(INFO) << "Stopped";
         }
+
+        bool Server::ServerImpl::send(const std::string &data)
+        {
+            return true;
+        }
     }
 }
 
@@ -269,6 +276,17 @@ namespace network_module
             server_impl_->stop();
 
             LOG(INFO) << "Stopped";
+        }
+
+        bool Server::send(const std::string &data)
+        {
+            if (!server_impl_)
+            {
+                LOG(ERROR) << "Implementation is not created";
+                return false;
+            }
+
+            return server_impl_->send(data);
         }
     }
 }
