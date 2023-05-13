@@ -86,6 +86,7 @@ namespace network_module
             bool write(const std::string &data);
 
         private:
+            bool is_started() const;
             void do_resolve(boost::beast::error_code error_code,
                             boost::asio::ip::tcp::resolver::results_type results, const Config &config);
             void do_connect(boost::beast::error_code error_code,
@@ -181,6 +182,12 @@ namespace network_module
 
         void Client::ClientImpl::stop()
         {
+            if (!is_started())
+            {
+                LOG(WARNING) << "Server is already stopped";
+                return;
+            }
+
             LOG(INFO) << "Stopping...";
 
             if (!io_context_)
@@ -207,22 +214,22 @@ namespace network_module
             LOG(INFO) << "Stopped";
         }
 
-        // bool Client::ClientImpl::is_started()
-        // {
-        //     if (!io_context_)
-        //         return false;
+        bool Client::ClientImpl::is_started() const
+        {
+            if (!io_context_)
+                return false;
 
-        //     if (!resolver_)
-        //         return false;
+            if (!resolver_)
+                return false;
 
-        //     if (!websocket_stream_)
-        //         return false;
+            if (!websocket_stream_)
+                return false;
 
-        //     if (workers_.empty())
-        //         return false;
+            if (workers_.empty())
+                return false;
 
-        //     return true;
-        // }
+            return true;
+        }
 
         void Client::ClientImpl::do_resolve(boost::beast::error_code error_code,
                                             boost::asio::ip::tcp::resolver::results_type results,
@@ -291,6 +298,12 @@ namespace network_module
 
         bool Client::ClientImpl::write(const std::string &data)
         {
+            if (!is_started())
+            {
+                LOG(ERROR) << "Server is not started";
+                return false;
+            }
+
             // websocket_stream_->async_write(
             //     boost::asio::buffer(data),
             //     boost::bind(&Client::ClientImpl::do_handshake,
