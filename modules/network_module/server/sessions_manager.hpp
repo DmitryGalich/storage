@@ -12,8 +12,8 @@ public:
     SessionsManager() = default;
     ~SessionsManager() = default;
 
-    bool add(std::shared_ptr<WebSocketSession> session);
-    void remove(std::shared_ptr<WebSocketSession> session);
+    bool add(WebSocketSession *session);
+    void remove(WebSocketSession *session);
     void send(const std::string &message);
 
 private:

@@ -2,7 +2,9 @@
 
 #include "easylogging++.h"
 
-bool SessionsManager::add(std::shared_ptr<WebSocketSession> session)
+#include "websocket_session.hpp"
+
+bool SessionsManager::add(WebSocketSession *session)
 {
     if (!session)
     {
@@ -10,10 +12,10 @@ bool SessionsManager::add(std::shared_ptr<WebSocketSession> session)
         return false;
     }
 
-    sessions_.insert(session);
+    sessions_.insert(std::shared_ptr<WebSocketSession>(session));
 }
 
-void SessionsManager::remove(std::shared_ptr<WebSocketSession> session)
+void SessionsManager::remove(WebSocketSession *session)
 {
     // Need to make thread-safe
 

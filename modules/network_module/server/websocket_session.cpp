@@ -36,7 +36,7 @@ void WebSocketSession::do_accept(boost::system::error_code error_code)
         return;
     }
 
-    // session_manager_.add(std::make_shared<WebSocketSession>(this));
+    session_manager_.add(this);
 
     LOG(INFO) << "New websocket connection established";
 
