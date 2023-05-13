@@ -114,8 +114,6 @@ namespace network_module
 
             boost::system::error_code error_code;
 
-            // Here compute number of threads
-
             // Creating
 
             io_context_.reset(new boost::asio::io_context(/* number of threads */));

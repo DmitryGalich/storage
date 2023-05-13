@@ -18,6 +18,9 @@ namespace storage
             void stop() noexcept;
 
         private:
+            void configureCallbacks(network_module::client::Client::Config &config);
+
+        private:
             std::unique_ptr<network_module::client::Client> network_module_;
         };
 
@@ -38,6 +41,7 @@ namespace storage
 
             auto config =
                 network_module::client::Client::Config::load_config(config_path);
+            configureCallbacks(config);
 
             if (!network_module_->start(config))
                 return false;
@@ -56,6 +60,19 @@ namespace storage
             network_module_.reset();
 
             LOG(INFO) << "Stopped";
+        }
+
+        void Client::ClientImpl::configureCallbacks(network_module::client::Client::Config &config)
+        {
+            config.input_callback_ = [&](const std::string &data)
+            {
+                LOG(INFO) << "Received data: " << data;
+            };
+
+            config.main_cycle_callback_ = [&]()
+            {
+                LOG(INFO) << "Ready to go";
+            };
         }
     }
 }

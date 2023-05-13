@@ -22,7 +22,7 @@ namespace storage
 
         private:
             void configureHtmlCallbacks(network_module::server::Server::Config &config);
-            void configureWebsocketCallbacks(network_module::server::Server::Config &config);
+            void configureWebSocketCallbacks(network_module::server::Server::Config &config);
 
         private:
             std::unique_ptr<network_module::server::Server> network_module_;
@@ -53,7 +53,7 @@ namespace storage
                 network_module::server::Server::Config::load_config(config_path);
 
             configureHtmlCallbacks(config);
-            configureWebsocketCallbacks(config);
+            configureWebSocketCallbacks(config);
 
             if (!network_module_->start(workers_number,
                                         config))
@@ -89,7 +89,7 @@ namespace storage
             { return pages_manager_->getPageNotFoundPage(); };
         }
 
-        void Server::ServerImpl::configureWebsocketCallbacks(network_module::server::Server::Config &config)
+        void Server::ServerImpl::configureWebSocketCallbacks(network_module::server::Server::Config &config)
         {
             config.input_callback_ = [&](const std::string &data)
             {

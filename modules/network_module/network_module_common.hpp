@@ -12,6 +12,7 @@ namespace network_module
     {
         typedef std::function<void(const std::string &)> InputCallback;
         typedef std::function<std::string()> OutputCallback;
+        typedef std::function<void()> ClientMainCycleCallback;
     }
 
     struct Urls
