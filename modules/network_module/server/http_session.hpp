@@ -12,11 +12,14 @@
 
 #include "../network_module_common.hpp"
 
+#include "sessions_manager.hpp"
+
 class HttpSession : public std::enable_shared_from_this<HttpSession>
 {
 public:
     HttpSession() = delete;
     HttpSession(boost::asio::ip::tcp::socket socket,
+                SessionsManager &session_manager,
                 std::map<network_module::Url, network_module::HttpCallback> callbacks);
     ~HttpSession() = default;
 
@@ -37,4 +40,6 @@ private:
     boost::beast::http::request<boost::beast::http::dynamic_body> request_;
     boost::beast::http::response<boost::beast::http::dynamic_body> response_;
     boost::asio::steady_timer deadline_;
+
+    SessionsManager &session_manager_;
 };

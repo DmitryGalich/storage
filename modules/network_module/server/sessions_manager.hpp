@@ -4,18 +4,19 @@
 #include <string>
 #include <memory>
 
-// class HttpSession;
+class WebSocketSession;
 
-// class SessionsManager
-// {
-// public:
-//     SessionsManager() = default;
-//     ~SessionsManager() = default;
+class SessionsManager
+{
+public:
+    SessionsManager() = default;
+    ~SessionsManager() = default;
 
-//     bool add(std::shared_ptr<HttpSession> session);
-//     void remove(std::shared_ptr<HttpSession> session);
-//     void send(const std::string &message);
+    bool add(std::shared_ptr<WebSocketSession> session);
+    void remove(std::shared_ptr<WebSocketSession> session);
+    void send(const std::string &message);
 
-// private:
-//     // Need to make thread-safe
-// };
+private:
+    // Need to make thread-safe
+    std::unordered_set<std::shared_ptr<WebSocketSession>> sessions_;
+};

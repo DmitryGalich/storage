@@ -24,11 +24,14 @@ namespace
 }
 
 HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
+                         SessionsManager &session_manager,
                          std::map<network_module::Url, network_module::HttpCallback> callbacks)
+
     : socket_(std::move(socket)),
       callbacks_(callbacks),
       deadline_(socket_.get_executor(),
-                std::chrono::seconds(60))
+                std::chrono::seconds(60)),
+      session_manager_(session_manager)
 {
 }
 
@@ -69,7 +72,9 @@ void HttpSession::read_request()
                           << std::to_string(self->socket_.remote_endpoint().port())
                           << ")";
 
-                std::make_shared<WebSocketSession>(std::move(self->socket_), [&](const std::string &data) {})
+                std::make_shared<WebSocketSession>(std::move(self->socket_),
+                                                   self->session_manager_,
+                                                   [&](const std::string &data) {})
                     ->run(std::move(self->request_));
                 return;
             }

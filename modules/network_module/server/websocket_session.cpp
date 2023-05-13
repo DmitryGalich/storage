@@ -14,8 +14,10 @@ namespace
 }
 
 WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket,
+                                   SessionsManager &session_manager,
                                    const ReadingCallback callback)
     : kReadingCallback_(callback),
+      session_manager_(session_manager),
       websocket_(std::move(socket))
 {
 }
@@ -33,6 +35,8 @@ void WebSocketSession::do_accept(boost::system::error_code error_code)
 
         return;
     }
+
+    // session_manager_.add(std::make_shared<WebSocketSession>(this));
 
     LOG(INFO) << "New websocket connection established";
 

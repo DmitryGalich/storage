@@ -10,6 +10,7 @@
 #include "json.hpp"
 
 #include "http_session.hpp"
+#include "sessions_manager.hpp"
 
 namespace
 {
@@ -89,6 +90,8 @@ namespace network_module
             std::shared_ptr<boost::asio::io_context> io_context_;
             std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
             std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
+
+            SessionsManager session_manager_;
 
             std::vector<std::thread> workers_;
             std::mutex mutex_;
@@ -199,7 +202,7 @@ namespace network_module
             else
             {
                 LOG(INFO) << "Creating new http connection...";
-                std::make_shared<HttpSession>(std::move(*socket_), config.http_callbacks_)->start();
+                std::make_shared<HttpSession>(std::move(*socket_), session_manager_, config.http_callbacks_)->start();
             }
 
             listen_for_accept(config);
