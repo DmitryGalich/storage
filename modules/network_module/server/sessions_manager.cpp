@@ -31,8 +31,8 @@ void SessionsManager::remove(WebSocketSession *session)
 
 void SessionsManager::send(const std::string &message)
 {
-    // Need to make thread-safe
+    auto const ss = std::make_shared<std::string const>(std::move(message));
 
-    // for (auto session : websocket_sessions_)
-    //   session->send(message);
+    for (auto session : sessions_)
+        session->send(ss);
 }
