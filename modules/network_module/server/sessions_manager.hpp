@@ -3,6 +3,7 @@
 #include <unordered_set>
 #include <string>
 #include <memory>
+#include <mutex>
 
 class WebSocketSession;
 
@@ -17,6 +18,6 @@ public:
     void send(const std::string &message);
 
 private:
-    // Need to make thread-safe
-    std::unordered_set<std::shared_ptr<WebSocketSession>> sessions_;
+    std::mutex mutex_;
+    std::unordered_set<WebSocketSession *> sessions_;
 };

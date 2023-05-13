@@ -12,18 +12,21 @@ bool SessionsManager::add(WebSocketSession *session)
         return false;
     }
 
-    sessions_.insert(std::shared_ptr<WebSocketSession>(session));
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    sessions_.insert(session);
 }
 
 void SessionsManager::remove(WebSocketSession *session)
 {
-    // Need to make thread-safe
-
     if (!session)
     {
         LOG(ERROR) << "WebSocket session is null";
         return;
     }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    sessions_.insert(session);
 }
 
 void SessionsManager::send(const std::string &message)

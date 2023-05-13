@@ -24,6 +24,7 @@ WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket,
 
 WebSocketSession::~WebSocketSession()
 {
+    session_manager_.remove(this);
 }
 
 void WebSocketSession::do_accept(boost::system::error_code error_code)
