@@ -56,7 +56,7 @@ namespace network_module
                 int port_{8080};
 
                 web_sockets::InputCallback input_callback_;
-                web_sockets::ClientMainCycleCallback main_cycle_callback_;
+                web_sockets::OutputClientCallback output_callback_;
             };
 
         public:
