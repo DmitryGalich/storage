@@ -45,7 +45,10 @@ int main()
         std::string input;
         getline(std::cin, input);
 
-        if (input == "q")
+        if (input == "q" ||
+            input == "Q" ||
+            input == "c" ||
+            input == "C")
         {
             client.stop();
             break;

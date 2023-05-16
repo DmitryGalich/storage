@@ -29,6 +29,8 @@ WebSocketSession::~WebSocketSession()
 
 void WebSocketSession::do_accept(boost::system::error_code error_code)
 {
+    LOG(INFO) << "Do accept";
+
     if (error_code)
     {
         if (is_error_important(error_code))

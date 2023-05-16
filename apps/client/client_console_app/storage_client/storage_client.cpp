@@ -64,12 +64,12 @@ namespace storage
 
         void Client::ClientImpl::configureCallbacks(network_module::client::Client::Config &config)
         {
-            config.input_callback_ = [&](const std::string &data)
+            config.reading_callback_ = [&](const std::string &data)
             {
                 LOG(INFO) << "Received data: " << data;
             };
 
-            config.main_cycle_callback_ = [&]()
+            config.writing_callback_ = [&]()
             {
                 LOG(INFO) << "Ready to go";
             };
