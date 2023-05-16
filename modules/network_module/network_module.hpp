@@ -55,8 +55,11 @@ namespace network_module
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
 
-                web_sockets::ReceivingCallback receiving_callback_;
-                web_sockets::SendingCallback sending_callback_;
+                struct Callbacks
+                {
+                    web_sockets::StartingCallback process_starting_;
+                    web_sockets::ReceivingCallback process_receiving_;
+                } callbacks_;
             };
 
         public:

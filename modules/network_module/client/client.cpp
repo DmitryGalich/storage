@@ -103,8 +103,7 @@ namespace network_module
             std::shared_ptr<boost::asio::ip::tcp::resolver> resolver_;
             std::shared_ptr<boost::beast::websocket::stream<boost::beast::tcp_stream>> websocket_stream_;
 
-            web_sockets::ReceivingCallback receiving_callback_;
-            web_sockets::SendingCallback sending_callback_;
+            Config::Callbacks callbacks_;
 
             boost::beast::flat_buffer buffer_;
 

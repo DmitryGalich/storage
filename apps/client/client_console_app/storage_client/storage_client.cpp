@@ -47,8 +47,6 @@ namespace storage
             if (!network_module_->start(config))
                 return false;
 
-            // network_module_->send("Hello from client");
-
             return true;
         }
 
@@ -67,15 +65,14 @@ namespace storage
 
         void Client::ClientImpl::configureCallbacks(network_module::client::Client::Config &config)
         {
-            config.receiving_callback_ = [&](const std::string &data)
+            config.callbacks_.process_receiving_ = [&](const std::string &data)
             {
                 LOG(INFO) << "Received data: " << data;
             };
 
-            config.sending_callback_ = [&]()
+            config.callbacks_.process_starting_ = [&](const bool status)
             {
                 LOG(INFO) << "Ready to go";
-                return std::string{};
             };
         }
     }
