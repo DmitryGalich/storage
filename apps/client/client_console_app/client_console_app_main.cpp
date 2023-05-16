@@ -1,3 +1,5 @@
+#include <future>
+
 #include "configs/cmake_config.h"
 
 #include "easylogging++.h"
@@ -10,6 +12,23 @@ void configure_logger()
 {
     el::Configurations config(CMAKE_CURRENT_SOURCE_DIR + std::string{"/configs/log_config.conf"});
     el::Loggers::reconfigureAllLoggers(config);
+}
+
+void wait_for_user_command()
+{
+    while (true)
+    {
+        std::string input;
+        getline(std::cin, input);
+
+        if (input == "q" ||
+            input == "Q" ||
+            input == "c" ||
+            input == "C")
+        {
+            break;
+        }
+    }
 }
 
 int main()
@@ -40,20 +59,10 @@ int main()
         return -1;
     }
 
-    while (true)
-    {
-        std::string input;
-        getline(std::cin, input);
+    std::future<void> waiting_for_user_command_thread = std::async(wait_for_user_command);
+    waiting_for_user_command_thread.get();
 
-        if (input == "q" ||
-            input == "Q" ||
-            input == "c" ||
-            input == "C")
-        {
-            client.stop();
-            break;
-        }
-    }
+    client.stop();
 
     return 0;
 }

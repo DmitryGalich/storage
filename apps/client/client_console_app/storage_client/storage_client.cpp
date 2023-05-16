@@ -41,6 +41,7 @@ namespace storage
 
             auto config =
                 network_module::client::Client::Config::load_config(config_path);
+                
             configureCallbacks(config);
 
             if (!network_module_->start(config))
@@ -72,6 +73,7 @@ namespace storage
             config.writing_callback_ = [&]()
             {
                 LOG(INFO) << "Ready to go";
+                return std::string{};
             };
         }
     }

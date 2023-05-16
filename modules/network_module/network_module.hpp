@@ -25,7 +25,7 @@ namespace network_module
                 std::map<Url, HttpCallback> http_callbacks_;
 
                 web_sockets::ReadingCallback reading_callback_;
-                web_sockets::WritingServerCallback writing_callback_;
+                web_sockets::WritingCallback writing_callback_;
             };
 
         public:
@@ -56,7 +56,7 @@ namespace network_module
                 int port_{8080};
 
                 web_sockets::ReadingCallback reading_callback_;
-                web_sockets::WritingClientCallback writing_callback_;
+                web_sockets::WritingCallback writing_callback_;
             };
 
         public:

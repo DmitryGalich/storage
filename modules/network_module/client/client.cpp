@@ -104,7 +104,7 @@ namespace network_module
             std::shared_ptr<boost::beast::websocket::stream<boost::beast::tcp_stream>> websocket_stream_;
 
             web_sockets::ReadingCallback reading_callback_;
-            web_sockets::WritingClientCallback writing_callback_;
+            web_sockets::WritingCallback writing_callback_;
 
             boost::beast::flat_buffer buffer_;
 
