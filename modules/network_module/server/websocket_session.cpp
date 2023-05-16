@@ -15,7 +15,7 @@ namespace
 
 WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket,
                                    SessionsManager &session_manager,
-                                   const ReadingCallback callback)
+                                   const ReceivingCallback callback)
     : kReadingCallback_(callback),
       session_manager_(session_manager),
       websocket_(std::move(socket))
@@ -51,19 +51,19 @@ void WebSocketSession::prepare_for_reading()
     websocket_.async_read(
         buffer_,
         std::bind(
-            &WebSocketSession::do_read,
+            &WebSocketSession::do_receive,
             this,
             std::placeholders::_1,
             std::placeholders::_2));
 }
 
-void WebSocketSession::do_read(boost::system::error_code error_code,
+void WebSocketSession::do_receive(boost::system::error_code error_code,
                                std::size_t bytes_transferred)
 {
     if (error_code)
     {
         if (is_error_important(error_code))
-            LOG(ERROR) << "do_read - (" << error_code.value() << ") " << error_code.message();
+            LOG(ERROR) << "do_receive - (" << error_code.value() << ") " << error_code.message();
 
         return;
     }

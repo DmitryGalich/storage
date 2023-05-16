@@ -41,11 +41,13 @@ namespace storage
 
             auto config =
                 network_module::client::Client::Config::load_config(config_path);
-                
+
             configureCallbacks(config);
 
             if (!network_module_->start(config))
                 return false;
+
+            // Say hello to server
 
             return true;
         }
@@ -65,12 +67,12 @@ namespace storage
 
         void Client::ClientImpl::configureCallbacks(network_module::client::Client::Config &config)
         {
-            config.reading_callback_ = [&](const std::string &data)
+            config.receiving_callback_ = [&](const std::string &data)
             {
                 LOG(INFO) << "Received data: " << data;
             };
 
-            config.writing_callback_ = [&]()
+            config.sending_callback_ = [&]()
             {
                 LOG(INFO) << "Ready to go";
                 return std::string{};

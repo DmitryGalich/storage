@@ -83,7 +83,7 @@ namespace network_module
             bool start(const Config &config);
             void stop();
 
-            bool write(const std::string &data);
+            bool send(const std::string &data);
 
         private:
             bool is_started() const;
@@ -93,9 +93,9 @@ namespace network_module
                             boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint, const Config &config);
             void do_handshake(boost::beast::error_code error_code);
 
-            void on_write(boost::beast::error_code error_code, std::size_t bytes_transferred);
+            void on_send(boost::beast::error_code error_code, std::size_t bytes_transferred);
 
-            void do_read(boost::beast::error_code error_code, std::size_t bytes_transferred);
+            void do_receive(boost::beast::error_code error_code, std::size_t bytes_transferred);
             void do_close(boost::beast::error_code ec);
 
         private:
@@ -103,8 +103,8 @@ namespace network_module
             std::shared_ptr<boost::asio::ip::tcp::resolver> resolver_;
             std::shared_ptr<boost::beast::websocket::stream<boost::beast::tcp_stream>> websocket_stream_;
 
-            web_sockets::ReadingCallback reading_callback_;
-            web_sockets::WritingCallback writing_callback_;
+            web_sockets::ReceivingCallback receiving_callback_;
+            web_sockets::SendingCallback sending_callback_;
 
             boost::beast::flat_buffer buffer_;
 
@@ -291,15 +291,15 @@ namespace network_module
 
         void Client::ClientImpl::do_handshake(boost::beast::error_code error_code)
         {
-            LOG(INFO) << "Handshaking...";
-
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code;
             }
+
+            LOG(INFO) << "Connection established";
         }
 
-        bool Client::ClientImpl::write(const std::string &data)
+        bool Client::ClientImpl::send(const std::string &data)
         {
             if (!is_started())
             {
@@ -317,7 +317,7 @@ namespace network_module
             return true;
         }
 
-        void Client::ClientImpl::on_write(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        void Client::ClientImpl::on_send(boost::beast::error_code error_code, std::size_t bytes_transferred)
         {
             // websocket_stream_.async_write(
             //     net::buffer(text_),
@@ -326,7 +326,7 @@ namespace network_module
             //         shared_from_this()));
         }
 
-        void Client::ClientImpl::do_read(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        void Client::ClientImpl::do_receive(boost::beast::error_code error_code, std::size_t bytes_transferred)
         {
         }
 
@@ -379,6 +379,20 @@ namespace network_module
             client_impl_->stop();
 
             LOG(INFO) << "Stopped";
+        }
+
+        bool Client::send(const std::string &data)
+        {
+            LOG(INFO) << "Sending...";
+
+            if (!client_impl_)
+            {
+                static const std::string kErrorText("Implementation is not created");
+                LOG(ERROR) << kErrorText;
+                throw std::runtime_error(kErrorText);
+            }
+
+            return client_impl_->send(data);
         }
     }
 }

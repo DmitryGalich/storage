@@ -15,12 +15,12 @@
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
 {
 public:
-    using ReadingCallback = std::function<void(const std::string &)>;
+    using ReceivingCallback = std::function<void(const std::string &)>;
 
     WebSocketSession() = delete;
     WebSocketSession(boost::asio::ip::tcp::socket socket,
                      SessionsManager &session_manager,
-                     const ReadingCallback callback);
+                     const ReceivingCallback callback);
     ~WebSocketSession();
 
     template <class Body, class Allocator>
@@ -31,11 +31,11 @@ public:
 private:
     void do_accept(boost::system::error_code error_code);
     void prepare_for_reading();
-    void do_read(boost::system::error_code error_code, std::size_t bytes_transferred);
+    void do_receive(boost::system::error_code error_code, std::size_t bytes_transferred);
     void do_write(boost::system::error_code error_code, std::size_t bytes_transferred);
 
 private:
-    const ReadingCallback kReadingCallback_;
+    const ReceivingCallback kReadingCallback_;
 
     boost::beast::websocket::stream<boost::asio::ip::tcp::socket> websocket_;
     boost::beast::flat_buffer buffer_;

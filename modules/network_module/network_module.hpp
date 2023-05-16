@@ -24,8 +24,8 @@ namespace network_module
 
                 std::map<Url, HttpCallback> http_callbacks_;
 
-                web_sockets::ReadingCallback reading_callback_;
-                web_sockets::WritingCallback writing_callback_;
+                web_sockets::ReceivingCallback receiving_callback_;
+                web_sockets::SendingCallback sending_callback_;
             };
 
         public:
@@ -55,8 +55,8 @@ namespace network_module
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
 
-                web_sockets::ReadingCallback reading_callback_;
-                web_sockets::WritingCallback writing_callback_;
+                web_sockets::ReceivingCallback receiving_callback_;
+                web_sockets::SendingCallback sending_callback_;
             };
 
         public:
@@ -65,6 +65,8 @@ namespace network_module
 
             bool start(const Config &config);
             void stop();
+
+            bool send(const std::string &data);
 
         private:
             class ClientImpl;

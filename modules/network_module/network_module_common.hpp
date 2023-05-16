@@ -10,8 +10,8 @@ namespace network_module
 
     namespace web_sockets
     {
-        typedef std::function<void(const std::string &)> ReadingCallback;
-        typedef std::function<std::string()> WritingCallback;
+        typedef std::function<void(const std::string &)> ReceivingCallback;
+        typedef std::function<std::string()> SendingCallback;
     }
 
     struct Urls

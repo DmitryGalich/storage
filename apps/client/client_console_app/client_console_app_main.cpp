@@ -1,5 +1,3 @@
-#include <future>
-
 #include "configs/cmake_config.h"
 
 #include "easylogging++.h"
@@ -16,19 +14,6 @@ void configure_logger()
 
 void wait_for_user_command()
 {
-    while (true)
-    {
-        std::string input;
-        getline(std::cin, input);
-
-        if (input == "q" ||
-            input == "Q" ||
-            input == "c" ||
-            input == "C")
-        {
-            break;
-        }
-    }
 }
 
 int main()
@@ -59,7 +44,19 @@ int main()
         return -1;
     }
 
-    std::async(wait_for_user_command).get();
+    while (true)
+    {
+        std::string input;
+        getline(std::cin, input);
+
+        if (input == "q" ||
+            input == "Q" ||
+            input == "c" ||
+            input == "C")
+        {
+            break;
+        }
+    }
 
     client.stop();
 

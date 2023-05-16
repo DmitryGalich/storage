@@ -91,7 +91,7 @@ namespace storage
 
         void Server::ServerImpl::configureWebSocketCallbacks(network_module::server::Server::Config &config)
         {
-            config.reading_callback_ = [&](const std::string &data)
+            config.receiving_callback_ = [&](const std::string &data)
             {
                 LOG(INFO) << "Received data: " << data;
             };
