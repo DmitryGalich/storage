@@ -125,6 +125,8 @@ namespace network_module
 
             LOG(INFO) << "Starting...";
 
+            callbacks_ = config.callbacks_;
+
             io_context_.reset(new boost::asio::io_context(/* number of threads */));
             if (!io_context_)
             {
@@ -322,7 +324,7 @@ namespace network_module
 
             LOG(INFO) << "Connection established";
 
-            send("Hello from client");
+            callbacks_.on_start_();
         }
 
         void Client::ClientImpl::on_send(boost::beast::error_code error_code, std::size_t bytes_transferred)

@@ -20,6 +20,8 @@ namespace storage
         private:
             void configureCallbacks(network_module::client::Client::Config &config);
 
+            void startCommunication();
+
         private:
             std::unique_ptr<network_module::client::Client> network_module_;
         };
@@ -70,11 +72,20 @@ namespace storage
                 LOG(INFO) << "Received data: " << data;
             };
 
-            config.callbacks_.process_starting_ = [&](const bool status)
-            {
-                LOG(INFO) << "Ready to go";
-            };
+            config.callbacks_.on_start_ = std::bind(&Client::ClientImpl::startCommunication, this);
         }
+
+        void Client::ClientImpl::startCommunication()
+        {
+            if (!network_module_)
+            {
+                LOG(ERROR) << "network_module is null";
+                return;
+            }
+
+            network_module_->send("Hello form client");
+        }
+
     }
 }
 

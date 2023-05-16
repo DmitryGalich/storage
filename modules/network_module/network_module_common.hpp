@@ -13,7 +13,7 @@ namespace network_module
         typedef std::function<void(const std::string &)> ReceivingCallback;
         typedef std::function<std::string()> SendingCallback;
 
-        typedef std::function<void(const bool)> StartingCallback;
+        typedef std::function<void()> OnStartCallback;
     }
 
     struct Urls

@@ -57,7 +57,7 @@ namespace network_module
 
                 struct Callbacks
                 {
-                    web_sockets::StartingCallback process_starting_;
+                    web_sockets::OnStartCallback on_start_;
                     web_sockets::ReceivingCallback process_receiving_;
                 } callbacks_;
             };
