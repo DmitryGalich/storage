@@ -59,8 +59,7 @@ int main()
         return -1;
     }
 
-    std::future<void> waiting_for_user_command_thread = std::async(wait_for_user_command);
-    waiting_for_user_command_thread.get();
+    std::async(wait_for_user_command).get();
 
     client.stop();
 
