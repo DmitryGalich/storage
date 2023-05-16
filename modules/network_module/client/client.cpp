@@ -114,7 +114,11 @@ namespace network_module
 
         Client::ClientImpl::ClientImpl() {}
 
-        Client::ClientImpl::~ClientImpl() {}
+        Client::ClientImpl::~ClientImpl()
+        {
+            if (is_started())
+                stop();
+        }
 
         bool Client::ClientImpl::start(const Config &config)
         {
@@ -187,7 +191,7 @@ namespace network_module
         {
             if (!is_started())
             {
-                LOG(WARNING) << "Server is already stopped";
+                LOG(WARNING) << "Client is already stopped";
                 return;
             }
 
@@ -217,6 +221,24 @@ namespace network_module
             LOG(INFO) << "Stopped";
         }
 
+        bool Client::ClientImpl::send(const std::string &data)
+        {
+            if (!is_started())
+            {
+                LOG(ERROR) << "Server is not started";
+                return false;
+            }
+
+            websocket_stream_->async_write(
+                boost::asio::buffer(data),
+                boost::bind(&Client::ClientImpl::on_send,
+                            this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred));
+
+            return true;
+        }
+
         bool Client::ClientImpl::is_started() const
         {
             if (!io_context_)
@@ -243,6 +265,7 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code;
+                return;
             }
 
             // Set the timeout for the operation
@@ -260,6 +283,7 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code;
+                return;
             }
 
             // Turn off the timeout on the tcp_stream, because
@@ -294,36 +318,23 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code;
+                return;
             }
 
             LOG(INFO) << "Connection established";
-        }
 
-        bool Client::ClientImpl::send(const std::string &data)
-        {
-            if (!is_started())
-            {
-                LOG(ERROR) << "Server is not started";
-                return false;
-            }
-
-            // websocket_stream_->async_write(
-            //     boost::asio::buffer(data),
-            //     boost::bind(&Client::ClientImpl::do_handshake,
-            //                 this,
-            //                 boost::asio::placeholders::error,
-            //                 boost::asio::placeholders::bytes_transferred));
-
-            return true;
+            send("Hello from client");
         }
 
         void Client::ClientImpl::on_send(boost::beast::error_code error_code, std::size_t bytes_transferred)
         {
-            // websocket_stream_.async_write(
-            //     net::buffer(text_),
-            //     beast::bind_front_handler(
-            //         &session::on_write,
-            //         shared_from_this()));
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code;
+                return;
+            }
+
+            LOG(INFO) << "Sent " << bytes_transferred << " bytes";
         }
 
         void Client::ClientImpl::do_receive(boost::beast::error_code error_code, std::size_t bytes_transferred)
@@ -335,6 +346,7 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code;
+                return;
             }
 
             LOG(INFO) << "Closing...";

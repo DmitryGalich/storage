@@ -47,7 +47,7 @@ namespace storage
             if (!network_module_->start(config))
                 return false;
 
-            // Say hello to server
+            // network_module_->send("Hello from client");
 
             return true;
         }
