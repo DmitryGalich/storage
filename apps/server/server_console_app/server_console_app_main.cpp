@@ -15,15 +15,6 @@ void configure_logger()
     el::Loggers::reconfigureAllLoggers(config);
 }
 
-// namespace
-// {
-//     std::function<void(int)> shutdown_handler;
-//     void handle_interruption(int signal)
-//     {
-//         shutdown_handler(signal);
-//     }
-// }
-
 int main()
 {
     configure_logger();
@@ -36,17 +27,6 @@ int main()
     const auto kServerWorkersNumber = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
 
     storage::server::Server server;
-
-    // // shutdown_handler = [&](int)
-    // // {
-    // //     server.stop();
-    // // };
-
-    // // struct sigaction signal_handler;
-    // // signal_handler.sa_handler = handle_interruption;
-    // // sigemptyset(&signal_handler.sa_mask);
-    // // signal_handler.sa_flags = 0;
-    // // sigaction(SIGINT, &signal_handler, NULL);
 
     try
     {
@@ -78,10 +58,11 @@ int main()
             input == "c" ||
             input == "C")
         {
-            server.stop();
             break;
         }
     }
+
+    server.stop();
 
     return 0;
 }
