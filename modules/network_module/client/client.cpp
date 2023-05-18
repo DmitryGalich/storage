@@ -95,6 +95,7 @@ namespace network_module
 
             void on_send(boost::beast::error_code error_code, std::size_t bytes_transferred);
 
+            void start_listening();
             void do_receive(boost::beast::error_code error_code, std::size_t bytes_transferred);
             void do_close(boost::beast::error_code ec);
 
@@ -324,7 +325,8 @@ namespace network_module
 
             LOG(INFO) << "Connection established";
 
-            callbacks_.on_start_();
+            start_listening();
+            // callbacks_.on_start_();
         }
 
         void Client::ClientImpl::on_send(boost::beast::error_code error_code, std::size_t bytes_transferred)
@@ -338,8 +340,21 @@ namespace network_module
             LOG(INFO) << "Sent " << bytes_transferred << " bytes";
         }
 
+        void Client::ClientImpl::start_listening()
+        {
+            websocket_stream_->async_read(
+                buffer_,
+                boost::bind(
+                    &Client::ClientImpl::do_receive,
+                    this,
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred));
+        }
+
         void Client::ClientImpl::do_receive(boost::beast::error_code error_code, std::size_t bytes_transferred)
         {
+            callbacks_.process_receiving_(boost::beast::buffers_to_string(buffer_.data()));
+            start_listening();
         }
 
         void Client::ClientImpl::do_close(boost::beast::error_code error_code)

@@ -22,8 +22,8 @@ namespace storage
 
             void start_communication();
 
-            void send_data(const std::string &data);
-            void receive_data(const std::string &data);
+            void send(const std::string &data);
+            void receive(const std::string &data);
 
         private:
             std::unique_ptr<network_module::client::Client> network_module_;
@@ -71,17 +71,17 @@ namespace storage
         void Client::ClientImpl::configure_callbacks(network_module::client::Client::Config &config)
         {
             config.callbacks_.on_start_ = std::bind(&Client::ClientImpl::start_communication, this);
-            config.callbacks_.process_receiving_ = std::bind(&Client::ClientImpl::receive_data, this, std::placeholders::_1);
+            config.callbacks_.process_receiving_ = std::bind(&Client::ClientImpl::receive, this, std::placeholders::_1);
         }
 
         void Client::ClientImpl::start_communication()
         {
-            LOG(INFO) << "Ready for communication";
+            LOG(INFO) << "Started";
 
-            // send_data("Hello from client");
+            // send("Hello from client");
         }
 
-        void Client::ClientImpl::send_data(const std::string &data)
+        void Client::ClientImpl::send(const std::string &data)
         {
             if (!network_module_)
             {
@@ -92,7 +92,7 @@ namespace storage
             network_module_->send(data);
         }
 
-        void Client::ClientImpl::receive_data(const std::string &data)
+        void Client::ClientImpl::receive(const std::string &data)
         {
             LOG(INFO) << "Received data: " << data;
         }
