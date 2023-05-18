@@ -377,7 +377,6 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-                ;
                 return;
             }
 
@@ -396,6 +395,7 @@ namespace network_module
 
             LOG(INFO) << "Closing...";
             LOG(INFO) << boost::beast::make_printable(buffer_.data());
+            buffer_.clear();
         }
 
     }
