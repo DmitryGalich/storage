@@ -270,7 +270,7 @@ namespace network_module
             }
 
             // Set the timeout for the operation
-            boost::beast::get_lowest_layer(*websocket_stream_).expires_after(std::chrono::seconds(30));
+            boost::beast::get_lowest_layer(*websocket_stream_).expires_after(std::chrono::seconds(5));
             // Make the connection on the IP address we get from a lookup
             boost::beast::get_lowest_layer(*websocket_stream_).async_connect(results, boost::bind(&Client::ClientImpl::do_connect, this, boost::asio::placeholders::error, boost::asio::placeholders::endpoint, config));
         }

@@ -18,9 +18,12 @@ namespace storage
             void stop() noexcept;
 
         private:
-            void configureCallbacks(network_module::client::Client::Config &config);
+            void configure_callbacks(network_module::client::Client::Config &config);
 
-            void startCommunication();
+            void start_communication();
+
+            void send_data(const std::string &data);
+            void receive_data(const std::string &data);
 
         private:
             std::unique_ptr<network_module::client::Client> network_module_;
@@ -44,7 +47,7 @@ namespace storage
             auto config =
                 network_module::client::Client::Config::load_config(config_path);
 
-            configureCallbacks(config);
+            configure_callbacks(config);
 
             if (!network_module_->start(config))
                 return false;
@@ -65,25 +68,33 @@ namespace storage
             LOG(INFO) << "Stopped";
         }
 
-        void Client::ClientImpl::configureCallbacks(network_module::client::Client::Config &config)
+        void Client::ClientImpl::configure_callbacks(network_module::client::Client::Config &config)
         {
-            config.callbacks_.process_receiving_ = [&](const std::string &data)
-            {
-                LOG(INFO) << "Received data: " << data;
-            };
-
-            config.callbacks_.on_start_ = std::bind(&Client::ClientImpl::startCommunication, this);
+            config.callbacks_.on_start_ = std::bind(&Client::ClientImpl::start_communication, this);
+            config.callbacks_.process_receiving_ = std::bind(&Client::ClientImpl::receive_data, this, std::placeholders::_1);
         }
 
-        void Client::ClientImpl::startCommunication()
+        void Client::ClientImpl::start_communication()
+        {
+            LOG(INFO) << "Ready for communication";
+
+            // send_data("Hello from client");
+        }
+
+        void Client::ClientImpl::send_data(const std::string &data)
         {
             if (!network_module_)
             {
-                LOG(ERROR) << "network_module is null";
+                LOG(ERROR) << "network_module is not created";
                 return;
             }
 
-            network_module_->send("Hello form client");
+            network_module_->send(data);
+        }
+
+        void Client::ClientImpl::receive_data(const std::string &data)
+        {
+            LOG(INFO) << "Received data: " << data;
         }
 
     }
