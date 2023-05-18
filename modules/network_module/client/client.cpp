@@ -19,6 +19,9 @@
 
 namespace
 {
+    static const bool kReconnecting{true};
+    static const bool kNotReconnecting{false};
+
     bool is_error_important(const boost::system::error_code &error_code)
     {
         return !(error_code == boost::asio::error::operation_aborted);
@@ -91,6 +94,7 @@ namespace network_module
         private:
             bool is_started() const;
 
+            void resolve(const Config &config, const bool is_reconnecting = kNotReconnecting);
             void on_resolve(boost::beast::error_code error_code,
                             boost::asio::ip::tcp::resolver::results_type results, const Config &config);
             void on_connect(boost::beast::error_code error_code,
@@ -157,13 +161,7 @@ namespace network_module
                 return false;
             }
 
-            resolver_->async_resolve(
-                config.host_.c_str(), std::to_string(config.port_),
-                boost::bind(&Client::ClientImpl::on_resolve,
-                            this,
-                            boost::asio::placeholders::error,
-                            boost::asio::placeholders::results,
-                            config));
+            resolve(config);
 
             const int kWorkersNumber = 1;
             if (kWorkersNumber < 1)
@@ -263,6 +261,23 @@ namespace network_module
             return true;
         }
 
+        void Client::ClientImpl::resolve(const Config &config, const bool is_reconnecting)
+        {
+            if (is_reconnecting)
+            {
+                LOG(INFO) << "Sleeping...";
+                std::this_thread::sleep_for(std::chrono::seconds(config.reconnect_timeout_sec_));
+            }
+
+            resolver_->async_resolve(
+                config.host_.c_str(), std::to_string(config.port_),
+                boost::bind(&Client::ClientImpl::on_resolve,
+                            this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::results,
+                            config));
+        }
+
         void Client::ClientImpl::on_resolve(boost::beast::error_code error_code,
                                             boost::asio::ip::tcp::resolver::results_type results,
                                             const Config &config)
@@ -290,9 +305,8 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-                LOG(INFO) << "Sleeping...";
-                std::this_thread::sleep_for(std::chrono::seconds(config.reconnect_timeout_sec_));
-                // on_resolve(error_code, endpoint, config);
+                resolve(config, kReconnecting);
+                return;
             }
 
             // Turn off the timeout on the tcp_stream, because
