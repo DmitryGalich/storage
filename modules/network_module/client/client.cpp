@@ -3,6 +3,7 @@
 #include <memory>
 #include <chrono>
 #include <vector>
+#include <thread>
 
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
@@ -33,6 +34,7 @@ namespace network_module
             nlohmann::json json_object;
             json_object["host"] = "127.0.0.1";
             json_object["port"] = 8080;
+            json_object["reconnect_timeout_sec"] = 5;
 
             std::fstream file(config_path);
             if (!file.is_open())
@@ -64,6 +66,7 @@ namespace network_module
             network_module::client::Client::Config config;
             json_object.at("host").get_to(config.host_);
             json_object.at("port").get_to(config.port_);
+            json_object.at("reconnect_timeout_sec").get_to(config.reconnect_timeout_sec_);
 
             return config;
         }
@@ -87,16 +90,18 @@ namespace network_module
 
         private:
             bool is_started() const;
-            void do_resolve(boost::beast::error_code error_code,
+
+            void on_resolve(boost::beast::error_code error_code,
                             boost::asio::ip::tcp::resolver::results_type results, const Config &config);
-            void do_connect(boost::beast::error_code error_code,
+            void on_connect(boost::beast::error_code error_code,
                             boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint, const Config &config);
-            void do_handshake(boost::beast::error_code error_code);
+            void on_handshake(boost::beast::error_code error_code);
 
             void on_send(boost::beast::error_code error_code, std::size_t bytes_transferred);
 
-            void start_listening();
-            void do_receive(boost::beast::error_code error_code, std::size_t bytes_transferred);
+            void listen();
+            void on_receive(boost::beast::error_code error_code, std::size_t bytes_transferred);
+
             void do_close(boost::beast::error_code ec);
 
         private:
@@ -154,7 +159,7 @@ namespace network_module
 
             resolver_->async_resolve(
                 config.host_.c_str(), std::to_string(config.port_),
-                boost::bind(&Client::ClientImpl::do_resolve,
+                boost::bind(&Client::ClientImpl::on_resolve,
                             this,
                             boost::asio::placeholders::error,
                             boost::asio::placeholders::results,
@@ -258,7 +263,7 @@ namespace network_module
             return true;
         }
 
-        void Client::ClientImpl::do_resolve(boost::beast::error_code error_code,
+        void Client::ClientImpl::on_resolve(boost::beast::error_code error_code,
                                             boost::asio::ip::tcp::resolver::results_type results,
                                             const Config &config)
         {
@@ -266,17 +271,17 @@ namespace network_module
 
             if (error_code)
             {
-                LOG(ERROR) << "Error " << error_code;
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
                 return;
             }
 
             // Set the timeout for the operation
             boost::beast::get_lowest_layer(*websocket_stream_).expires_after(std::chrono::seconds(5));
             // Make the connection on the IP address we get from a lookup
-            boost::beast::get_lowest_layer(*websocket_stream_).async_connect(results, boost::bind(&Client::ClientImpl::do_connect, this, boost::asio::placeholders::error, boost::asio::placeholders::endpoint, config));
+            boost::beast::get_lowest_layer(*websocket_stream_).async_connect(results, boost::bind(&Client::ClientImpl::on_connect, this, boost::asio::placeholders::error, boost::asio::placeholders::endpoint, config));
         }
 
-        void Client::ClientImpl::do_connect(boost::beast::error_code error_code,
+        void Client::ClientImpl::on_connect(boost::beast::error_code error_code,
                                             boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint,
                                             const Config &config)
         {
@@ -284,8 +289,10 @@ namespace network_module
 
             if (error_code)
             {
-                LOG(ERROR) << "Error " << error_code;
-                return;
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                LOG(INFO) << "Sleeping...";
+                std::this_thread::sleep_for(std::chrono::seconds(config.reconnect_timeout_sec_));
+                // on_resolve(error_code, endpoint, config);
             }
 
             // Turn off the timeout on the tcp_stream, because
@@ -310,22 +317,22 @@ namespace network_module
             websocket_stream_->async_handshake(
                 kHostAndPort.c_str(),
                 "/",
-                boost::bind(&Client::ClientImpl::do_handshake,
+                boost::bind(&Client::ClientImpl::on_handshake,
                             this,
                             boost::asio::placeholders::error));
         }
 
-        void Client::ClientImpl::do_handshake(boost::beast::error_code error_code)
+        void Client::ClientImpl::on_handshake(boost::beast::error_code error_code)
         {
             if (error_code)
             {
-                LOG(ERROR) << "Error " << error_code;
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
                 return;
             }
 
             LOG(INFO) << "Connection established";
 
-            start_listening();
+            listen();
             // callbacks_.on_start_();
         }
 
@@ -333,42 +340,43 @@ namespace network_module
         {
             if (error_code)
             {
-                LOG(ERROR) << "Error " << error_code;
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
                 return;
             }
 
             LOG(INFO) << "Sent " << bytes_transferred << " bytes";
         }
 
-        void Client::ClientImpl::start_listening()
+        void Client::ClientImpl::listen()
         {
             websocket_stream_->async_read(
                 buffer_,
                 boost::bind(
-                    &Client::ClientImpl::do_receive,
+                    &Client::ClientImpl::on_receive,
                     this,
                     boost::asio::placeholders::error,
                     boost::asio::placeholders::bytes_transferred));
         }
 
-        void Client::ClientImpl::do_receive(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        void Client::ClientImpl::on_receive(boost::beast::error_code error_code, std::size_t bytes_transferred)
         {
             if (error_code)
             {
-                LOG(ERROR) << "Error " << error_code;
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                ;
                 return;
             }
 
             callbacks_.process_receiving_(boost::beast::buffers_to_string(buffer_.data()));
             buffer_.clear();
-            start_listening();
+            listen();
         }
 
         void Client::ClientImpl::do_close(boost::beast::error_code error_code)
         {
             if (error_code)
             {
-                LOG(ERROR) << "Error " << error_code;
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
                 return;
             }
 

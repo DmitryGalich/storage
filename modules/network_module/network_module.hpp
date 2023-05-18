@@ -55,6 +55,8 @@ namespace network_module
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
 
+                int reconnect_timeout_sec_{5};
+
                 struct Callbacks
                 {
                     web_sockets::OnStartCallback on_start_;
