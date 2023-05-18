@@ -353,7 +353,14 @@ namespace network_module
 
         void Client::ClientImpl::do_receive(boost::beast::error_code error_code, std::size_t bytes_transferred)
         {
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code;
+                return;
+            }
+
             callbacks_.process_receiving_(boost::beast::buffers_to_string(buffer_.data()));
+            buffer_.clear();
             start_listening();
         }
 
