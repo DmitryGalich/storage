@@ -89,8 +89,12 @@ namespace network_module
 
             bool start(const Config &config);
             void stop();
+            bool is_running() const;
 
             bool send(const std::string &data);
+
+        private:
+            void run_general_thread();
 
         private:
             bool is_started() const;
@@ -128,6 +132,11 @@ namespace network_module
             std::vector<std::thread> workers_;
             std::mutex mutex_;
             std::condition_variable cond_var_;
+
+            // ============
+
+            std::atomic_bool is_need_running_{false};
+            std::unique_ptr<std::thread> general_thread_;
         };
 
         Client::ClientImpl::ClientImpl() {}
@@ -140,110 +149,137 @@ namespace network_module
 
         bool Client::ClientImpl::start(const Config &config)
         {
-            if (is_started())
+            if (is_running())
             {
-                LOG(WARNING) << "Client is already started";
-                return false;
+                LOG(INFO) << "Client is already running";
+                return;
             }
 
             LOG(INFO) << "Starting...";
-
-            callbacks_ = config.callbacks_;
-
-            io_context_.reset(new boost::asio::io_context(/* number of threads */));
-            if (!io_context_)
-            {
-                LOG(ERROR) << "Can't create io_context";
-                stop();
-                return false;
-            }
-
-            resolver_.reset(new boost::asio::ip::tcp::resolver(*io_context_));
-            if (!resolver_)
-            {
-                LOG(ERROR) << "Can't create resolver";
-                stop();
-                return false;
-            }
-
-            websocket_stream_.reset(new boost::beast::websocket::stream<boost::beast::tcp_stream>(*io_context_));
-            if (!websocket_stream_)
-            {
-                LOG(ERROR) << "Can't create websocket_stream";
-                stop();
-                return false;
-            }
-
-            resolve(config);
-
-            const int kWorkersNumber = 1;
-            if (kWorkersNumber < 1)
-            {
-                LOG(ERROR) << "Number of available cores in too small";
-                stop();
-                return false;
-            }
-
-            LOG(INFO) << "Starting " << kWorkersNumber << " worker-threads...";
-
-            workers_.reserve(kWorkersNumber);
-
-            for (int thread_i = 0; thread_i < kWorkersNumber; ++thread_i)
-            {
-                workers_.emplace_back(
-                    [&]
-                    {
-                        {
-                            const std::lock_guard<std::mutex> lock(mutex_);
-                            LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
-                        }
-
-                        io_context_->run();
-                    });
-            }
 
             return true;
         }
 
         void Client::ClientImpl::stop()
         {
-            if (!is_started())
-            {
-                LOG(WARNING) << "Client is already stopped";
-                return;
-            }
-
-            LOG(INFO) << "Stopping...";
-
-            if (!io_context_)
-            {
-                LOG(INFO) << "Stopped";
-                return;
-            }
-            io_context_->stop();
-
-            int worker_i = 0;
-            for (auto &worker : workers_)
-            {
-                LOG(INFO) << "Worker(" << worker_i << ") stopping...";
-                worker.join();
-                LOG(INFO) << "Worker(" << worker_i++ << ") stopped";
-            }
-            workers_.clear();
-
-            if (websocket_stream_)
-            {
-                if (websocket_stream_->is_open())
-                    websocket_stream_->close(boost::beast::websocket::close_code::normal);
-
-                websocket_stream_.reset();
-            }
-
-            resolver_.reset();
-            io_context_.reset();
-
             LOG(INFO) << "Stopped";
         }
+
+        bool Client::ClientImpl::is_running() const
+        {
+            return true;
+        }
+
+        void Client::ClientImpl::run_general_thread() {}
+
+        // ======================
+
+        // bool Client::ClientImpl::start(const Config &config)
+        // {
+        //     if (is_started())
+        //     {
+        //         LOG(WARNING) << "Client is already started";
+        //         return false;
+        //     }
+
+        //     LOG(INFO) << "Starting...";
+
+        //     callbacks_ = config.callbacks_;
+
+        //     io_context_.reset(new boost::asio::io_context(/* number of threads */));
+        //     if (!io_context_)
+        //     {
+        //         LOG(ERROR) << "Can't create io_context";
+        //         stop();
+        //         return false;
+        //     }
+
+        //     resolver_.reset(new boost::asio::ip::tcp::resolver(*io_context_));
+        //     if (!resolver_)
+        //     {
+        //         LOG(ERROR) << "Can't create resolver";
+        //         stop();
+        //         return false;
+        //     }
+
+        //     websocket_stream_.reset(new boost::beast::websocket::stream<boost::beast::tcp_stream>(*io_context_));
+        //     if (!websocket_stream_)
+        //     {
+        //         LOG(ERROR) << "Can't create websocket_stream";
+        //         stop();
+        //         return false;
+        //     }
+
+        //     resolve(config);
+
+        //     const int kWorkersNumber = 1;
+        //     if (kWorkersNumber < 1)
+        //     {
+        //         LOG(ERROR) << "Number of available cores in too small";
+        //         stop();
+        //         return false;
+        //     }
+
+        //     LOG(INFO) << "Starting " << kWorkersNumber << " worker-threads...";
+
+        //     workers_.reserve(kWorkersNumber);
+
+        //     for (int thread_i = 0; thread_i < kWorkersNumber; ++thread_i)
+        //     {
+        //         workers_.emplace_back(
+        //             [&]
+        //             {
+        //                 {
+        //                     const std::lock_guard<std::mutex> lock(mutex_);
+        //                     LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
+        //                 }
+
+        //                 io_context_->run();
+        //             });
+        //     }
+
+        //     return true;
+        // }
+
+        // void Client::ClientImpl::stop()
+        // {
+        //     if (!is_started())
+        //     {
+        //         LOG(WARNING) << "Client is already stopped";
+        //         return;
+        //     }
+
+        //     LOG(INFO) << "Stopping...";
+
+        //     if (!io_context_)
+        //     {
+        //         LOG(INFO) << "Stopped";
+        //         return;
+        //     }
+        //     io_context_->stop();
+
+        //     int worker_i = 0;
+        //     for (auto &worker : workers_)
+        //     {
+        //         LOG(INFO) << "Worker(" << worker_i << ") stopping...";
+        //         worker.join();
+        //         LOG(INFO) << "Worker(" << worker_i++ << ") stopped";
+        //     }
+        //     workers_.clear();
+
+        //     if (websocket_stream_)
+        //     {
+        //         if (websocket_stream_->is_open())
+        //             websocket_stream_->close(boost::beast::websocket::close_code::normal);
+
+        //         websocket_stream_.reset();
+        //     }
+
+        //     resolver_.reset();
+        //     io_context_.reset();
+
+        //     LOG(INFO) << "Stopped";
+        // }
 
         bool Client::ClientImpl::send(const std::string &data)
         {
@@ -461,6 +497,17 @@ namespace network_module
             client_impl_->stop();
 
             LOG(INFO) << "Stopped";
+        }
+
+        bool Client::is_running() const
+        {
+            if (!client_impl_)
+            {
+                LOG(ERROR) << "Implementation is not created";
+                return;
+            }
+
+            return client_impl_->is_running();
         }
 
         bool Client::send(const std::string &data)

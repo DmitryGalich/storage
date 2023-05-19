@@ -71,6 +71,8 @@ namespace network_module
             bool start(const Config &config);
             void stop();
 
+            bool is_running() const;
+
             bool send(const std::string &data);
 
         private:
