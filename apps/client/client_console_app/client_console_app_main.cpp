@@ -64,7 +64,6 @@ int main()
     std::future<bool> future = std::async(&wait_for_exit_command);
     while (true)
     {
-        LOG(INFO) << "Checking...";
         if (future.wait_for(std::chrono::seconds(1)) == std::future_status::ready)
             break;
     }
