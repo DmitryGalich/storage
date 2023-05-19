@@ -16,7 +16,7 @@ void configure_logger()
     el::Loggers::reconfigureAllLoggers(config);
 }
 
-bool wait_for_exit_command()
+void wait_for_user_command()
 {
     while (true)
     {
@@ -28,7 +28,7 @@ bool wait_for_exit_command()
             input == "c" ||
             input == "C")
         {
-            return true;
+            return;
         }
     }
 }
@@ -40,6 +40,9 @@ int main()
     LOG(INFO) << "================================";
     LOG(INFO) << PROJECT_NAME;
     LOG(INFO) << "version " << PROJECT_VERSION;
+
+    std::promise<void> client_promise;
+    auto client_future = client_promise.get_future();
 
     storage::client::Client client;
 
@@ -61,11 +64,20 @@ int main()
         return -1;
     }
 
-    std::future<bool> future = std::async(&wait_for_exit_command);
+    std::future<void> user_command_future = std::async(&wait_for_user_command);
     while (true)
     {
-        if (future.wait_for(std::chrono::seconds(1)) == std::future_status::ready)
+        if (user_command_future.wait_for(std::chrono::seconds(1)) == std::future_status::ready)
+        {
+            LOG(INFO) << "Signal to stop from user command";
             break;
+        }
+
+        if (client_future.wait_for(std::chrono::seconds(1)) == std::future_status::ready)
+        {
+            LOG(INFO) << "Signal to stop from client command";
+            break;
+        }
     }
 
     client.stop();
