@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <future>
 
 namespace storage
 {
@@ -9,7 +10,8 @@ namespace storage
         class Client
         {
         public:
-            Client();
+            Client() = delete;
+            Client(std::promise<void> signal_to_stop);
             ~Client();
 
             bool start(const std::string &config_path);

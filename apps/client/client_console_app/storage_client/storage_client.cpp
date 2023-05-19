@@ -1,5 +1,7 @@
 #include "storage_client.hpp"
 
+#include <future>
+
 #include "easylogging++.h"
 
 #include "network_module.hpp"
@@ -11,7 +13,8 @@ namespace storage
         class Client::ClientImpl
         {
         public:
-            ClientImpl();
+            ClientImpl() = delete;
+            ClientImpl(std::promise<void> signal_to_stop);
             ~ClientImpl();
 
             bool start(const std::string &config_path);
@@ -27,9 +30,12 @@ namespace storage
 
         private:
             std::unique_ptr<network_module::client::Client> network_module_;
+
+            std::promise<void> signal_to_stop_;
         };
 
-        Client::ClientImpl::ClientImpl() {}
+        Client::ClientImpl::ClientImpl(std::promise<void> signal_to_stop)
+            : signal_to_stop_(std::move(signal_to_stop)) {}
 
         Client::ClientImpl::~ClientImpl() {}
 
@@ -102,7 +108,7 @@ namespace storage
 {
     namespace client
     {
-        Client::Client() : client_impl_(std::make_unique<storage::client::Client::ClientImpl>()) {}
+        Client::Client(std::promise<void> signal_to_stop) : client_impl_(std::make_unique<storage::client::Client::ClientImpl>(std::move(signal_to_stop))) {}
 
         Client::~Client() {}
 

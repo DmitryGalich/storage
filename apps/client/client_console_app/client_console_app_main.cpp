@@ -44,7 +44,7 @@ int main()
     std::promise<void> client_promise;
     auto client_future = client_promise.get_future();
 
-    storage::client::Client client;
+    storage::client::Client client(std::move(client_promise));
 
     try
     {
