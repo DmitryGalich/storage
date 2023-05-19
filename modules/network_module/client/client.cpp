@@ -4,6 +4,7 @@
 #include <chrono>
 #include <vector>
 #include <thread>
+#include <condition_variable>
 
 #include "boost/asio/io_context.hpp"
 #include "boost/asio/ip/tcp.hpp"
@@ -94,19 +95,26 @@ namespace network_module
         private:
             bool is_started() const;
 
-            void resolve(const Config &config, const bool is_reconnecting = kNotReconnecting);
+            void resolve(const Config &config,
+                         const bool is_reconnecting = kNotReconnecting);
             void on_resolve(boost::beast::error_code error_code,
-                            boost::asio::ip::tcp::resolver::results_type results, const Config &config);
+                            boost::asio::ip::tcp::resolver::results_type results,
+                            const Config &config);
             void on_connect(boost::beast::error_code error_code,
-                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint, const Config &config);
-            void on_handshake(boost::beast::error_code error_code);
+                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint,
+                            const Config &config);
+            void on_handshake(boost::beast::error_code error_code,
+                              const Config &config);
+            void on_send(boost::beast::error_code error_code,
+                         std::size_t bytes_transferred);
 
-            void on_send(boost::beast::error_code error_code, std::size_t bytes_transferred);
+            void listen(const Config &config);
+            void on_receive(boost::beast::error_code error_code,
+                            std::size_t bytes_transferred,
+                            const Config &config);
 
-            void listen();
-            void on_receive(boost::beast::error_code error_code, std::size_t bytes_transferred);
-
-            void do_close(boost::beast::error_code ec);
+            void close(const Config &config,
+                       bool is_reconnecting);
 
         private:
             std::shared_ptr<boost::asio::io_context> io_context_;
@@ -119,6 +127,7 @@ namespace network_module
 
             std::vector<std::thread> workers_;
             std::mutex mutex_;
+            std::condition_variable cond_var_;
         };
 
         Client::ClientImpl::ClientImpl() {}
@@ -131,7 +140,11 @@ namespace network_module
 
         bool Client::ClientImpl::start(const Config &config)
         {
-            stop();
+            if (is_started())
+            {
+                LOG(WARNING) << "Client is already started";
+                return false;
+            }
 
             LOG(INFO) << "Starting...";
 
@@ -218,7 +231,13 @@ namespace network_module
             }
             workers_.clear();
 
-            websocket_stream_.reset();
+            if (websocket_stream_)
+            {
+                if (websocket_stream_->is_open())
+                    websocket_stream_->close(boost::beast::websocket::close_code::normal);
+
+                websocket_stream_.reset();
+            }
 
             resolver_.reset();
             io_context_.reset();
@@ -333,10 +352,12 @@ namespace network_module
                 "/",
                 boost::bind(&Client::ClientImpl::on_handshake,
                             this,
-                            boost::asio::placeholders::error));
+                            boost::asio::placeholders::error,
+                            config));
         }
 
-        void Client::ClientImpl::on_handshake(boost::beast::error_code error_code)
+        void Client::ClientImpl::on_handshake(boost::beast::error_code error_code,
+                                              const Config &config)
         {
             if (error_code)
             {
@@ -346,11 +367,12 @@ namespace network_module
 
             LOG(INFO) << "Connection established";
 
-            listen();
+            listen(config);
             // callbacks_.on_start_();
         }
 
-        void Client::ClientImpl::on_send(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        void Client::ClientImpl::on_send(boost::beast::error_code error_code,
+                                         std::size_t bytes_transferred)
         {
             if (error_code)
             {
@@ -361,7 +383,7 @@ namespace network_module
             LOG(INFO) << "Sent " << bytes_transferred << " bytes";
         }
 
-        void Client::ClientImpl::listen()
+        void Client::ClientImpl::listen(const Config &config)
         {
             websocket_stream_->async_read(
                 buffer_,
@@ -369,35 +391,38 @@ namespace network_module
                     &Client::ClientImpl::on_receive,
                     this,
                     boost::asio::placeholders::error,
-                    boost::asio::placeholders::bytes_transferred));
+                    boost::asio::placeholders::bytes_transferred,
+                    config));
         }
 
-        void Client::ClientImpl::on_receive(boost::beast::error_code error_code, std::size_t bytes_transferred)
+        void Client::ClientImpl::on_receive(boost::beast::error_code error_code,
+                                            std::size_t bytes_transferred,
+                                            const Config &config)
         {
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                close(config, kReconnecting);
                 return;
             }
 
             callbacks_.process_receiving_(boost::beast::buffers_to_string(buffer_.data()));
             buffer_.clear();
-            listen();
+            listen(config);
         }
 
-        void Client::ClientImpl::do_close(boost::beast::error_code error_code)
+        void Client::ClientImpl::close(const Config &config,
+                                       bool is_reconnecting)
         {
-            if (error_code)
-            {
-                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-                return;
-            }
-
             LOG(INFO) << "Closing...";
             LOG(INFO) << boost::beast::make_printable(buffer_.data());
             buffer_.clear();
-        }
 
+            stop();
+
+            if (is_reconnecting == kReconnecting)
+                start(config);
+        }
     }
 }
 
