@@ -16,21 +16,40 @@ void configure_logger()
     el::Loggers::reconfigureAllLoggers(config);
 }
 
+// void wait_for_user_command()
+// {
+//     while (true)
+//     {
+//         LOG(INFO) << "KEK";
+
+//         std::string input;
+//         getline(std::cin, input);
+
+//         if (input == "q" ||
+//             input == "Q" ||
+//             input == "c" ||
+//             input == "C")
+//         {
+//             return;
+//         }
+//     }
+// }
+
 void wait_for_user_command()
 {
-    while (true)
-    {
-        std::string input;
-        getline(std::cin, input);
+    LOG(INFO) << "KEK";
+    std::string input;
+    std::cin >> input;
 
-        if (input == "q" ||
-            input == "Q" ||
-            input == "c" ||
-            input == "C")
-        {
-            return;
-        }
+    if (input == "q" ||
+        input == "Q" ||
+        input == "c" ||
+        input == "C")
+    {
+        return;
     }
+
+    // wait_for_user_command();
 }
 
 int main()

@@ -86,6 +86,12 @@ namespace storage
 
         void Client::ClientImpl::process_signal_to_stop()
         {
+            static bool is_once_called{false};
+
+            if (is_once_called)
+                return;
+
+            is_once_called = true;
             signal_to_stop_.set_value();
         }
 

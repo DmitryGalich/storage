@@ -201,8 +201,10 @@ namespace network_module
 
             while (is_need_running_)
             {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
+                std::this_thread::sleep_for(std::chrono::seconds(2));
                 LOG(DEBUG) << "run_general_thread";
+
+                config_->callbacks_.signal_to_stop_();
             }
 
             LOG(DEBUG) << "End of general thread";
