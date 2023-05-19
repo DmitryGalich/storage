@@ -124,14 +124,7 @@ namespace network_module
             std::shared_ptr<boost::asio::io_context> io_context_;
             std::shared_ptr<boost::asio::ip::tcp::resolver> resolver_;
             std::shared_ptr<boost::beast::websocket::stream<boost::beast::tcp_stream>> websocket_stream_;
-
-            Config::Callbacks callbacks_;
-
             boost::beast::flat_buffer buffer_;
-
-            std::vector<std::thread> workers_;
-            std::mutex mutex_;
-            std::condition_variable cond_var_;
 
             // ============
 
@@ -139,6 +132,8 @@ namespace network_module
             std::unique_ptr<std::thread> general_thread_;
 
             std::unique_ptr<const Config> config_;
+
+            std::vector<std::thread> workers_;
         };
 
         Client::ClientImpl::ClientImpl() {}
@@ -202,11 +197,15 @@ namespace network_module
 
         void Client::ClientImpl::run_general_thread()
         {
+            LOG(DEBUG) << "Begin of general thread";
+
             while (is_need_running_)
             {
-                LOG(DEBUG) << "run_general_thread";
                 std::this_thread::sleep_for(std::chrono::seconds(1));
+                LOG(DEBUG) << "run_general_thread";
             }
+
+            LOG(DEBUG) << "End of general thread";
         }
 
         // ======================
@@ -479,7 +478,7 @@ namespace network_module
                 return;
             }
 
-            callbacks_.process_receiving_(boost::beast::buffers_to_string(buffer_.data()));
+            config_->callbacks_.process_receiving_(boost::beast::buffers_to_string(buffer_.data()));
             buffer_.clear();
             listen(config);
         }

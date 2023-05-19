@@ -1,3 +1,7 @@
+#include <future>
+#include <thread>
+#include <chrono>
+
 #include "configs/cmake_config.h"
 
 #include "easylogging++.h"
@@ -12,8 +16,21 @@ void configure_logger()
     el::Loggers::reconfigureAllLoggers(config);
 }
 
-void wait_for_user_command()
+bool wait_for_exit_command()
 {
+    while (true)
+    {
+        std::string input;
+        getline(std::cin, input);
+
+        if (input == "q" ||
+            input == "Q" ||
+            input == "c" ||
+            input == "C")
+        {
+            return true;
+        }
+    }
 }
 
 int main()
@@ -44,18 +61,12 @@ int main()
         return -1;
     }
 
+    std::future<bool> future = std::async(&wait_for_exit_command);
     while (true)
     {
-        std::string input;
-        getline(std::cin, input);
-
-        if (input == "q" ||
-            input == "Q" ||
-            input == "c" ||
-            input == "C")
-        {
+        LOG(INFO) << "Checking...";
+        if (future.wait_for(std::chrono::seconds(1)) == std::future_status::ready)
             break;
-        }
     }
 
     client.stop();
