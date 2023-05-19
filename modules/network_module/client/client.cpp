@@ -137,6 +137,8 @@ namespace network_module
 
             std::atomic_bool is_need_running_{false};
             std::unique_ptr<std::thread> general_thread_;
+
+            std::unique_ptr<const Config> config_;
         };
 
         Client::ClientImpl::ClientImpl() {}
@@ -157,6 +159,10 @@ namespace network_module
 
             LOG(INFO) << "Starting...";
 
+            config_ = std::make_unique<const Config>(config);
+
+            general_thread_ = std::make_unique<std::thread>(&Client::ClientImpl::run_general_thread, this);
+
             LOG(INFO) << "Started";
             return true;
         }
@@ -170,11 +176,20 @@ namespace network_module
             }
 
             LOG(INFO) << "Stopping...";
+
+            general_thread_->join();
+            general_thread_.reset();
+
+            config_.reset();
+
             LOG(INFO) << "Stopped";
         }
 
         bool Client::ClientImpl::is_running() const
         {
+            if (!config_)
+                return false;
+
             if (!general_thread_)
                 return false;
 
@@ -184,7 +199,10 @@ namespace network_module
             return true;
         }
 
-        void Client::ClientImpl::run_general_thread() {}
+        void Client::ClientImpl::run_general_thread()
+        {
+            LOG(INFO) << "run_general_thread";
+        }
 
         // ======================
 
