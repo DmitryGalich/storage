@@ -8,6 +8,8 @@ namespace network_module
     typedef std::string Url;
     typedef std::function<std::string()> HttpCallback;
 
+    typedef std::function<void()> SignalToStop;
+
     namespace web_sockets
     {
         typedef std::function<void(const std::string &)> ReceivingCallback;

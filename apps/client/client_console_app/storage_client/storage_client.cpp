@@ -23,6 +23,8 @@ namespace storage
         private:
             void configure_callbacks(network_module::client::Client::Config &config);
 
+            void process_signal_to_stop();
+
             void start_communication();
 
             void send(const std::string &data);
@@ -77,8 +79,14 @@ namespace storage
 
         void Client::ClientImpl::configure_callbacks(network_module::client::Client::Config &config)
         {
+            config.callbacks_.signal_to_stop_ = std::bind(&Client::ClientImpl::process_signal_to_stop, this);
             config.callbacks_.on_start_ = std::bind(&Client::ClientImpl::start_communication, this);
             config.callbacks_.process_receiving_ = std::bind(&Client::ClientImpl::receive, this, std::placeholders::_1);
+        }
+
+        void Client::ClientImpl::process_signal_to_stop()
+        {
+            signal_to_stop_.set_value();
         }
 
         void Client::ClientImpl::start_communication()

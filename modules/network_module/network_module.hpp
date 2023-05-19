@@ -59,6 +59,7 @@ namespace network_module
 
                 struct Callbacks
                 {
+                    SignalToStop signal_to_stop_;
                     web_sockets::OnStartCallback on_start_;
                     web_sockets::ReceivingCallback process_receiving_;
                 } callbacks_;
