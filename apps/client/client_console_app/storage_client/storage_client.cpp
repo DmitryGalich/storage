@@ -52,6 +52,7 @@ namespace storage
             if (!network_module_->start(config))
                 return false;
 
+            LOG(INFO) << "Started";
             return true;
         }
 
@@ -76,8 +77,6 @@ namespace storage
 
         void Client::ClientImpl::start_communication()
         {
-            LOG(INFO) << "Started";
-
             // send("Hello from client");
         }
 
@@ -85,7 +84,7 @@ namespace storage
         {
             if (!network_module_)
             {
-                LOG(ERROR) << "network_module is not created";
+                LOG(ERROR) << "Network module is not created";
                 return;
             }
 
@@ -96,7 +95,6 @@ namespace storage
         {
             LOG(INFO) << "Received data: " << data;
         }
-
     }
 }
 

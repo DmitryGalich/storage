@@ -43,7 +43,7 @@ namespace network_module
             std::fstream file(config_path);
             if (!file.is_open())
             {
-                LOG(INFO) << "Creating default config...";
+                LOG(DEBUG) << "Creating default config...";
 
                 std::ofstream default_config_file(config_path);
                 if (!default_config_file.is_open())
@@ -56,7 +56,7 @@ namespace network_module
                 default_config_file << json_object.dump(4);
                 default_config_file.close();
 
-                LOG(INFO) << "Created";
+                LOG(DEBUG) << "Created";
             }
             else
             {
@@ -64,8 +64,8 @@ namespace network_module
                 file.close();
             }
 
-            LOG(INFO) << "Current config: \n"
-                      << json_object.dump(4);
+            LOG(DEBUG) << "Current config: \n"
+                       << json_object.dump(4);
 
             network_module::client::Client::Config config;
             json_object.at("host").get_to(config.host_);
@@ -157,13 +157,15 @@ namespace network_module
                 return false;
             }
 
-            LOG(INFO) << "Starting...";
+            LOG(DEBUG) << "Starting...";
+
+            is_need_running_ = true;
 
             config_ = std::make_unique<const Config>(config);
 
             general_thread_ = std::make_unique<std::thread>(&Client::ClientImpl::run_general_thread, this);
 
-            LOG(INFO) << "Started";
+            LOG(DEBUG) << "Started";
             return true;
         }
 
@@ -175,21 +177,20 @@ namespace network_module
                 return;
             }
 
-            LOG(INFO) << "Stopping...";
+            LOG(DEBUG) << "Stopping...";
+
+            is_need_running_ = false;
 
             general_thread_->join();
             general_thread_.reset();
 
             config_.reset();
 
-            LOG(INFO) << "Stopped";
+            LOG(DEBUG) << "Stopped";
         }
 
         bool Client::ClientImpl::is_running() const
         {
-            if (!config_)
-                return false;
-
             if (!general_thread_)
                 return false;
 
@@ -201,7 +202,11 @@ namespace network_module
 
         void Client::ClientImpl::run_general_thread()
         {
-            LOG(INFO) << "run_general_thread";
+            while (is_need_running_)
+            {
+                LOG(DEBUG) << "run_general_thread";
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
         }
 
         // ======================
@@ -214,7 +219,7 @@ namespace network_module
         //         return false;
         //     }
 
-        //     LOG(INFO) << "Starting...";
+        //     LOG(DEBUG) << "Starting...";
 
         //     callbacks_ = config.callbacks_;
 
@@ -252,7 +257,7 @@ namespace network_module
         //         return false;
         //     }
 
-        //     LOG(INFO) << "Starting " << kWorkersNumber << " worker-threads...";
+        //     LOG(DEBUG) << "Starting " << kWorkersNumber << " worker-threads...";
 
         //     workers_.reserve(kWorkersNumber);
 
@@ -263,7 +268,7 @@ namespace network_module
         //             {
         //                 {
         //                     const std::lock_guard<std::mutex> lock(mutex_);
-        //                     LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
+        //                     LOG(DEBUG) << "Starting worker [" << std::this_thread::get_id() << "]";
         //                 }
 
         //                 io_context_->run();
@@ -281,11 +286,11 @@ namespace network_module
         //         return;
         //     }
 
-        //     LOG(INFO) << "Stopping...";
+        //     LOG(DEBUG) << "Stopping...";
 
         //     if (!io_context_)
         //     {
-        //         LOG(INFO) << "Stopped";
+        //         LOG(DEBUG) << "Stopped";
         //         return;
         //     }
         //     io_context_->stop();
@@ -293,9 +298,9 @@ namespace network_module
         //     int worker_i = 0;
         //     for (auto &worker : workers_)
         //     {
-        //         LOG(INFO) << "Worker(" << worker_i << ") stopping...";
+        //         LOG(DEBUG) << "Worker(" << worker_i << ") stopping...";
         //         worker.join();
-        //         LOG(INFO) << "Worker(" << worker_i++ << ") stopped";
+        //         LOG(DEBUG) << "Worker(" << worker_i++ << ") stopped";
         //     }
         //     workers_.clear();
 
@@ -310,7 +315,7 @@ namespace network_module
         //     resolver_.reset();
         //     io_context_.reset();
 
-        //     LOG(INFO) << "Stopped";
+        //     LOG(DEBUG) << "Stopped";
         // }
 
         bool Client::ClientImpl::send(const std::string &data)
@@ -352,7 +357,7 @@ namespace network_module
         {
             if (is_reconnecting)
             {
-                LOG(INFO) << "Sleeping...";
+                LOG(DEBUG) << "Sleeping...";
                 std::this_thread::sleep_for(std::chrono::seconds(config.reconnect_timeout_sec_));
             }
 
@@ -369,7 +374,7 @@ namespace network_module
                                             boost::asio::ip::tcp::resolver::results_type results,
                                             const Config &config)
         {
-            LOG(INFO) << "Resolving...";
+            LOG(DEBUG) << "Resolving...";
 
             if (error_code)
             {
@@ -387,7 +392,7 @@ namespace network_module
                                             boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint,
                                             const Config &config)
         {
-            LOG(INFO) << "Connecting...";
+            LOG(DEBUG) << "Connecting...";
 
             if (error_code)
             {
@@ -433,7 +438,7 @@ namespace network_module
                 return;
             }
 
-            LOG(INFO) << "Connection established";
+            LOG(DEBUG) << "Connection established";
 
             listen(config);
             // callbacks_.on_start_();
@@ -448,7 +453,7 @@ namespace network_module
                 return;
             }
 
-            LOG(INFO) << "Sent " << bytes_transferred << " bytes";
+            LOG(DEBUG) << "Sent " << bytes_transferred << " bytes";
         }
 
         void Client::ClientImpl::listen(const Config &config)
@@ -482,8 +487,8 @@ namespace network_module
         void Client::ClientImpl::close(const Config &config,
                                        bool is_reconnecting)
         {
-            LOG(INFO) << "Closing...";
-            LOG(INFO) << boost::beast::make_printable(buffer_.data());
+            LOG(DEBUG) << "Closing...";
+            LOG(DEBUG) << boost::beast::make_printable(buffer_.data());
             buffer_.clear();
 
             stop();
@@ -504,8 +509,6 @@ namespace network_module
 
         bool Client::start(const Config &config)
         {
-            LOG(INFO) << "Starting...";
-
             if (!client_impl_)
             {
                 static const std::string kErrorText("Implementation is not created");
@@ -518,8 +521,6 @@ namespace network_module
 
         void Client::stop()
         {
-            LOG(INFO) << "Stopping...";
-
             if (!client_impl_)
             {
                 LOG(ERROR) << "Implementation is not created";
@@ -527,8 +528,6 @@ namespace network_module
             }
 
             client_impl_->stop();
-
-            LOG(INFO) << "Stopped";
         }
 
         bool Client::is_running() const
@@ -544,8 +543,6 @@ namespace network_module
 
         bool Client::send(const std::string &data)
         {
-            LOG(INFO) << "Sending...";
-
             if (!client_impl_)
             {
                 static const std::string kErrorText("Implementation is not created");
