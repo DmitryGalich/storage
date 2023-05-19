@@ -151,22 +151,36 @@ namespace network_module
         {
             if (is_running())
             {
-                LOG(INFO) << "Client is already running";
-                return;
+                LOG(WARNING) << "Client is already running";
+                return false;
             }
 
             LOG(INFO) << "Starting...";
 
+            LOG(INFO) << "Started";
             return true;
         }
 
         void Client::ClientImpl::stop()
         {
+            if (!is_running())
+            {
+                LOG(WARNING) << "Client is already stopped";
+                return;
+            }
+
+            LOG(INFO) << "Stopping...";
             LOG(INFO) << "Stopped";
         }
 
         bool Client::ClientImpl::is_running() const
         {
+            if (!general_thread_)
+                return false;
+
+            if (!general_thread_->joinable())
+                return false;
+
             return true;
         }
 
@@ -504,7 +518,7 @@ namespace network_module
             if (!client_impl_)
             {
                 LOG(ERROR) << "Implementation is not created";
-                return;
+                return false;
             }
 
             return client_impl_->is_running();
