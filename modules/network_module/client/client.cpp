@@ -95,9 +95,9 @@ namespace network_module
         private:
             void run_general_thread();
 
-            bool is_connection_opened() const;
-            bool open_connection();
-            void close_connection();
+            bool is_connection_activated() const;
+            bool activate_connection();
+            void deactivate_connection();
 
         private:
             // void resolve(const Config &config,
@@ -153,7 +153,7 @@ namespace network_module
 
             config_ = std::make_unique<const Config>(config);
 
-            if (!open_connection())
+            if (!activate_connection())
             {
                 LOG(WARNING) << "Can't open connection";
                 return false;
@@ -181,7 +181,7 @@ namespace network_module
             general_thread_->join();
             general_thread_.reset();
 
-            close_connection();
+            deactivate_connection();
 
             config_.reset();
 
@@ -190,9 +190,6 @@ namespace network_module
 
         bool Client::ClientImpl::is_running() const
         {
-            if (!is_connection_opened())
-                return false;
-
             if (!general_thread_)
                 return false;
 
@@ -202,7 +199,7 @@ namespace network_module
             return true;
         }
 
-        bool Client::ClientImpl::is_connection_opened() const
+        bool Client::ClientImpl::is_connection_activated() const
         {
             if (!io_context_)
                 return false;
@@ -216,19 +213,16 @@ namespace network_module
             if (!websocket_stream_)
                 return false;
 
-            if (!websocket_stream_->is_open())
-                return false;
-
             return true;
         }
 
-        bool Client::ClientImpl::open_connection()
+        bool Client::ClientImpl::activate_connection()
         {
-            LOG(DEBUG) << "Opening connection...";
+            LOG(DEBUG) << "Activating connection...";
 
-            if (is_connection_opened())
+            if (is_connection_activated())
             {
-                LOG(DEBUG) << "Connection already opened";
+                LOG(DEBUG) << "Connection already activated";
                 return false;
             }
 
@@ -253,24 +247,24 @@ namespace network_module
                 return false;
             }
 
-            LOG(DEBUG) << "Connection opened";
-
+            LOG(DEBUG) << "Connection activated";
             return true;
         }
 
-        void Client::ClientImpl::close_connection()
+        void Client::ClientImpl::deactivate_connection()
         {
-            LOG(DEBUG) << "Closing connection...";
+            LOG(DEBUG) << "Deactivating connection...";
 
-            if (!is_connection_opened())
+            if (!is_connection_activated())
             {
-                LOG(DEBUG) << "Connection already closed";
+                LOG(DEBUG) << "Connection already deactivated";
                 return;
             }
 
             io_context_->stop();
 
-            websocket_stream_->close(boost::beast::websocket::close_code::normal);
+            if (websocket_stream_->is_open())
+                websocket_stream_->close(boost::beast::websocket::close_code::normal);
 
             websocket_stream_.reset();
             resolver_.reset();
@@ -285,7 +279,7 @@ namespace network_module
             //     }
             //     workers_.clear();
 
-            LOG(DEBUG) << "Connection closed";
+            LOG(DEBUG) << "Connection deactivated";
         }
 
         void Client::ClientImpl::run_general_thread()
