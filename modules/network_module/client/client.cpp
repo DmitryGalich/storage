@@ -100,23 +100,18 @@ namespace network_module
             void deactivate_connection();
 
         private:
-            // void resolve(const Config &config,
-            //              const bool is_reconnecting = kNotReconnecting);
-            // void on_resolve(boost::beast::error_code error_code,
-            //                 boost::asio::ip::tcp::resolver::results_type results,
-            //                 const Config &config);
-            // void on_connect(boost::beast::error_code error_code,
-            //                 boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint,
-            //                 const Config &config);
-            // void on_handshake(boost::beast::error_code error_code,
-            //                   const Config &config);
-            // void on_send(boost::beast::error_code error_code,
-            //              std::size_t bytes_transferred);
+            void resolve();
+            void on_resolve(boost::beast::error_code error_code,
+                            boost::asio::ip::tcp::resolver::results_type results);
+            void on_connect(boost::beast::error_code error_code,
+                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint);
+            void on_handshake(boost::beast::error_code error_code);
+            void on_send(boost::beast::error_code error_code,
+                         std::size_t bytes_transferred);
 
-            // void listen(const Config &config);
-            // void on_receive(boost::beast::error_code error_code,
-            //                 std::size_t bytes_transferred,
-            //                 const Config &config);
+            void listen();
+            void on_receive(boost::beast::error_code error_code,
+                            std::size_t bytes_transferred);
 
         private:
             std::atomic_bool is_need_running_{false};
@@ -126,6 +121,9 @@ namespace network_module
 
             std::mutex mutex_;
             std::vector<std::thread> workers_;
+
+            std::mutex reconnecting_mutex_;
+            std::condition_variable reconnecting_watcher_;
 
             std::shared_ptr<boost::asio::io_context> io_context_;
             std::shared_ptr<boost::asio::ip::tcp::resolver> resolver_;
@@ -154,12 +152,6 @@ namespace network_module
 
             config_ = std::make_unique<const Config>(config);
 
-            if (!activate_connection())
-            {
-                LOG(WARNING) << "Can't open connection";
-                return false;
-            }
-
             is_need_running_ = true;
             general_thread_ = std::make_unique<std::thread>(&Client::ClientImpl::run_general_thread, this);
 
@@ -179,6 +171,7 @@ namespace network_module
 
             is_need_running_ = false;
 
+            reconnecting_watcher_.notify_all();
             general_thread_->join();
             general_thread_.reset();
 
@@ -245,6 +238,8 @@ namespace network_module
                 return false;
             }
 
+            resolve();
+
             if (config_->workers_number_ < 1)
             {
                 LOG(ERROR) << "Number of workers in too small: " << config_->workers_number_;
@@ -306,123 +301,29 @@ namespace network_module
         {
             LOG(DEBUG) << "Begin of general thread";
 
+            if (!activate_connection())
+            {
+                LOG(ERROR) << "Can't activate connection";
+                return;
+            }
+
             while (is_need_running_)
             {
-                std::this_thread::sleep_for(std::chrono::seconds(2));
-                LOG(DEBUG) << "run_general_thread";
+                LOG(INFO) << "tick";
+
+                if (!is_connection_activated())
+                {
+                    resolve();
+                }
+
+                std::unique_lock<std::mutex> lock(reconnecting_mutex_);
+                reconnecting_watcher_.wait(lock);
             }
+
+            deactivate_connection();
 
             LOG(DEBUG) << "End of general thread";
         }
-
-        // ======================
-
-        // bool Client::ClientImpl::start(const Config &config)
-        // {
-        //     if (is_started())
-        //     {
-        //         LOG(WARNING) << "Client is already started";
-        //         return false;
-        //     }
-
-        //     LOG(DEBUG) << "Starting...";
-
-        //     callbacks_ = config.callbacks_;
-
-        //     io_context_.reset(new boost::asio::io_context(/* number of threads */));
-        //     if (!io_context_)
-        //     {
-        //         LOG(ERROR) << "Can't create io_context";
-        //         stop();
-        //         return false;
-        //     }
-
-        //     resolver_.reset(new boost::asio::ip::tcp::resolver(*io_context_));
-        //     if (!resolver_)
-        //     {
-        //         LOG(ERROR) << "Can't create resolver";
-        //         stop();
-        //         return false;
-        //     }
-
-        //     websocket_stream_.reset(new boost::beast::websocket::stream<boost::beast::tcp_stream>(*io_context_));
-        //     if (!websocket_stream_)
-        //     {
-        //         LOG(ERROR) << "Can't create websocket_stream";
-        //         stop();
-        //         return false;
-        //     }
-
-        //     resolve(config);
-
-        //     const int kWorkersNumber = 1;
-        //     if (kWorkersNumber < 1)
-        //     {
-        //         LOG(ERROR) << "Number of available cores in too small";
-        //         stop();
-        //         return false;
-        //     }
-
-        //     LOG(DEBUG) << "Starting " << kWorkersNumber << " worker-threads...";
-
-        //     workers_.reserve(kWorkersNumber);
-
-        //     for (int thread_i = 0; thread_i < kWorkersNumber; ++thread_i)
-        //     {
-        //         workers_.emplace_back(
-        //             [&]
-        //             {
-        //                 {
-        //                     const std::lock_guard<std::mutex> lock(mutex_);
-        //                     LOG(DEBUG) << "Starting worker [" << std::this_thread::get_id() << "]";
-        //                 }
-
-        //                 io_context_->run();
-        //             });
-        //     }
-
-        //     return true;
-        // }
-
-        // void Client::ClientImpl::stop()
-        // {
-        //     if (!is_started())
-        //     {
-        //         LOG(WARNING) << "Client is already stopped";
-        //         return;
-        //     }
-
-        //     LOG(DEBUG) << "Stopping...";
-
-        //     if (!io_context_)
-        //     {
-        //         LOG(DEBUG) << "Stopped";
-        //         return;
-        //     }
-        //     io_context_->stop();
-
-        //     int worker_i = 0;
-        //     for (auto &worker : workers_)
-        //     {
-        //         LOG(DEBUG) << "Worker(" << worker_i << ") stopping...";
-        //         worker.join();
-        //         LOG(DEBUG) << "Worker(" << worker_i++ << ") stopped";
-        //     }
-        //     workers_.clear();
-
-        //     if (websocket_stream_)
-        //     {
-        //         if (websocket_stream_->is_open())
-        //             websocket_stream_->close(boost::beast::websocket::close_code::normal);
-
-        //         websocket_stream_.reset();
-        //     }
-
-        //     resolver_.reset();
-        //     io_context_.reset();
-
-        //     LOG(DEBUG) << "Stopped";
-        // }
 
         bool Client::ClientImpl::send(const std::string &data)
         {
@@ -442,139 +343,127 @@ namespace network_module
             return true;
         }
 
-        //         void Client::ClientImpl::resolve(const Config &config, const bool is_reconnecting)
-        //         {
-        //             if (is_reconnecting)
-        //             {
-        //                 LOG(DEBUG) << "Sleeping...";
-        //                 std::this_thread::sleep_for(std::chrono::seconds(config.reconnect_timeout_sec_));
-        //             }
+        void Client::ClientImpl::resolve()
+        {
+            LOG(DEBUG) << "Waiting for connection ( " << config_->host_ << " : " << config_->port_ << " ) ...";
 
-        //             resolver_->async_resolve(
-        //                 config.host_.c_str(), std::to_string(config.port_),
-        //                 boost::bind(&Client::ClientImpl::on_resolve,
-        //                             this,
-        //                             boost::asio::placeholders::error,
-        //                             boost::asio::placeholders::results,
-        //                             config));
-        //         }
+            resolver_->async_resolve(
+                config_->host_.c_str(), std::to_string(config_->port_),
+                boost::bind(&Client::ClientImpl::on_resolve,
+                            this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::results));
+        }
 
-        //         void Client::ClientImpl::on_resolve(boost::beast::error_code error_code,
-        //                                             boost::asio::ip::tcp::resolver::results_type results,
-        //                                             const Config &config)
-        //         {
-        //             LOG(DEBUG) << "Resolving...";
+        void Client::ClientImpl::on_resolve(boost::beast::error_code error_code,
+                                            boost::asio::ip::tcp::resolver::results_type results)
+        {
+            LOG(DEBUG) << "Resolving...";
 
-        //             if (error_code)
-        //             {
-        //                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-        //                 return;
-        //             }
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                return;
+            }
 
-        //             // Set the timeout for the operation
-        //             boost::beast::get_lowest_layer(*websocket_stream_).expires_after(std::chrono::seconds(5));
-        //             // Make the connection on the IP address we get from a lookup
-        //             boost::beast::get_lowest_layer(*websocket_stream_).async_connect(results, boost::bind(&Client::ClientImpl::on_connect, this, boost::asio::placeholders::error, boost::asio::placeholders::endpoint, config));
-        //         }
+            // Set the timeout for the operation
+            boost::beast::get_lowest_layer(*websocket_stream_).expires_after(std::chrono::seconds(5));
+            // Make the connection on the IP address we get from a lookup
+            boost::beast::get_lowest_layer(*websocket_stream_).async_connect(results, boost::bind(&Client::ClientImpl::on_connect, this, boost::asio::placeholders::error, boost::asio::placeholders::endpoint));
+        }
 
-        //         void Client::ClientImpl::on_connect(boost::beast::error_code error_code,
-        //                                             boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint,
-        //                                             const Config &config)
-        //         {
-        //             LOG(DEBUG) << "Connecting...";
+        void Client::ClientImpl::on_connect(boost::beast::error_code error_code,
+                                            boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint)
+        {
+            LOG(DEBUG) << "Connecting...";
 
-        //             if (error_code)
-        //             {
-        //                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-        //                 resolve(config, kReconnecting);
-        //                 return;
-        //             }
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                reconnecting_watcher_.notify_all();
+                return;
+            }
 
-        //             // Turn off the timeout on the tcp_stream, because
-        //             // the websocket stream has its own timeout system.
-        //             boost::beast::get_lowest_layer(*websocket_stream_).expires_never();
+            // Turn off the timeout on the tcp_stream, because
+            // the websocket stream has its own timeout system.
+            boost::beast::get_lowest_layer(*websocket_stream_).expires_never();
 
-        //             // Set suggested timeout settings for the websocket
-        //             websocket_stream_->set_option(boost::beast::websocket::stream_base::timeout::suggested(
-        //                 boost::beast::role_type::client));
+            // Set suggested timeout settings for the websocket
+            websocket_stream_->set_option(boost::beast::websocket::stream_base::timeout::suggested(
+                boost::beast::role_type::client));
 
-        //             // Set a decorator to change the User-Agent of the handshake
-        //             websocket_stream_->set_option(boost::beast::websocket::stream_base::decorator(
-        //                 [](boost::beast::websocket::request_type &req)
-        //                 {
-        //                     req.set(boost::beast::http::field::user_agent,
-        //                             std::string(BOOST_BEAST_VERSION_STRING) +
-        //                                 " websocket-client-async");
-        //                 }));
+            // Set a decorator to change the User-Agent of the handshake
+            websocket_stream_->set_option(boost::beast::websocket::stream_base::decorator(
+                [](boost::beast::websocket::request_type &req)
+                {
+                    req.set(boost::beast::http::field::user_agent,
+                            std::string(BOOST_BEAST_VERSION_STRING) +
+                                " websocket-client-async");
+                }));
 
-        //             const std::string kHostAndPort = config.host_ + std::string(":") + std::to_string(config.port_);
+            const std::string kHostAndPort = config_->host_ + std::string(":") + std::to_string(config_->port_);
 
-        //             websocket_stream_->async_handshake(
-        //                 kHostAndPort.c_str(),
-        //                 "/",
-        //                 boost::bind(&Client::ClientImpl::on_handshake,
-        //                             this,
-        //                             boost::asio::placeholders::error,
-        //                             config));
-        //         }
+            websocket_stream_->async_handshake(
+                kHostAndPort.c_str(),
+                "/",
+                boost::bind(&Client::ClientImpl::on_handshake,
+                            this,
+                            boost::asio::placeholders::error));
+        }
 
-        //         void Client::ClientImpl::on_handshake(boost::beast::error_code error_code,
-        //                                               const Config &config)
-        //         {
-        //             if (error_code)
-        //             {
-        //                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-        //                 return;
-        //             }
+        void Client::ClientImpl::on_handshake(boost::beast::error_code error_code)
+        {
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                reconnecting_watcher_.notify_all();
+                return;
+            }
 
-        //             LOG(DEBUG) << "Connection established";
+            LOG(DEBUG) << "Connection established";
 
-        //             listen(config);
-        //             // callbacks_.on_start_();
-        //         }
+            listen();
+            // callbacks_.on_start_();
+        }
 
-        //         void Client::ClientImpl::on_send(boost::beast::error_code error_code,
-        //                                          std::size_t bytes_transferred)
-        //         {
-        //             if (error_code)
-        //             {
-        //                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-        //                 return;
-        //             }
+        void Client::ClientImpl::on_send(boost::beast::error_code error_code,
+                                         std::size_t bytes_transferred)
+        {
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                reconnecting_watcher_.notify_all();
+                return;
+            }
 
-        //             LOG(DEBUG) << "Sent " << bytes_transferred << " bytes";
-        //         }
+            LOG(DEBUG) << "Sent " << bytes_transferred << " bytes";
+        }
 
-        //         void Client::ClientImpl::listen(const Config &config)
-        //         {
-        //             websocket_stream_->async_read(
-        //                 buffer_,
-        //                 boost::bind(
-        //                     &Client::ClientImpl::on_receive,
-        //                     this,
-        //                     boost::asio::placeholders::error,
-        //                     boost::asio::placeholders::bytes_transferred,
-        //                     config));
-        //         }
+        void Client::ClientImpl::listen()
+        {
+            websocket_stream_->async_read(
+                buffer_,
+                boost::bind(
+                    &Client::ClientImpl::on_receive,
+                    this,
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred));
+        }
 
-        //         void Client::ClientImpl::on_receive(boost::beast::error_code error_code,
-        //                                             std::size_t bytes_transferred,
-        //                                             const Config &config)
-        //         {
-        //             if (error_code)
-        //             {
-        //                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-        //                 close(config, kReconnecting);
-        //                 return;
-        //             }
+        void Client::ClientImpl::on_receive(boost::beast::error_code error_code,
+                                            std::size_t bytes_transferred)
+        {
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                reconnecting_watcher_.notify_all();
+                return;
+            }
 
-        //             config_->callbacks_.process_receiving_(boost::beast::buffers_to_string(buffer_.data()));
-        //             buffer_.clear();
-        //             listen(config);
-        //         }
-
-        //     }
-        // }
+            config_->callbacks_.process_receiving_(boost::beast::buffers_to_string(buffer_.data()));
+            buffer_.clear();
+            listen();
+        }
     }
 }
 
