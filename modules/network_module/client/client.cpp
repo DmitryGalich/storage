@@ -309,15 +309,16 @@ namespace network_module
 
             while (is_need_running_)
             {
-                LOG(INFO) << "tick";
+                LOG(INFO) << "Tick: " << websocket_stream_->is_open();
 
-                if (!is_connection_activated())
                 {
-                    resolve();
+                    std::unique_lock<std::mutex> lock(reconnecting_mutex_);
+                    reconnecting_watcher_.wait(lock);
                 }
 
-                std::unique_lock<std::mutex> lock(reconnecting_mutex_);
-                reconnecting_watcher_.wait(lock);
+                LOG(INFO) << "Awake";
+
+                resolve();
             }
 
             deactivate_connection();
