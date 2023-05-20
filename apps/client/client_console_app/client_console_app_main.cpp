@@ -35,23 +35,6 @@ void wait_for_user_command()
     }
 }
 
-// void wait_for_user_command()
-// {
-//     LOG(INFO) << "KEK";
-//     std::string input;
-//     std::cin >> input;
-
-//     if (input == "q" ||
-//         input == "Q" ||
-//         input == "c" ||
-//         input == "C")
-//     {
-//         return;
-//     }
-
-//     // wait_for_user_command();
-// }
-
 int main()
 {
     configure_logger();

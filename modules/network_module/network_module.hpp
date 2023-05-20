@@ -56,6 +56,7 @@ namespace network_module
                 int port_{8080};
 
                 int reconnect_timeout_sec_{5};
+                int workers_number_{1};
 
                 struct Callbacks
                 {

@@ -20,9 +20,6 @@
 
 namespace
 {
-    static const bool kReconnecting{true};
-    static const bool kNotReconnecting{false};
-
     bool is_error_important(const boost::system::error_code &error_code)
     {
         return !(error_code == boost::asio::error::operation_aborted);
@@ -39,6 +36,7 @@ namespace network_module
             json_object["host"] = "127.0.0.1";
             json_object["port"] = 8080;
             json_object["reconnect_timeout_sec"] = 5;
+            json_object["workers_number"] = 1;
 
             std::fstream file(config_path);
             if (!file.is_open())
@@ -71,6 +69,7 @@ namespace network_module
             json_object.at("host").get_to(config.host_);
             json_object.at("port").get_to(config.port_);
             json_object.at("reconnect_timeout_sec").get_to(config.reconnect_timeout_sec_);
+            json_object.at("workers_number").get_to(config.workers_number_);
 
             return config;
         }
@@ -96,9 +95,11 @@ namespace network_module
         private:
             void run_general_thread();
 
-        private:
-            // bool is_started() const;
+            bool is_connection_opened() const;
+            bool open_connection();
+            void close_connection();
 
+        private:
             // void resolve(const Config &config,
             //              const bool is_reconnecting = kNotReconnecting);
             // void on_resolve(boost::beast::error_code error_code,
@@ -116,9 +117,6 @@ namespace network_module
             // void on_receive(boost::beast::error_code error_code,
             //                 std::size_t bytes_transferred,
             //                 const Config &config);
-
-            // void close(const Config &config,
-            //            bool is_reconnecting);
 
         private:
             std::atomic_bool is_need_running_{false};
@@ -145,18 +143,23 @@ namespace network_module
 
         bool Client::ClientImpl::start(const Config &config)
         {
+            LOG(DEBUG) << "Starting...";
+
             if (is_running())
             {
                 LOG(WARNING) << "Client is already running";
                 return false;
             }
 
-            LOG(DEBUG) << "Starting...";
-
-            is_need_running_ = true;
-
             config_ = std::make_unique<const Config>(config);
 
+            if (!open_connection())
+            {
+                LOG(WARNING) << "Can't open connection";
+                return false;
+            }
+
+            is_need_running_ = true;
             general_thread_ = std::make_unique<std::thread>(&Client::ClientImpl::run_general_thread, this);
 
             LOG(DEBUG) << "Started";
@@ -165,18 +168,20 @@ namespace network_module
 
         void Client::ClientImpl::stop()
         {
+            LOG(DEBUG) << "Stopping...";
+
             if (!is_running())
             {
                 LOG(WARNING) << "Client is already stopped";
                 return;
             }
 
-            LOG(DEBUG) << "Stopping...";
-
             is_need_running_ = false;
 
             general_thread_->join();
             general_thread_.reset();
+
+            close_connection();
 
             config_.reset();
 
@@ -185,6 +190,9 @@ namespace network_module
 
         bool Client::ClientImpl::is_running() const
         {
+            if (!is_connection_opened())
+                return false;
+
             if (!general_thread_)
                 return false;
 
@@ -194,53 +202,101 @@ namespace network_module
             return true;
         }
 
-        void Client::ClientImpl::run_general_thread()
+        bool Client::ClientImpl::is_connection_opened() const
         {
-            LOG(DEBUG) << "Begin of general thread";
+            if (!io_context_)
+                return false;
+
+            if (io_context_->stopped())
+                return false;
+
+            if (!resolver_)
+                return false;
+
+            if (!websocket_stream_)
+                return false;
+
+            if (!websocket_stream_->is_open())
+                return false;
+
+            return true;
+        }
+
+        bool Client::ClientImpl::open_connection()
+        {
+            LOG(DEBUG) << "Opening connection...";
+
+            if (is_connection_opened())
+            {
+                LOG(DEBUG) << "Connection already opened";
+                return false;
+            }
 
             io_context_.reset(new boost::asio::io_context(/* number of threads */));
             if (!io_context_)
             {
                 LOG(ERROR) << "Can't create io_context";
-                config_->callbacks_.signal_to_stop_();
-                return;
+                return false;
             }
 
             resolver_.reset(new boost::asio::ip::tcp::resolver(*io_context_));
             if (!resolver_)
             {
                 LOG(ERROR) << "Can't create resolver";
-                config_->callbacks_.signal_to_stop_();
-                return;
+                return false;
             }
 
             websocket_stream_.reset(new boost::beast::websocket::stream<boost::beast::tcp_stream>(*io_context_));
             if (!websocket_stream_)
             {
                 LOG(ERROR) << "Can't create websocket_stream";
-                config_->callbacks_.signal_to_stop_();
+                return false;
+            }
+
+            LOG(DEBUG) << "Connection opened";
+
+            return true;
+        }
+
+        void Client::ClientImpl::close_connection()
+        {
+            LOG(DEBUG) << "Closing connection...";
+
+            if (!is_connection_opened())
+            {
+                LOG(DEBUG) << "Connection already closed";
                 return;
             }
+
+            io_context_->stop();
+
+            websocket_stream_->close(boost::beast::websocket::close_code::normal);
+
+            websocket_stream_.reset();
+            resolver_.reset();
+            io_context_.reset();
+
+            //     int worker_i = 0;
+            //     for (auto &worker : workers_)
+            //     {
+            //         LOG(DEBUG) << "Worker(" << worker_i << ") stopping...";
+            //         worker.join();
+            //         LOG(DEBUG) << "Worker(" << worker_i++ << ") stopped";
+            //     }
+            //     workers_.clear();
+
+            LOG(DEBUG) << "Connection closed";
+        }
+
+        void Client::ClientImpl::run_general_thread()
+        {
+            LOG(DEBUG) << "Begin of general thread";
 
             while (is_need_running_)
             {
                 std::this_thread::sleep_for(std::chrono::seconds(2));
                 LOG(DEBUG) << "run_general_thread";
             }
-
-            io_context_->stop();
-
-            if (websocket_stream_)
-            {
-                if (websocket_stream_->is_open())
-                    websocket_stream_->close(boost::beast::websocket::close_code::normal);
-
-                websocket_stream_.reset();
-            }
-
-            websocket_stream_.reset();
-            resolver_.reset();
-            io_context_.reset();
 
             LOG(DEBUG) << "End of general thread";
         }
@@ -356,11 +412,11 @@ namespace network_module
 
         bool Client::ClientImpl::send(const std::string &data)
         {
-            // if (!is_started())
-            // {
-            //     LOG(ERROR) << "Server is not started";
-            //     return false;
-            // }
+            if (!is_running())
+            {
+                LOG(ERROR) << "Client is not running";
+                return false;
+            }
 
             // websocket_stream_->async_write(
             //     boost::asio::buffer(data),
@@ -371,23 +427,6 @@ namespace network_module
 
             return true;
         }
-
-        //         bool Client::ClientImpl::is_started() const
-        //         {
-        //             if (!io_context_)
-        //                 return false;
-
-        //             if (!resolver_)
-        //                 return false;
-
-        //             if (!websocket_stream_)
-        //                 return false;
-
-        //             if (workers_.empty())
-        //                 return false;
-
-        //             return true;
-        //         }
 
         //         void Client::ClientImpl::resolve(const Config &config, const bool is_reconnecting)
         //         {
@@ -520,73 +559,63 @@ namespace network_module
         //             listen(config);
         //         }
 
-        //         void Client::ClientImpl::close(const Config &config,
-        //                                        bool is_reconnecting)
-        //         {
-        //             LOG(DEBUG) << "Closing...";
-        //             LOG(DEBUG) << boost::beast::make_printable(buffer_.data());
-        //             buffer_.clear();
-
-        //             stop();
-
-        //             if (is_reconnecting == kReconnecting)
-        //                 start(config);
-        //         }
         //     }
         // }
+    }
+}
 
-        namespace network_module
+namespace network_module
+{
+    namespace client
+    {
+        Client::Client() : client_impl_(std::make_unique<ClientImpl>()) {}
+
+        Client::~Client() {}
+
+        bool Client::start(const Config &config)
         {
-            namespace client
+            if (!client_impl_)
             {
-                Client::Client() : client_impl_(std::make_unique<ClientImpl>()) {}
-
-                Client::~Client() {}
-
-                bool Client::start(const Config &config)
-                {
-                    if (!client_impl_)
-                    {
-                        static const std::string kErrorText("Implementation is not created");
-                        LOG(ERROR) << kErrorText;
-                        throw std::runtime_error(kErrorText);
-                    }
-
-                    return client_impl_->start(config);
-                }
-
-                void Client::stop()
-                {
-                    if (!client_impl_)
-                    {
-                        LOG(ERROR) << "Implementation is not created";
-                        return;
-                    }
-
-                    client_impl_->stop();
-                }
-
-                bool Client::is_running() const
-                {
-                    if (!client_impl_)
-                    {
-                        LOG(ERROR) << "Implementation is not created";
-                        return false;
-                    }
-
-                    return client_impl_->is_running();
-                }
-
-                bool Client::send(const std::string &data)
-                {
-                    if (!client_impl_)
-                    {
-                        static const std::string kErrorText("Implementation is not created");
-                        LOG(ERROR) << kErrorText;
-                        throw std::runtime_error(kErrorText);
-                    }
-
-                    return client_impl_->send(data);
-                }
+                static const std::string kErrorText("Implementation is not created");
+                LOG(ERROR) << kErrorText;
+                throw std::runtime_error(kErrorText);
             }
+
+            return client_impl_->start(config);
         }
+
+        void Client::stop()
+        {
+            if (!client_impl_)
+            {
+                LOG(ERROR) << "Implementation is not created";
+                return;
+            }
+
+            client_impl_->stop();
+        }
+
+        bool Client::is_running() const
+        {
+            if (!client_impl_)
+            {
+                LOG(ERROR) << "Implementation is not created";
+                return false;
+            }
+
+            return client_impl_->is_running();
+        }
+
+        bool Client::send(const std::string &data)
+        {
+            if (!client_impl_)
+            {
+                static const std::string kErrorText("Implementation is not created");
+                LOG(ERROR) << kErrorText;
+                throw std::runtime_error(kErrorText);
+            }
+
+            return client_impl_->send(data);
+        }
+    }
+}
