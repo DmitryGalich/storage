@@ -124,6 +124,7 @@ namespace network_module
 
             std::unique_ptr<const Config> config_;
 
+            std::mutex mutex_;
             std::vector<std::thread> workers_;
 
             std::shared_ptr<boost::asio::io_context> io_context_;
@@ -204,9 +205,6 @@ namespace network_module
             if (!io_context_)
                 return false;
 
-            if (io_context_->stopped())
-                return false;
-
             if (!resolver_)
                 return false;
 
@@ -247,6 +245,28 @@ namespace network_module
                 return false;
             }
 
+            if (config_->workers_number_ < 1)
+            {
+                LOG(ERROR) << "Number of workers in too small: " << config_->workers_number_;
+                return false;
+            }
+            LOG(DEBUG) << "Starting " << config_->workers_number_ << " worker-threads...";
+
+            workers_.reserve(config_->workers_number_);
+            for (int thread_i = 0; thread_i < config_->workers_number_; ++thread_i)
+            {
+                workers_.emplace_back(
+                    [&]
+                    {
+                        {
+                            const std::lock_guard<std::mutex> lock(mutex_);
+                            LOG(DEBUG) << "Starting worker [" << std::this_thread::get_id() << "]";
+                        }
+
+                        io_context_->run();
+                    });
+            }
+
             LOG(DEBUG) << "Connection activated";
             return true;
         }
@@ -270,14 +290,14 @@ namespace network_module
             resolver_.reset();
             io_context_.reset();
 
-            //     int worker_i = 0;
-            //     for (auto &worker : workers_)
-            //     {
-            //         LOG(DEBUG) << "Worker(" << worker_i << ") stopping...";
-            //         worker.join();
-            //         LOG(DEBUG) << "Worker(" << worker_i++ << ") stopped";
-            //     }
-            //     workers_.clear();
+            int worker_i = 0;
+            for (auto &worker : workers_)
+            {
+                LOG(DEBUG) << "Worker(" << worker_i << ") stopping...";
+                worker.join();
+                LOG(DEBUG) << "Worker(" << worker_i++ << ") stopped";
+            }
+            workers_.clear();
 
             LOG(DEBUG) << "Connection deactivated";
         }
