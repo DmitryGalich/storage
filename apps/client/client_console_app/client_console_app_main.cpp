@@ -20,8 +20,6 @@ void wait_for_user_command()
 {
     while (true)
     {
-        LOG(INFO) << "KEK";
-
         std::string input;
         getline(std::cin, input);
 
