@@ -33,6 +33,7 @@ namespace storage
         private:
             std::unique_ptr<network_module::client::Client> network_module_;
 
+            std::atomic_bool is_stop_signal_called_{false};
             std::promise<void> signal_to_stop_;
         };
 
@@ -79,19 +80,19 @@ namespace storage
 
         void Client::ClientImpl::configure_callbacks(network_module::client::Client::Config &config)
         {
+            is_stop_signal_called_ = false;
             config.callbacks_.signal_to_stop_ = std::bind(&Client::ClientImpl::process_signal_to_stop, this);
+
             config.callbacks_.on_start_ = std::bind(&Client::ClientImpl::start_communication, this);
             config.callbacks_.process_receiving_ = std::bind(&Client::ClientImpl::receive, this, std::placeholders::_1);
         }
 
         void Client::ClientImpl::process_signal_to_stop()
         {
-            static bool is_once_called{false};
-
-            if (is_once_called)
+            if (is_stop_signal_called_)
                 return;
 
-            is_once_called = true;
+            is_stop_signal_called_ = true;
             signal_to_stop_.set_value();
         }
 
