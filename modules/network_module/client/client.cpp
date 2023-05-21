@@ -118,11 +118,9 @@ namespace network_module
         private:
             std::atomic_bool is_need_running_{false};
             std::unique_ptr<std::thread> general_thread_;
+            std::unique_ptr<std::thread> worker_thread_;
 
             std::unique_ptr<const Config> config_;
-
-            std::mutex mutex_;
-            std::vector<std::thread> workers_;
 
             std::mutex reconnecting_mutex_;
             std::condition_variable reconnecting_watcher_;
@@ -242,27 +240,8 @@ namespace network_module
 
             resolve();
 
-            if (config_->workers_number_ < 1)
-            {
-                LOG(ERROR) << "Number of workers in too small: " << config_->workers_number_;
-                return false;
-            }
-            LOG(DEBUG) << "Starting " << config_->workers_number_ << " worker-threads...";
-
-            workers_.reserve(config_->workers_number_);
-            for (int thread_i = 0; thread_i < config_->workers_number_; ++thread_i)
-            {
-                workers_.emplace_back(
-                    [&]
-                    {
-                        {
-                            const std::lock_guard<std::mutex> lock(mutex_);
-                            LOG(DEBUG) << "Starting worker [" << std::this_thread::get_id() << "]";
-                        }
-
-                        io_context_->run();
-                    });
-            }
+            worker_thread_ = std::make_unique<std::thread>([&]
+                                                           { io_context_->run(); });
 
             LOG(DEBUG) << "Connection activated";
             return true;
@@ -290,14 +269,8 @@ namespace network_module
             resolver_.reset();
             io_context_.reset();
 
-            int worker_i = 0;
-            for (auto &worker : workers_)
-            {
-                LOG(DEBUG) << "Worker(" << worker_i << ") stopping...";
-                worker.join();
-                LOG(DEBUG) << "Worker(" << worker_i++ << ") stopped";
-            }
-            workers_.clear();
+            worker_thread_->join();
+            worker_thread_.reset();
 
             LOG(DEBUG) << "Connection deactivated";
         }
