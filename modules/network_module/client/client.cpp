@@ -113,6 +113,8 @@ namespace network_module
             void on_receive(boost::beast::error_code error_code,
                             std::size_t bytes_transferred);
 
+            void on_close(boost::beast::error_code error_code);
+
         private:
             std::atomic_bool is_need_running_{false};
             std::unique_ptr<std::thread> general_thread_;
@@ -279,7 +281,10 @@ namespace network_module
             io_context_->stop();
 
             if (websocket_stream_->is_open())
-                websocket_stream_->close(boost::beast::websocket::close_code::normal);
+                websocket_stream_->async_close(boost::beast::websocket::close_code::normal,
+                                               boost::bind(&Client::ClientImpl::on_close,
+                                                           this,
+                                                           boost::asio::placeholders::error));
 
             websocket_stream_.reset();
             resolver_.reset();
@@ -309,8 +314,9 @@ namespace network_module
 
             while (is_need_running_)
             {
-                LOG(INFO) << "Tick: " << websocket_stream_->is_open();
+                LOG(INFO) << "Tick " << websocket_stream_->is_open();
 
+                if (websocket_stream_->is_open())
                 {
                     std::unique_lock<std::mutex> lock(reconnecting_mutex_);
                     reconnecting_watcher_.wait(lock);
@@ -318,7 +324,9 @@ namespace network_module
 
                 LOG(INFO) << "Awake";
 
-                resolve();
+                // resolve();
+
+                std::this_thread::sleep_for(std::chrono::seconds(config_->reconnect_timeout_sec_));
             }
 
             deactivate_connection();
@@ -464,6 +472,18 @@ namespace network_module
             config_->callbacks_.process_receiving_(boost::beast::buffers_to_string(buffer_.data()));
             buffer_.clear();
             listen();
+        }
+
+        void Client::ClientImpl::on_close(boost::beast::error_code error_code)
+        {
+            if (error_code)
+            {
+                LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                // reconnecting_watcher_.notify_all();
+                return;
+            }
+
+            LOG(DEBUG) << "Closed";
         }
     }
 }
