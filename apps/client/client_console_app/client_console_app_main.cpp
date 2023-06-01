@@ -8,6 +8,8 @@
 
 #include "storage_client/storage_client.hpp"
 
+#define ELPP_THREAD_SAFE
+
 INITIALIZE_EASYLOGGINGPP
 
 void configure_logger()

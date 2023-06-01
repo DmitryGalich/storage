@@ -122,11 +122,15 @@ namespace network_module
 
             std::unique_ptr<const Config> config_;
 
-            std::mutex reconnecting_mutex_;
-            std::condition_variable reconnecting_watcher_;
+            std::mutex connecting_mutex_;
+            std::condition_variable connecting_watcher_;
 
             std::shared_ptr<boost::asio::io_context> io_context_;
+
             std::shared_ptr<boost::asio::ip::tcp::resolver> resolver_;
+            std::atomic_bool is_connected_{false};
+
+            std::mutex mutex_;
             std::shared_ptr<boost::beast::websocket::stream<boost::beast::tcp_stream>> websocket_stream_;
 
             boost::beast::flat_buffer buffer_;
@@ -171,7 +175,7 @@ namespace network_module
 
             is_need_running_ = false;
 
-            reconnecting_watcher_.notify_all();
+            connecting_watcher_.notify_all();
             general_thread_->join();
             general_thread_.reset();
 
@@ -239,9 +243,7 @@ namespace network_module
             }
 
             resolve();
-
-            worker_thread_ = std::make_unique<std::thread>([&]
-                                                           { io_context_->run(); });
+            io_context_->run();
 
             LOG(DEBUG) << "Connection activated";
             return true;
@@ -260,17 +262,19 @@ namespace network_module
             io_context_->stop();
 
             if (websocket_stream_->is_open())
+            {
+                LOG(DEBUG) << "Signaling to socket about closing";
                 websocket_stream_->async_close(boost::beast::websocket::close_code::normal,
                                                boost::bind(&Client::ClientImpl::on_close,
                                                            this,
                                                            boost::asio::placeholders::error));
+            }
 
             websocket_stream_.reset();
             resolver_.reset();
             io_context_.reset();
 
-            worker_thread_->join();
-            worker_thread_.reset();
+            is_connected_ = false;
 
             LOG(DEBUG) << "Connection deactivated";
         }
@@ -279,30 +283,28 @@ namespace network_module
         {
             LOG(DEBUG) << "Begin of general thread";
 
-            if (!activate_connection())
-            {
-                LOG(ERROR) << "Can't activate connection";
-                return;
-            }
-
             while (is_need_running_)
             {
-                LOG(INFO) << "Tick " << websocket_stream_->is_open();
-
-                if (websocket_stream_->is_open())
+                if (!activate_connection())
                 {
-                    std::unique_lock<std::mutex> lock(reconnecting_mutex_);
-                    reconnecting_watcher_.wait(lock);
+                    LOG(ERROR) << "Can't activate connection";
+                    deactivate_connection();
+                    break;
                 }
 
-                LOG(INFO) << "Awake";
+                {
+                    LOG(INFO) << "Lock for connecting status";
 
-                // resolve();
+                    std::unique_lock<std::mutex> lock(connecting_mutex_);
+                    connecting_watcher_.wait_for(lock, std::chrono::seconds(config_->reconnect_timeout_sec_));
 
-                std::this_thread::sleep_for(std::chrono::seconds(config_->reconnect_timeout_sec_));
+                    LOG(INFO) << "Unlock for connecting status";
+                }
+
+                LOG(INFO) << "is_connected_: " << is_connected_;
+
+                deactivate_connection();
             }
-
-            deactivate_connection();
 
             LOG(DEBUG) << "End of general thread";
         }
@@ -340,16 +342,17 @@ namespace network_module
         void Client::ClientImpl::on_resolve(boost::beast::error_code error_code,
                                             boost::asio::ip::tcp::resolver::results_type results)
         {
-            LOG(DEBUG) << "Resolving...";
+            LOG(DEBUG);
 
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
+                connecting_watcher_.notify_all();
                 return;
             }
 
             // Set the timeout for the operation
-            boost::beast::get_lowest_layer(*websocket_stream_).expires_after(std::chrono::seconds(5));
+            // boost::beast::get_lowest_layer(*websocket_stream_).expires_after(std::chrono::seconds(5));
             // Make the connection on the IP address we get from a lookup
             boost::beast::get_lowest_layer(*websocket_stream_).async_connect(results, boost::bind(&Client::ClientImpl::on_connect, this, boost::asio::placeholders::error, boost::asio::placeholders::endpoint));
         }
@@ -357,12 +360,12 @@ namespace network_module
         void Client::ClientImpl::on_connect(boost::beast::error_code error_code,
                                             boost::asio::ip::tcp::resolver::results_type::endpoint_type endpoint)
         {
-            LOG(DEBUG) << "Connecting...";
+            LOG(DEBUG);
 
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-                reconnecting_watcher_.notify_all();
+                connecting_watcher_.notify_all();
                 return;
             }
 
@@ -398,11 +401,14 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-                reconnecting_watcher_.notify_all();
+                connecting_watcher_.notify_all();
                 return;
             }
 
             LOG(DEBUG) << "Connection established";
+
+            is_connected_ = true;
+            connecting_watcher_.notify_all();
 
             listen();
             // callbacks_.on_start_();
@@ -414,7 +420,7 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-                reconnecting_watcher_.notify_all();
+                connecting_watcher_.notify_all();
                 return;
             }
 
@@ -438,7 +444,7 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-                reconnecting_watcher_.notify_all();
+                connecting_watcher_.notify_all();
                 return;
             }
 
