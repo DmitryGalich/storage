@@ -1,7 +1,5 @@
 #include "storage_client.hpp"
 
-#include <future>
-
 #include "easylogging++.h"
 
 #include "network_module.hpp"

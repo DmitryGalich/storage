@@ -12,7 +12,8 @@ namespace storage
         class Server::ServerImpl
         {
         public:
-            ServerImpl() = default;
+            ServerImpl() = delete;
+            ServerImpl(std::promise<void> signal_to_stop);
             ~ServerImpl() = default;
 
             bool start(const int workers_number,
@@ -27,6 +28,9 @@ namespace storage
         private:
             std::unique_ptr<network_module::server::Server> network_module_;
             std::unique_ptr<PagesManager> pages_manager_;
+
+            std::atomic_bool is_stop_signal_called_{false};
+            std::promise<void> signal_to_stop_;
         };
 
         bool Server::ServerImpl::start(const int workers_number,
@@ -61,6 +65,9 @@ namespace storage
 
             return true;
         }
+
+        Server::ServerImpl::ServerImpl(std::promise<void> signal_to_stop)
+            : signal_to_stop_(std::move(signal_to_stop)) {}
 
         void Server::ServerImpl::stop() noexcept
         {
@@ -103,7 +110,7 @@ namespace storage
 {
     namespace server
     {
-        Server::Server() : server_impl_(std::make_unique<storage::server::Server::ServerImpl>()) {}
+        Server::Server(std::promise<void> signal_to_stop) : server_impl_(std::make_unique<storage::server::Server::ServerImpl>(std::move(signal_to_stop))) {}
 
         Server::~Server() {}
 

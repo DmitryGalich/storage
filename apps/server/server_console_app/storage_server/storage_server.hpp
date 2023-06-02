@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <future>
 
 namespace storage
 {
@@ -9,7 +10,8 @@ namespace storage
         class Server
         {
         public:
-            Server();
+            Server() = delete;
+            Server(std::promise<void> signal_to_stop);
             ~Server();
 
             bool start(const int workers_number,

@@ -49,7 +49,7 @@ int main()
         const auto kProcessorsCores = std::thread::hardware_concurrency();
         const auto kServerWorkersNumber = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
 
-        storage::server::Server server;
+        storage::server::Server server(std::move(server_promise));
 
         try
         {
