@@ -22,8 +22,9 @@ namespace storage
             void stop() noexcept;
 
         private:
-            void configureHtmlCallbacks(network_module::server::Server::Config &config);
-            void configureWebSocketCallbacks(network_module::server::Server::Config &config);
+            void configureCallbacks(network_module::server::Server::Config &config);
+
+            void process_signal_to_stop();
 
         private:
             std::unique_ptr<network_module::server::Server> network_module_;
@@ -56,8 +57,7 @@ namespace storage
             auto config =
                 network_module::server::Server::Config::load_config(config_path);
 
-            configureHtmlCallbacks(config);
-            configureWebSocketCallbacks(config);
+            configureCallbacks(config);
 
             if (!network_module_->start(workers_number,
                                         config))
@@ -84,25 +84,40 @@ namespace storage
             LOG(INFO) << "Stopped";
         }
 
-        void Server::ServerImpl::configureHtmlCallbacks(network_module::server::Server::Config &config)
+        void Server::ServerImpl::configureCallbacks(network_module::server::Server::Config &config)
         {
-            config.http_callbacks_["/"] = [&]()
-            { return pages_manager_->getHomePage(); };
-
-            config.http_callbacks_["/kek"] = [&]()
-            { return pages_manager_->getKekPage(); };
-
-            config.http_callbacks_[network_module::Urls::kPageNotFound_] = [&]()
-            { return pages_manager_->getPageNotFoundPage(); };
-        }
-
-        void Server::ServerImpl::configureWebSocketCallbacks(network_module::server::Server::Config &config)
-        {
-            config.receiving_callback_ = [&](const std::string &data)
+            // General
             {
-                LOG(INFO) << "Received data: " << data;
-            };
+                is_stop_signal_called_ = false;
+                config.callbacks_.signal_to_stop_ = std::bind(&Server::ServerImpl::process_signal_to_stop, this);
+            }
+
+            // Html callbacks
+            {
+                config.callbacks_.http_callbacks_["/"] = [&]()
+                { return pages_manager_->getHomePage(); };
+
+                config.callbacks_.http_callbacks_["/kek"] = [&]()
+                { return pages_manager_->getKekPage(); };
+
+                config.callbacks_.http_callbacks_[network_module::Urls::kPageNotFound_] = [&]()
+                { return pages_manager_->getPageNotFoundPage(); };
+            }
+
+            // Websockets
+            {
+            }
         }
+
+        void Server::ServerImpl::process_signal_to_stop()
+        {
+            if (is_stop_signal_called_)
+                return;
+
+            is_stop_signal_called_ = true;
+            signal_to_stop_.set_value();
+        }
+
     }
 }
 

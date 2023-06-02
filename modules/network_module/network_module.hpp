@@ -22,10 +22,18 @@ namespace network_module
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
 
-                std::map<Url, HttpCallback> http_callbacks_;
+                // web_sockets::ReceivingCallback receiving_callback_;
+                // web_sockets::SendingCallback sending_callback_;
 
-                web_sockets::ReceivingCallback receiving_callback_;
-                web_sockets::SendingCallback sending_callback_;
+                struct Callbacks
+                {
+                    SignalToStop signal_to_stop_;
+                    web_sockets::OnStartCallback on_start_;
+                    web_sockets::ReceivingCallback process_receiving_;
+
+                    std::map<Url, HttpCallback> http_callbacks_;
+
+                } callbacks_;
             };
 
         public:
