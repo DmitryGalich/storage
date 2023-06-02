@@ -14,7 +14,7 @@ namespace storage
         public:
             ServerImpl() = delete;
             ServerImpl(std::promise<void> signal_to_stop);
-            ~ServerImpl() = default;
+            ~ServerImpl();
 
             bool start(const int workers_number,
                        const std::string &config_path,
@@ -33,6 +33,14 @@ namespace storage
             std::atomic_bool is_stop_signal_called_{false};
             std::promise<void> signal_to_stop_;
         };
+
+        Server::ServerImpl::ServerImpl(std::promise<void> signal_to_stop)
+            : signal_to_stop_(std::move(signal_to_stop)) {}
+
+        Server::ServerImpl::~ServerImpl()
+        {
+            stop();
+        }
 
         bool Server::ServerImpl::start(const int workers_number,
                                        const std::string &config_path,
@@ -65,9 +73,6 @@ namespace storage
 
             return true;
         }
-
-        Server::ServerImpl::ServerImpl(std::promise<void> signal_to_stop)
-            : signal_to_stop_(std::move(signal_to_stop)) {}
 
         void Server::ServerImpl::stop() noexcept
         {

@@ -38,7 +38,10 @@ namespace storage
         Client::ClientImpl::ClientImpl(std::promise<void> signal_to_stop)
             : signal_to_stop_(std::move(signal_to_stop)) {}
 
-        Client::ClientImpl::~ClientImpl() {}
+        Client::ClientImpl::~ClientImpl()
+        {
+            stop();
+        }
 
         bool Client::ClientImpl::start(const std::string &config_path)
         {
