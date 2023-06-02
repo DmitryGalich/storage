@@ -120,7 +120,6 @@ namespace network_module
         private:
             std::atomic_bool is_need_running_{false};
             std::unique_ptr<std::thread> general_thread_;
-            std::unique_ptr<std::thread> worker_thread_;
 
             std::unique_ptr<const Config> config_;
 

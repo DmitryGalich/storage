@@ -7,6 +7,8 @@
 #include <boost/asio.hpp>
 
 #include "easylogging++.h"
+#define ELPP_THREAD_SAFE
+
 #include "json.hpp"
 
 #include "http_session.hpp"
@@ -83,10 +85,15 @@ namespace network_module
             bool send(const std::string &data);
 
         private:
-            void listen_for_accept(const Server::Config &config);
-            void do_accept(const boost::system::error_code &error, const Server::Config &config);
+            void accept(const Server::Config &config);
+            void on_accept(const boost::system::error_code &error, const Server::Config &config);
 
         private:
+            std::unique_ptr<const Config> config_;
+
+            std::mutex connecting_mutex_;
+            std::condition_variable connecting_watcher_;
+
             std::shared_ptr<boost::asio::io_context> io_context_;
             std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
             std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
@@ -106,6 +113,16 @@ namespace network_module
         bool Server::ServerImpl::start(const int &workers_number,
                                        const Server::Config &config)
         {
+            LOG(DEBUG) << "Starting...";
+
+            if (is_running())
+            {
+                LOG(WARNING) << "Server is already running";
+                return false;
+            }
+
+            config_ = std::make_unique<const Config>(config);
+
             stop();
 
             boost::asio::ip::tcp::endpoint endpoint(
@@ -148,7 +165,7 @@ namespace network_module
                 return false;
             }
 
-            listen_for_accept(config);
+            accept(config);
 
             // Starting
 
@@ -159,7 +176,7 @@ namespace network_module
                 return false;
             }
 
-            LOG(INFO) << "Starting " << workers_number << " worker-threads...";
+            LOG(DEBUG) << "Starting " << workers_number << " worker-threads...";
 
             workers_.reserve(workers_number);
 
@@ -170,40 +187,15 @@ namespace network_module
                     {
                         {
                             const std::lock_guard<std::mutex> lock(mutex_);
-                            LOG(INFO) << "Starting worker [" << std::this_thread::get_id() << "]";
+                            LOG(DEBUG) << "Starting worker [" << std::this_thread::get_id() << "]";
                         }
 
                         io_context_->run();
                     });
             }
 
+            LOG(DEBUG) << "Started";
             return true;
-        }
-
-        void Server::ServerImpl::listen_for_accept(const Server::Config &config)
-        {
-            LOG(INFO) << "Listening for accepting...";
-
-            acceptor_->async_accept(*socket_, boost::bind(&Server::ServerImpl::do_accept, this,
-                                                          boost::asio::placeholders::error, config));
-        }
-
-        void Server::ServerImpl::do_accept(const boost::system::error_code &error_code, const Server::Config &config)
-        {
-            LOG(INFO) << "Accepting...";
-
-            if (error_code)
-            {
-                if (is_error_important(error_code))
-                    LOG(ERROR) << "async_accept - (" << error_code.value() << ") " << error_code.message();
-            }
-            else
-            {
-                LOG(INFO) << "Creating new http connection...";
-                std::make_shared<HttpSession>(std::move(*socket_), session_manager_, config.callbacks_.http_callbacks_)->start();
-            }
-
-            listen_for_accept(config);
         }
 
         void Server::ServerImpl::stop()
@@ -231,6 +223,32 @@ namespace network_module
             io_context_.reset();
 
             LOG(INFO) << "Stopped";
+        }
+
+        void Server::ServerImpl::accept(const Server::Config &config)
+        {
+            LOG(DEBUG);
+
+            acceptor_->async_accept(*socket_, boost::bind(&Server::ServerImpl::on_accept, this,
+                                                          boost::asio::placeholders::error, config));
+        }
+
+        void Server::ServerImpl::on_accept(const boost::system::error_code &error_code, const Server::Config &config)
+        {
+            LOG(DEBUG);
+
+            if (error_code)
+            {
+                if (is_error_important(error_code))
+                    LOG(ERROR) << "async_accept - (" << error_code.value() << ") " << error_code.message();
+            }
+            else
+            {
+                LOG(DEBUG) << "Creating new http connection...";
+                std::make_shared<HttpSession>(std::move(*socket_), session_manager_, config.callbacks_.http_callbacks_)->start();
+            }
+
+            accept(config);
         }
 
         bool Server::ServerImpl::send(const std::string &data)
