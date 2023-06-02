@@ -16,6 +16,8 @@
 #include "boost/beast/websocket/stream_base.hpp"
 
 #include "easylogging++.h"
+#define ELPP_THREAD_SAFE
+
 #include "json.hpp"
 
 namespace
