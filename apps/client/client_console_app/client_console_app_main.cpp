@@ -5,10 +5,9 @@
 #include "configs/cmake_config.h"
 
 #include "easylogging++.h"
+#define ELPP_THREAD_SAFE
 
 #include "storage_client/storage_client.hpp"
-
-#define ELPP_THREAD_SAFE
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -88,7 +87,6 @@ int main()
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << '\n';
         LOG(ERROR) << "Global error: " << e.what();
     }
 
