@@ -94,7 +94,8 @@ namespace network_module
             std::mutex connecting_mutex_;
             std::condition_variable connecting_watcher_;
 
-            std::shared_ptr<boost::asio::io_context> io_context_;
+            boost::asio::io_context io_context_;
+
             std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
             std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
 
@@ -125,21 +126,14 @@ namespace network_module
 
             // Creating
 
-            io_context_.reset(new boost::asio::io_context(/* number of threads */));
-            if (!io_context_)
-            {
-                LOG(ERROR) << "Can't create io_context";
-                stop();
-                return false;
-            }
-            acceptor_.reset(new boost::asio::ip::tcp::acceptor(*io_context_, endpoint));
+            acceptor_.reset(new boost::asio::ip::tcp::acceptor(io_context_, endpoint));
             if (!acceptor_)
             {
                 LOG(ERROR) << "Can't create acceptor";
                 stop();
                 return false;
             }
-            socket_.reset(new boost::asio::ip::tcp::socket(*io_context_));
+            socket_.reset(new boost::asio::ip::tcp::socket(io_context_));
             if (!socket_)
             {
                 LOG(ERROR) << "Can't create socket";
@@ -182,7 +176,7 @@ namespace network_module
                             LOG(DEBUG) << "Starting worker [" << std::this_thread::get_id() << "]";
                         }
 
-                        io_context_->run();
+                        io_context_.run();
                     });
             }
 
@@ -194,12 +188,7 @@ namespace network_module
         {
             LOG(INFO) << "Stopping...";
 
-            if (!io_context_)
-            {
-                LOG(INFO) << "Stopped";
-                return;
-            }
-            io_context_->stop();
+            io_context_.stop();
 
             int worker_i = 0;
             for (auto &worker : workers_)
