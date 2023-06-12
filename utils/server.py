@@ -21,11 +21,11 @@ import websockets
 
 async def handler(websocket):
     while True:
-        print("Enter message: ")
-        message = input()
-        await websocket.send(message)
-        # message = await websocket.recv()
-        # print(message)
+        # print("Enter message: ")
+        # message = input()
+        # await websocket.send(message)
+        message = await websocket.recv()
+        print(message)
 
 
 async def main():
