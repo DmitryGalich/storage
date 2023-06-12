@@ -115,14 +115,6 @@ namespace network_module
         {
             LOG(DEBUG) << "Starting...";
 
-            if (is_running())
-            {
-                LOG(WARNING) << "Server is already running";
-                return false;
-            }
-
-            config_ = std::make_unique<const Config>(config);
-
             stop();
 
             boost::asio::ip::tcp::endpoint endpoint(
