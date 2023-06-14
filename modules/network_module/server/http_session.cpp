@@ -39,16 +39,20 @@ HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
 
 void HttpSession::start()
 {
-    read_request();
+    read();
     check_deadline();
 }
 
-void HttpSession::read_request()
+void HttpSession::read()
 {
     boost::beast::http::async_read(
         socket_,
         buffer_,
-        request_, boost::bind(&HttpSession::on_read, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+        request_,
+        boost::bind(&HttpSession::on_read,
+                    this,
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred));
 }
 
 void HttpSession::on_read(boost::beast::error_code error_code,
@@ -79,10 +83,10 @@ void HttpSession::on_read(boost::beast::error_code error_code,
         return;
     }
 
-    do_request();
+    do_request_responce();
 }
 
-void HttpSession::do_request()
+void HttpSession::do_request_responce()
 {
     response_.version(request_.version());
     response_.keep_alive(false);
@@ -109,7 +113,7 @@ void HttpSession::do_request()
     }
     }
 
-    write_response();
+    write();
 }
 
 void HttpSession::create_response()
@@ -127,30 +131,32 @@ void HttpSession::create_response()
     }
 }
 
-void HttpSession::write_response()
+void HttpSession::write()
 {
-    auto self = shared_from_this();
-
     response_.content_length(response_.body().size());
 
     boost::beast::http::async_write(
         socket_,
         response_,
-        [self](boost::beast::error_code error_code, std::size_t)
+        boost::bind(&HttpSession::on_write,
+                    this,
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred));
+}
+
+void HttpSession::on_write(boost::beast::error_code error_code,
+                           std::size_t bytes_transferred)
+{
+    if (error_code)
+    {
+        if (is_error_important(error_code))
         {
-            // Is need shutdown here?
+            LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+            socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
+        }
+    }
 
-            if (error_code)
-            {
-                if (is_error_important(error_code))
-                {
-                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
-                    self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
-                }
-            }
-
-            self->deadline_.cancel();
-        });
+    deadline_.cancel();
 }
 
 void HttpSession::check_deadline()

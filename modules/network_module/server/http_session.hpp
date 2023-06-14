@@ -27,13 +27,16 @@ public:
     void start();
 
 private:
-    void read_request();
+    void read();
     void on_read(boost::beast::error_code error_code,
                  std::size_t bytes_transferred);
 
-    void do_request();
+    void write();
+    void on_write(boost::beast::error_code error_code,
+                  std::size_t bytes_transferred);
+
+    void do_request_responce();
     void create_response();
-    void write_response();
     void check_deadline();
 
 private:
