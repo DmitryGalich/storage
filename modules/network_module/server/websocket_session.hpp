@@ -4,11 +4,13 @@
 #include <memory>
 #include <functional>
 
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/beast/websocket/stream.hpp>
-#include <boost/beast/http/dynamic_body.hpp>
-#include <boost/beast/http/fields.hpp>
-#include <boost/beast/websocket/impl/accept.hpp>
+#include "boost/asio/ip/tcp.hpp"
+#include "boost/beast/websocket/stream.hpp"
+#include "boost/beast/http/dynamic_body.hpp"
+#include "boost/beast/http/fields.hpp"
+#include "boost/beast/websocket/impl/accept.hpp"
+#include "boost/bind.hpp"
+#include "boost/asio/placeholders.hpp"
 
 #include "sessions_manager.hpp"
 
@@ -49,8 +51,8 @@ void WebSocketSession::run(boost::beast::http::request<Body, boost::beast::http:
 {
     websocket_.async_accept(
         request,
-        std::bind(
+        boost::bind(
             &WebSocketSession::do_accept,
             this,
-            std::placeholders::_1));
+            boost::asio::placeholders::error));
 }
