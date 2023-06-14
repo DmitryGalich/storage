@@ -4,35 +4,22 @@
 
 #include "websocket_session.hpp"
 
-bool SessionsManager::add(WebSocketSession *session)
+void SessionsManager::add(WebSocketSession &session)
 {
-    if (!session)
-    {
-        LOG(ERROR) << "WebSocket session is null";
-        return false;
-    }
-
     std::lock_guard<std::mutex> lock(mutex_);
-
-    sessions_.insert(session);
+    sessions_.insert(&session);
 }
 
-void SessionsManager::remove(WebSocketSession *session)
+void SessionsManager::remove(WebSocketSession &session)
 {
-    if (!session)
-    {
-        LOG(ERROR) << "WebSocket session is null";
-        return;
-    }
-
     std::lock_guard<std::mutex> lock(mutex_);
-    sessions_.insert(session);
+    sessions_.erase(&session);
 }
 
 void SessionsManager::send(const std::string &message)
 {
     auto const ss = std::make_shared<std::string const>(std::move(message));
 
-    for (auto session : sessions_)
+    for (WebSocketSession *session : sessions_)
         session->send(ss);
 }

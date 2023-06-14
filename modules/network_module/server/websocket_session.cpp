@@ -24,7 +24,7 @@ WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket,
 
 WebSocketSession::~WebSocketSession()
 {
-    session_manager_.remove(this);
+    session_manager_.remove(*this);
 }
 
 void WebSocketSession::do_accept(boost::system::error_code error_code)
@@ -41,7 +41,9 @@ void WebSocketSession::do_accept(boost::system::error_code error_code)
         }
     }
 
-    // session_manager_.add(this);
+    LOG(INFO) << this;
+
+    session_manager_.add(*this);
 
     // LOG(DEBUG) << "New websocket connection established";
 

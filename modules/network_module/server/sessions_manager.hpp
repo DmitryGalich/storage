@@ -13,8 +13,9 @@ public:
     SessionsManager() = default;
     ~SessionsManager() = default;
 
-    bool add(WebSocketSession *session);
-    void remove(WebSocketSession *session);
+    void add(WebSocketSession &session);
+    void remove(WebSocketSession &session);
+
     void send(const std::string &message);
 
 private:
