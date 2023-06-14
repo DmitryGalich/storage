@@ -60,11 +60,11 @@ void HttpSession::on_read(boost::beast::error_code error_code,
 {
     if (error_code)
     {
+        LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+
         if (is_error_important(error_code))
-        {
-            LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
             socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
-        }
+
         return;
     }
 
@@ -80,6 +80,7 @@ void HttpSession::on_read(boost::beast::error_code error_code,
                                            session_manager_,
                                            [&](const std::string &data) {})
             ->run(std::move(request_));
+
         return;
     }
 
@@ -149,11 +150,10 @@ void HttpSession::on_write(boost::beast::error_code error_code,
 {
     if (error_code)
     {
+        LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+
         if (is_error_important(error_code))
-        {
-            LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
             socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
-        }
     }
 
     deadline_.cancel();
