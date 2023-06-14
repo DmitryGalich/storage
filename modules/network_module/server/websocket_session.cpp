@@ -29,11 +29,8 @@ WebSocketSession::~WebSocketSession()
 
 void WebSocketSession::do_accept(boost::system::error_code error_code)
 {
-    LOG(DEBUG);
-
     if (error_code)
     {
-
         if (is_error_important(error_code))
         {
             LOG(ERROR) << "accept - (" << error_code.value() << ") " << error_code.message();
@@ -41,13 +38,13 @@ void WebSocketSession::do_accept(boost::system::error_code error_code)
         }
     }
 
-    LOG(INFO) << this;
+    if (!session_manager_.add(*this))
+    {
+        LOG(ERROR) << "Can't add websocket session";
+        return;
+    }
 
-    session_manager_.add(*this);
-
-    // LOG(DEBUG) << "New websocket connection established";
-
-    // prepare_for_reading();
+    prepare_for_reading();
 }
 
 void WebSocketSession::prepare_for_reading()

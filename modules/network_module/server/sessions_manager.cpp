@@ -4,10 +4,16 @@
 
 #include "websocket_session.hpp"
 
-void SessionsManager::add(WebSocketSession &session)
+bool SessionsManager::add(WebSocketSession &session)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    sessions_.insert(&session);
+    bool status = false;
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        status = sessions_.insert(&session).second;
+    }
+
+    return status;
 }
 
 void SessionsManager::remove(WebSocketSession &session)
