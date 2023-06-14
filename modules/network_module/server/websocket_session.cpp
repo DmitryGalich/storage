@@ -29,7 +29,7 @@ WebSocketSession::~WebSocketSession()
 
 void WebSocketSession::do_accept(boost::system::error_code error_code)
 {
-    LOG(INFO) << "Do accept";
+    LOG(DEBUG) << "Do accept";
 
     if (error_code)
     {
@@ -42,7 +42,7 @@ void WebSocketSession::do_accept(boost::system::error_code error_code)
 
     session_manager_.add(this);
 
-    LOG(INFO) << "New websocket connection established";
+    LOG(DEBUG) << "New websocket connection established";
 
     prepare_for_reading();
 }
@@ -72,7 +72,7 @@ void WebSocketSession::do_receive(boost::system::error_code error_code,
 
     const std::string kDataString(boost::asio::buffer_cast<const char *>(buffer_.data()), buffer_.size());
 
-    LOG(INFO) << "Received message: " << kDataString;
+    LOG(DEBUG) << "Received message: " << kDataString;
 
     buffer_.consume(buffer_.size()); // Clear buffer
 

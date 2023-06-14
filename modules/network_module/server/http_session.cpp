@@ -2,11 +2,13 @@
 
 #include "easylogging++.h"
 
-#include <boost/beast.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio.hpp>
+#include "boost/beast.hpp"
+#include "boost/beast/core.hpp"
+#include "boost/beast/http.hpp"
+#include "boost/beast/version.hpp"
+#include "boost/asio.hpp"
+#include "boost/bind.hpp"
+
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
@@ -43,44 +45,41 @@ void HttpSession::start()
 
 void HttpSession::read_request()
 {
-    auto self = shared_from_this();
-
     boost::beast::http::async_read(
         socket_,
         buffer_,
-        request_,
-        [self](boost::beast::error_code error_code,
-               std::size_t bytes_transferred)
+        request_, boost::bind(&HttpSession::on_read, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+}
+
+void HttpSession::on_read(boost::beast::error_code error_code,
+                          std::size_t bytes_transferred)
+{
+    if (error_code)
+    {
+        if (is_error_important(error_code))
         {
-            boost::ignore_unused(bytes_transferred);
+            LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+            socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
+        }
+        return;
+    }
 
-            if (error_code)
-            {
-                if (is_error_important(error_code))
-                {
-                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
-                    self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
-                }
-                return;
-            }
+    if (boost::beast::websocket::is_upgrade(request_))
+    {
+        LOG(DEBUG) << "Request to update to websocket("
+                   << socket_.remote_endpoint().address().to_string()
+                   << ":"
+                   << std::to_string(socket_.remote_endpoint().port())
+                   << ")";
 
-            if (boost::beast::websocket::is_upgrade(self->request_))
-            {
-                LOG(INFO) << "Request to update to websocket("
-                          << self->socket_.remote_endpoint().address().to_string()
-                          << ":"
-                          << std::to_string(self->socket_.remote_endpoint().port())
-                          << ")";
+        std::make_shared<WebSocketSession>(std::move(socket_),
+                                           session_manager_,
+                                           [&](const std::string &data) {})
+            ->run(std::move(request_));
+        return;
+    }
 
-                std::make_shared<WebSocketSession>(std::move(self->socket_),
-                                                   self->session_manager_,
-                                                   [&](const std::string &data) {})
-                    ->run(std::move(self->request_));
-                return;
-            }
-
-            self->do_request();
-        });
+    do_request();
 }
 
 void HttpSession::do_request()

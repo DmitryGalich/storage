@@ -5,6 +5,7 @@
 #include <utility>
 #include <string>
 #include <list>
+#include <map>
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
@@ -27,6 +28,9 @@ public:
 
 private:
     void read_request();
+    void on_read(boost::beast::error_code error_code,
+                 std::size_t bytes_transferred);
+
     void do_request();
     void create_response();
     void write_response();
