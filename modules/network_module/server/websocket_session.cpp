@@ -4,6 +4,8 @@
 
 #include "boost/asio/buffer.hpp"
 
+#include <memory>
+
 namespace
 {
     bool is_error_important(const boost::system::error_code &error_code)
@@ -24,7 +26,9 @@ WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket,
 
 WebSocketSession::~WebSocketSession()
 {
-    session_manager_.remove(*this);
+
+    LOG(INFO) << "KEK";
+    // session_manager_.remove(this);
 }
 
 void WebSocketSession::do_accept(boost::system::error_code error_code)
@@ -38,84 +42,84 @@ void WebSocketSession::do_accept(boost::system::error_code error_code)
         }
     }
 
-    if (!session_manager_.add(*this))
-    {
-        LOG(ERROR) << "Can't add websocket session";
-        return;
-    }
-
-    prepare_for_reading();
-}
-
-void WebSocketSession::prepare_for_reading()
-{
-    // websocket_.async_read(
-    //     buffer_,
-    //     boost::bind(
-    //         &WebSocketSession::do_receive,
-    //         this,
-    //         boost::asio::placeholders::_1,
-    //         std::placeholders::_2));
-}
-
-void WebSocketSession::do_receive(boost::system::error_code error_code,
-                                  std::size_t bytes_transferred)
-{
-    // if (error_code)
+    // if (!session_manager_.add(this))
     // {
-    //     if (is_error_important(error_code))
-    //     {
-    //         LOG(ERROR) << "do_receive - (" << error_code.value() << ") " << error_code.message();
-    //         return;
-    //     }
+    //     LOG(ERROR) << "Can't add websocket session";
+    //     return;
     // }
-
-    // const std::string kDataString(boost::asio::buffer_cast<const char *>(buffer_.data()), buffer_.size());
-
-    // LOG(DEBUG) << "Received message: " << kDataString;
-
-    // buffer_.consume(buffer_.size()); // Clear buffer
 
     // prepare_for_reading();
 }
 
+void WebSocketSession::prepare_for_reading()
+{
+    websocket_.async_read(
+        buffer_,
+        boost::bind(
+            &WebSocketSession::on_read,
+            this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred));
+}
+
+void WebSocketSession::on_read(boost::system::error_code error_code,
+                               std::size_t bytes_transferred)
+{
+    if (error_code)
+    {
+        if (is_error_important(error_code))
+        {
+            LOG(ERROR) << "do_receive - (" << error_code.value() << ") " << error_code.message();
+            return;
+        }
+    }
+
+    const std::string kDataString(boost::asio::buffer_cast<const char *>(buffer_.data()), buffer_.size());
+
+    LOG(DEBUG) << "Received message: " << kDataString;
+
+    buffer_.consume(buffer_.size()); // Clear buffer
+
+    prepare_for_reading();
+}
+
 void WebSocketSession::send(std::shared_ptr<std::string const> const &data)
 {
-    // queue_.push_back(data);
+    queue_.push_back(data);
 
-    // if (queue_.size() > 1)
-    //     return;
+    if (queue_.size() > 1)
+        return;
 
-    // websocket_.async_write(
-    //     boost::asio::buffer(*queue_.front()),
-    //     [self = shared_from_this()](
-    //         boost::system::error_code error_code, std::size_t bytes_transferred)
-    //     {
-    //         self->do_write(error_code, bytes_transferred);
-    //     });
+    websocket_.async_write(
+        boost::asio::buffer(*queue_.front()),
+        [self = shared_from_this()](
+            boost::system::error_code error_code, std::size_t bytes_transferred)
+        {
+            self->do_write(error_code, bytes_transferred);
+        });
 }
 
 void WebSocketSession::do_write(boost::system::error_code error_code,
                                 std::size_t bytes_transferred)
 {
-    // if (error_code)
-    // {
-    //     if (is_error_important(error_code))
-    //     {
-    //         LOG(ERROR) << "do_write - (" << error_code.value() << ") " << error_code.message();
-    //         return;
-    //     }
-    // }
+    if (error_code)
+    {
+        if (is_error_important(error_code))
+        {
+            LOG(ERROR) << "do_write - (" << error_code.value() << ") " << error_code.message();
+            return;
+        }
+    }
 
-    // queue_.erase(queue_.begin());
+    queue_.erase(queue_.begin());
 
-    // if (!queue_.empty())
-    //     websocket_.async_write(
-    //         boost::asio::buffer(*queue_.front()),
-    //         [self = shared_from_this()](
-    //             boost::system::error_code error_code,
-    //             std::size_t bytes_transferred)
-    //         {
-    //             self->do_write(error_code, bytes_transferred);
-    //         });
+    if (!queue_.empty())
+        websocket_.async_write(
+            boost::asio::buffer(*queue_.front()),
+            [self = shared_from_this()](
+                boost::system::error_code error_code,
+                std::size_t bytes_transferred)
+            {
+                self->do_write(error_code, bytes_transferred);
+            });
 }

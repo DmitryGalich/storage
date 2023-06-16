@@ -22,7 +22,7 @@ public:
     HttpSession(boost::asio::ip::tcp::socket socket,
                 SessionsManager &session_manager,
                 std::map<network_module::Url, network_module::HttpCallback> callbacks);
-    ~HttpSession() = default;
+    ~HttpSession();
 
     void start();
 

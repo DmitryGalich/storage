@@ -226,7 +226,8 @@ namespace network_module
             else
             {
                 LOG(DEBUG) << "Creating new http connection...";
-                std::make_shared<HttpSession>(std::move(*socket_), session_manager_, config.callbacks_.http_callbacks_)->start();
+                auto session = std::make_shared<HttpSession>(std::move(*socket_), session_manager_, config.callbacks_.http_callbacks_);
+                session->start();
             }
 
             accept(config);

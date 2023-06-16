@@ -26,14 +26,14 @@ public:
     ~WebSocketSession();
 
     template <class Body, class Allocator>
-    void run(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request);
+    void start(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request);
 
     void send(std::shared_ptr<std::string const> const &data);
 
 private:
     void do_accept(boost::system::error_code error_code);
     void prepare_for_reading();
-    void do_receive(boost::system::error_code error_code, std::size_t bytes_transferred);
+    void on_read(boost::system::error_code error_code, std::size_t bytes_transferred);
     void do_write(boost::system::error_code error_code, std::size_t bytes_transferred);
 
 private:
@@ -47,7 +47,7 @@ private:
 };
 
 template <class Body, class Allocator>
-void WebSocketSession::run(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request)
+void WebSocketSession::start(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> request)
 {
     websocket_.async_accept(
         request,

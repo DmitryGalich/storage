@@ -37,6 +37,10 @@ HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
 {
 }
 
+HttpSession::~HttpSession()
+{
+}
+
 void HttpSession::start()
 {
     read();
@@ -79,7 +83,7 @@ void HttpSession::on_read(boost::beast::error_code error_code,
         std::make_shared<WebSocketSession>(std::move(socket_),
                                            session_manager_,
                                            [&](const std::string &data) {})
-            ->run(std::move(request_));
+            ->start(std::move(request_));
 
         return;
     }
