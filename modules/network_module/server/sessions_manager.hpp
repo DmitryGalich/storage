@@ -14,7 +14,7 @@ public:
     SessionsManager() = default;
     ~SessionsManager() = default;
 
-    bool add(WebSocketSession *session);
+    bool add(std::shared_ptr<WebSocketSession> session);
     void remove(WebSocketSession *session);
 
     bool add(std::shared_ptr<HttpSession> session);
@@ -24,7 +24,7 @@ public:
 
 private:
     std::mutex websocket_mutex_;
-    std::unordered_set<WebSocketSession *> websocket_sessions_;
+    std::unordered_set<std::shared_ptr<WebSocketSession>> websocket_sessions_;
 
     std::mutex http_mutex_;
     std::unordered_set<std::shared_ptr<HttpSession>> http_sessions_;

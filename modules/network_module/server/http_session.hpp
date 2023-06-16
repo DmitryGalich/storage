@@ -21,6 +21,7 @@ public:
     HttpSession() = delete;
     HttpSession(boost::asio::ip::tcp::socket socket,
                 SessionsManager &session_manager,
+                boost::asio::io_context &io_context,
                 std::map<network_module::Url, network_module::HttpCallback> callbacks);
     ~HttpSession();
 
@@ -49,4 +50,6 @@ private:
     boost::asio::steady_timer deadline_;
 
     SessionsManager &session_manager_;
+
+    boost::asio::io_context &io_context_;
 };

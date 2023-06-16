@@ -17,18 +17,26 @@ namespace
 
 WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket,
                                    SessionsManager &session_manager,
+                                   boost::asio::io_context &io_context,
                                    const ReceivingCallback callback)
     : kReadingCallback_(callback),
       session_manager_(session_manager),
-      websocket_(std::move(socket))
+      websocket_(std::move(socket)),
+      io_context_(io_context),
+      acception_deadline_timer_(io_context_, boost::posix_time::seconds(5))
 {
 }
 
 WebSocketSession::~WebSocketSession()
 {
+    LOG(DEBUG);
+    itself_.reset();
+}
 
-    LOG(INFO) << "KEK";
-    // session_manager_.remove(this);
+void WebSocketSession::on_acception_timer(boost::system::error_code error_code)
+{
+    LOG(DEBUG);
+    itself_.reset();
 }
 
 void WebSocketSession::do_accept(boost::system::error_code error_code)
@@ -42,13 +50,16 @@ void WebSocketSession::do_accept(boost::system::error_code error_code)
         }
     }
 
-    // if (!session_manager_.add(this))
-    // {
-    //     LOG(ERROR) << "Can't add websocket session";
-    //     return;
-    // }
+    acception_deadline_timer_.cancel();
 
-    // prepare_for_reading();
+    if (!session_manager_.add(itself_))
+    {
+        LOG(ERROR) << "Can't add websocket session";
+        return;
+    }
+    itself_.reset();
+
+    prepare_for_reading();
 }
 
 void WebSocketSession::prepare_for_reading()

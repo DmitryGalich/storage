@@ -5,7 +5,7 @@
 #include "websocket_session.hpp"
 #include "http_session.hpp"
 
-bool SessionsManager::add(WebSocketSession *session)
+bool SessionsManager::add(std::shared_ptr<WebSocketSession> session)
 {
     bool status = false;
 
@@ -19,15 +19,15 @@ bool SessionsManager::add(WebSocketSession *session)
 
 void SessionsManager::remove(WebSocketSession *session)
 {
-    for (auto iter = websocket_sessions_.begin(); iter != websocket_sessions_.end(); ++iter)
-    {
-        if ((*iter) == session)
-        {
-            std::lock_guard<std::mutex> lock(websocket_mutex_);
-            websocket_sessions_.erase(*iter);
-            break;
-        }
-    }
+    // for (auto iter = websocket_sessions_.begin(); iter != websocket_sessions_.end(); ++iter)
+    // {
+    //     if ((*iter) == session)
+    //     {
+    //         std::lock_guard<std::mutex> lock(websocket_mutex_);
+    //         websocket_sessions_.erase(*iter);
+    //         break;
+    //     }
+    // }
 }
 
 bool SessionsManager::add(std::shared_ptr<HttpSession> session)

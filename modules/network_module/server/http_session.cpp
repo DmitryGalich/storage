@@ -27,13 +27,15 @@ namespace
 
 HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
                          SessionsManager &session_manager,
+                         boost::asio::io_context &io_context,
                          std::map<network_module::Url, network_module::HttpCallback> callbacks)
 
     : socket_(std::move(socket)),
       callbacks_(callbacks),
       deadline_(socket_.get_executor(),
                 std::chrono::seconds(60)),
-      session_manager_(session_manager)
+      session_manager_(session_manager),
+      io_context_(io_context)
 {
 }
 
@@ -80,10 +82,11 @@ void HttpSession::on_read(boost::beast::error_code error_code,
                    << std::to_string(socket_.remote_endpoint().port())
                    << ")";
 
-        std::make_shared<WebSocketSession>(std::move(socket_),
-                                           session_manager_,
-                                           [&](const std::string &data) {})
-            ->start(std::move(request_));
+        auto session = std::make_shared<WebSocketSession>(std::move(socket_),
+                                                          session_manager_,
+                                                          io_context_,
+                                                          [&](const std::string &data) {});
+        session->start(std::move(request_), session);
 
         return;
     }
