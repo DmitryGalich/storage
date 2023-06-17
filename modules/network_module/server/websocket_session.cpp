@@ -30,12 +30,12 @@ WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket,
 WebSocketSession::~WebSocketSession()
 {
     LOG(DEBUG);
-    itself_.reset();
 }
 
 void WebSocketSession::on_acception_timer(boost::system::error_code error_code)
 {
     LOG(DEBUG);
+    acception_deadline_timer_.cancel();
     itself_.reset();
 }
 
@@ -78,11 +78,9 @@ void WebSocketSession::on_read(boost::system::error_code error_code,
 {
     if (error_code)
     {
-        if (is_error_important(error_code))
-        {
-            LOG(ERROR) << "do_receive - (" << error_code.value() << ") " << error_code.message();
-            return;
-        }
+        LOG(ERROR) << "Error code: " << error_code.value() << " - " << error_code.message();
+        stop();
+        return;
     }
 
     const std::string kDataString(boost::asio::buffer_cast<const char *>(buffer_.data()), buffer_.size());
@@ -133,4 +131,10 @@ void WebSocketSession::do_write(boost::system::error_code error_code,
             {
                 self->do_write(error_code, bytes_transferred);
             });
+}
+
+void WebSocketSession::stop()
+{
+    LOG(DEBUG);
+    session_manager_.remove(this);
 }

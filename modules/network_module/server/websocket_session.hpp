@@ -41,6 +41,8 @@ private:
 
     void on_acception_timer(boost::system::error_code error_code);
 
+    void stop();
+
 private:
     const ReceivingCallback kReadingCallback_;
 

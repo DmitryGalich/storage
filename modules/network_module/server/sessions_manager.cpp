@@ -19,37 +19,12 @@ bool SessionsManager::add(std::shared_ptr<WebSocketSession> session)
 
 void SessionsManager::remove(WebSocketSession *session)
 {
-    // for (auto iter = websocket_sessions_.begin(); iter != websocket_sessions_.end(); ++iter)
-    // {
-    //     if ((*iter) == session)
-    //     {
-    //         std::lock_guard<std::mutex> lock(websocket_mutex_);
-    //         websocket_sessions_.erase(*iter);
-    //         break;
-    //     }
-    // }
-}
-
-bool SessionsManager::add(std::shared_ptr<HttpSession> session)
-{
-    bool status = false;
-
-    {
-        std::lock_guard<std::mutex> lock(http_mutex_);
-        status = http_sessions_.insert(session).second;
-    }
-
-    return status;
-}
-
-void SessionsManager::remove(HttpSession *session)
-{
-    for (auto iter = http_sessions_.begin(); iter != http_sessions_.end(); ++iter)
+    for (auto iter = websocket_sessions_.begin(); iter != websocket_sessions_.end(); ++iter)
     {
         if ((*iter).get() == session)
         {
-            std::lock_guard<std::mutex> lock(http_mutex_);
-            http_sessions_.erase(*iter);
+            std::lock_guard<std::mutex> lock(websocket_mutex_);
+            websocket_sessions_.erase(*iter);
             break;
         }
     }
