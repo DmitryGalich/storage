@@ -188,6 +188,8 @@ namespace network_module
         {
             LOG(INFO) << "Stopping...";
 
+            session_manager_.clear();
+
             io_context_.stop();
 
             int worker_i = 0;

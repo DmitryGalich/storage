@@ -17,6 +17,8 @@ public:
     bool add(std::shared_ptr<WebSocketSession> session);
     void remove(WebSocketSession *session);
 
+    void clear();
+
     void send(const std::string &message);
 
 private:

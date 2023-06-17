@@ -39,3 +39,8 @@ void SessionsManager::send(const std::string &message)
         (*iter)->send(ss);
     }
 }
+
+void SessionsManager::clear()
+{
+    websocket_sessions_.clear();
+}
