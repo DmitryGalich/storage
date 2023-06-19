@@ -18,6 +18,8 @@ namespace storage
             bool start(const std::string &config_path);
             void stop() noexcept;
 
+            bool send(const std::string &data);
+
         private:
             void configure_callbacks(network_module::client::Client::Config &config);
 
@@ -25,7 +27,6 @@ namespace storage
 
             void start_communication();
 
-            void send(const std::string &data);
             void receive(const std::string &data);
 
         private:
@@ -99,18 +100,19 @@ namespace storage
 
         void Client::ClientImpl::start_communication()
         {
-            // send("Hello from client");
+            LOG(INFO) << "Ready to work";
+            send("Hello from client");
         }
 
-        void Client::ClientImpl::send(const std::string &data)
+        bool Client::ClientImpl::send(const std::string &data)
         {
             if (!network_module_)
             {
                 LOG(ERROR) << "Network module is not created";
-                return;
+                return false;
             }
 
-            network_module_->send(data);
+            return network_module_->send(data);
         }
 
         void Client::ClientImpl::receive(const std::string &data)
@@ -150,5 +152,18 @@ namespace storage
 
             client_impl_->stop();
         }
+
+        bool Client::send(const std::string &message)
+        {
+            if (!client_impl_)
+            {
+                static const std::string kErrorText("Implementation is not created");
+                LOG(ERROR) << kErrorText;
+                throw std::runtime_error(kErrorText);
+            }
+
+            return client_impl_->send(message);
+        }
+
     }
 }

@@ -175,7 +175,13 @@ namespace network_module
             }
 
             if (io_context_)
+            {
                 io_context_->stop();
+            }
+            else
+            {
+                LOG(ERROR) << "io_context is null";
+            }
 
             is_need_running_ = false;
 
@@ -249,7 +255,6 @@ namespace network_module
             resolve();
             io_context_->run();
 
-            LOG(DEBUG) << "Connection activated";
             return true;
         }
 
@@ -295,15 +300,9 @@ namespace network_module
                 }
 
                 {
-                    LOG(INFO) << "Lock for connecting status";
-
                     std::unique_lock<std::mutex> lock(connecting_mutex_);
                     connecting_watcher_.wait_for(lock, std::chrono::seconds(config_->reconnect_timeout_sec_));
-
-                    LOG(INFO) << "Unlock for connecting status";
                 }
-
-                LOG(INFO) << "is_connected_: " << is_connected_;
 
                 deactivate_connection();
             }
@@ -319,12 +318,12 @@ namespace network_module
                 return false;
             }
 
-            // websocket_stream_->async_write(
-            //     boost::asio::buffer(data),
-            //     boost::bind(&Client::ClientImpl::on_send,
-            //                 this,
-            //                 boost::asio::placeholders::error,
-            //                 boost::asio::placeholders::bytes_transferred));
+            websocket_stream_->async_write(
+                boost::asio::buffer(data),
+                boost::bind(&Client::ClientImpl::on_send,
+                            this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred));
 
             return true;
         }
@@ -413,7 +412,7 @@ namespace network_module
             connecting_watcher_.notify_all();
 
             listen();
-            // callbacks_.on_start_();
+            config_->callbacks_.on_start_();
         }
 
         void Client::ClientImpl::on_send(boost::beast::error_code error_code,
@@ -460,7 +459,6 @@ namespace network_module
             if (error_code)
             {
                 LOG(ERROR) << "Error " << error_code << " " << error_code.message();
-                // reconnecting_watcher_.notify_all();
                 return;
             }
 

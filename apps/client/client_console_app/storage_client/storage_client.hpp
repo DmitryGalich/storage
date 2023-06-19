@@ -17,6 +17,8 @@ namespace storage
             bool start(const std::string &config_path);
             void stop() noexcept;
 
+            bool send(const std::string &message);
+
         private:
             class ClientImpl;
             std::unique_ptr<ClientImpl> client_impl_;
