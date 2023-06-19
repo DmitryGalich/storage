@@ -22,9 +22,6 @@ namespace network_module
                 std::string host_{"127.0.0.1"};
                 int port_{8080};
 
-                // web_sockets::ReceivingCallback receiving_callback_;
-                // web_sockets::SendingCallback sending_callback_;
-
                 struct Callbacks
                 {
                     SignalToStop signal_to_stop_;

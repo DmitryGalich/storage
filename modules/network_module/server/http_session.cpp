@@ -28,8 +28,7 @@ namespace
 HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
                          SessionsManager &session_manager,
                          boost::asio::io_context &io_context,
-                         std::map<network_module::Url, network_module::HttpCallback> callbacks)
-
+                         network_module::server::Server::Config::Callbacks callbacks)
     : socket_(std::move(socket)),
       callbacks_(callbacks),
       deadline_(socket_.get_executor(),
@@ -66,7 +65,7 @@ void HttpSession::on_read(boost::beast::error_code error_code,
 {
     if (error_code)
     {
-        LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+        LOG(ERROR) << error_code.value() << " : " << error_code.message();
 
         if (is_error_important(error_code))
             socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
@@ -128,14 +127,14 @@ void HttpSession::create_response()
 {
     response_.set(boost::beast::http::field::content_type, "text/html");
 
-    const auto kPosition = callbacks_.find(static_cast<network_module::Url>(request_.target()));
-    if (kPosition != callbacks_.end())
+    const auto kPosition = callbacks_.http_callbacks_.find(static_cast<network_module::Url>(request_.target()));
+    if (kPosition != callbacks_.http_callbacks_.end())
     {
         boost::beast::ostream(response_.body()) << kPosition->second();
     }
     else
     {
-        boost::beast::ostream(response_.body()) << callbacks_.at(network_module::Urls::kPageNotFound_)();
+        boost::beast::ostream(response_.body()) << callbacks_.http_callbacks_.at(network_module::Urls::kPageNotFound_)();
     }
 }
 
@@ -157,7 +156,7 @@ void HttpSession::on_write(boost::beast::error_code error_code,
 {
     if (error_code)
     {
-        LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+        LOG(ERROR) << error_code.value() << " : " << error_code.message();
 
         if (is_error_important(error_code))
             socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error_code);
@@ -176,7 +175,7 @@ void HttpSession::check_deadline()
             if (error_code)
             {
                 if (is_error_important(error_code))
-                    LOG(ERROR) << "async_read - (" << error_code.value() << ") " << error_code.message();
+                    LOG(ERROR) << error_code.value() << " : " << error_code.message();
 
                 return;
             }

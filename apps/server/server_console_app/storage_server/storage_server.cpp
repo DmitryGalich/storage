@@ -27,6 +27,7 @@ namespace storage
             void configureCallbacks(network_module::server::Server::Config &config);
 
             void process_signal_to_stop();
+            void process_receiving(const std::string &data);
 
         private:
             std::unique_ptr<network_module::server::Server> network_module_;
@@ -113,6 +114,7 @@ namespace storage
 
             // Websockets
             {
+                config.callbacks_.process_receiving_ = std::bind(&Server::ServerImpl::process_receiving, this, std::placeholders::_1);
             }
         }
 
@@ -123,6 +125,11 @@ namespace storage
 
             is_stop_signal_called_ = true;
             signal_to_stop_.set_value();
+        }
+
+        void Server::ServerImpl::process_receiving(const std::string &data)
+        {
+            LOG(INFO) << "Received: " << data;
         }
 
         bool Server::ServerImpl::send(const std::string &data)

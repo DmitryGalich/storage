@@ -15,6 +15,8 @@
 
 #include "sessions_manager.hpp"
 
+#include "../network_module.hpp"
+
 class HttpSession : public std::enable_shared_from_this<HttpSession>
 {
 public:
@@ -22,7 +24,7 @@ public:
     HttpSession(boost::asio::ip::tcp::socket socket,
                 SessionsManager &session_manager,
                 boost::asio::io_context &io_context,
-                std::map<network_module::Url, network_module::HttpCallback> callbacks);
+                network_module::server::Server::Config::Callbacks callbacks);
     ~HttpSession();
 
     void start();
@@ -41,7 +43,7 @@ private:
     void check_deadline();
 
 private:
-    std::map<network_module::Url, network_module::HttpCallback> callbacks_;
+    network_module::server::Server::Config::Callbacks callbacks_;
 
     boost::asio::ip::tcp::socket socket_;
     boost::beast::flat_buffer buffer_{8192};

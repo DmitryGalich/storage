@@ -85,8 +85,6 @@ void WebSocketSession::on_read(boost::system::error_code error_code,
 
     const std::string kDataString(boost::asio::buffer_cast<const char *>(buffer_.data()), buffer_.size());
 
-    LOG(DEBUG) << "Received message: " << kDataString;
-
     buffer_.consume(buffer_.size()); // Clear buffer
 
     prepare_for_reading();

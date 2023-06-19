@@ -231,7 +231,7 @@ namespace network_module
                 auto session = std::make_shared<HttpSession>(std::move(*socket_),
                                                              session_manager_,
                                                              io_context_,
-                                                             config.callbacks_.http_callbacks_);
+                                                             config.callbacks_);
                 session->start();
             }
 
