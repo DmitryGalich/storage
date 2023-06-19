@@ -21,6 +21,8 @@ namespace storage
                        const std::string &html_folder_path);
             void stop() noexcept;
 
+            bool send(const std::string &data);
+
         private:
             void configureCallbacks(network_module::server::Server::Config &config);
 
@@ -123,6 +125,17 @@ namespace storage
             signal_to_stop_.set_value();
         }
 
+        bool Server::ServerImpl::send(const std::string &data)
+        {
+            if (!network_module_)
+            {
+                LOG(ERROR) << "Network module is not initialized";
+                return false;
+            }
+
+            return network_module_->send(data);
+        }
+
     }
 }
 
@@ -159,6 +172,18 @@ namespace storage
             }
 
             server_impl_->stop();
+        }
+
+        bool Server::send(const std::string &data)
+        {
+            if (!server_impl_)
+            {
+                static const std::string kErrorText("Implementation is not created");
+                LOG(ERROR) << kErrorText;
+                throw std::runtime_error(kErrorText);
+            }
+
+            return server_impl_->send(data);
         }
     }
 }

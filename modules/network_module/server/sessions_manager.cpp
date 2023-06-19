@@ -30,14 +30,22 @@ void SessionsManager::remove(WebSocketSession *session)
     }
 }
 
-void SessionsManager::send(const std::string &message)
+bool SessionsManager::send(const std::string &message)
 {
+    if (websocket_sessions_.empty())
+    {
+        LOG(ERROR) << "Connections list is empty";
+        return false;
+    }
+
     auto const ss = std::make_shared<std::string const>(std::move(message));
 
     for (auto iter = websocket_sessions_.begin(); iter != websocket_sessions_.end(); ++iter)
     {
         (*iter)->send(ss);
     }
+
+    return true;
 }
 
 void SessionsManager::clear()

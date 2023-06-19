@@ -16,7 +16,7 @@ void configure_logger()
     el::Loggers::reconfigureAllLoggers(config);
 }
 
-void wait_for_user_command()
+void wait_for_user_command(storage::server::Server &server)
 {
     while (true)
     {
@@ -29,6 +29,20 @@ void wait_for_user_command()
             input == "C")
         {
             return;
+        }
+        else
+        {
+            try
+            {
+                if (!server.send(input))
+                {
+                    LOG(ERROR) << "Error while sending message to clients";
+                }
+            }
+            catch (...)
+            {
+                LOG(ERROR) << "Can't send message to clients";
+            }
         }
     }
 }
@@ -71,7 +85,7 @@ int main()
             return -1;
         }
 
-        std::future<void> user_command_future = std::async(&wait_for_user_command);
+        std::future<void> user_command_future = std::async(&wait_for_user_command, std::ref(server));
         while (true)
         {
             if (user_command_future.wait_for(std::chrono::seconds(1)) == std::future_status::ready)

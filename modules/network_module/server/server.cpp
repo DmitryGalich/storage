@@ -240,7 +240,7 @@ namespace network_module
 
         bool Server::ServerImpl::send(const std::string &data)
         {
-            return true;
+            return session_manager_.send(data);
         }
     }
 }

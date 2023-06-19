@@ -19,7 +19,7 @@ public:
 
     void clear();
 
-    void send(const std::string &message);
+    bool send(const std::string &message);
 
 private:
     std::mutex websocket_mutex_;

@@ -19,6 +19,8 @@ namespace storage
                        const std::string &html_folder_path);
             void stop() noexcept;
 
+            bool send(const std::string &data);
+
         private:
             class ServerImpl;
             std::unique_ptr<ServerImpl> server_impl_;
