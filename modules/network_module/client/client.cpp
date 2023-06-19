@@ -174,6 +174,9 @@ namespace network_module
                 return;
             }
 
+            if (io_context_)
+                io_context_->stop();
+
             is_need_running_ = false;
 
             connecting_watcher_.notify_all();
@@ -259,8 +262,6 @@ namespace network_module
                 LOG(DEBUG) << "Connection already deactivated";
                 return;
             }
-
-            io_context_->stop();
 
             if (websocket_stream_->is_open())
             {
