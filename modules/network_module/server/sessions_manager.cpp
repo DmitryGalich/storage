@@ -19,11 +19,12 @@ bool SessionsManager::add(std::shared_ptr<WebSocketSession> session)
 
 void SessionsManager::remove(WebSocketSession *session)
 {
+    std::lock_guard<std::mutex> lock(websocket_mutex_);
+
     for (auto iter = websocket_sessions_.begin(); iter != websocket_sessions_.end(); ++iter)
     {
         if ((*iter).get() == session)
         {
-            std::lock_guard<std::mutex> lock(websocket_mutex_);
             websocket_sessions_.erase(*iter);
             break;
         }
