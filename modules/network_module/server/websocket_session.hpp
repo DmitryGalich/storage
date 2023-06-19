@@ -15,6 +15,8 @@
 
 #include "sessions_manager.hpp"
 
+#include "../network_module.hpp"
+
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>
 {
 public:
@@ -24,7 +26,7 @@ public:
     WebSocketSession(boost::asio::ip::tcp::socket socket,
                      SessionsManager &session_manager,
                      boost::asio::io_context &io_context,
-                     const ReceivingCallback callback);
+                     const network_module::server::Server::Config::Callbacks::WebSocketsCallbacks callback);
     ~WebSocketSession();
 
     template <class Body, class Allocator>
@@ -44,7 +46,7 @@ private:
     void stop();
 
 private:
-    const ReceivingCallback kReadingCallback_;
+    const network_module::server::Server::Config::Callbacks::WebSocketsCallbacks kCallbacks_;
 
     boost::beast::websocket::stream<boost::asio::ip::tcp::socket> websocket_;
     boost::beast::flat_buffer buffer_;

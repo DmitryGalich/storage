@@ -27,6 +27,7 @@ namespace storage
             void configureCallbacks(network_module::server::Server::Config &config);
 
             void process_signal_to_stop();
+            void process_new_websocket_connection();
             void process_receiving(const std::string &data);
 
         private:
@@ -114,7 +115,8 @@ namespace storage
 
             // Websockets
             {
-                config.callbacks_.process_receiving_ = std::bind(&Server::ServerImpl::process_receiving, this, std::placeholders::_1);
+                config.callbacks_.web_sockets_callbacks_.process_new_connection_ = std::bind(&Server::ServerImpl::process_new_websocket_connection, this);
+                config.callbacks_.web_sockets_callbacks_.process_receiving_ = std::bind(&Server::ServerImpl::process_receiving, this, std::placeholders::_1);
             }
         }
 
@@ -125,6 +127,11 @@ namespace storage
 
             is_stop_signal_called_ = true;
             signal_to_stop_.set_value();
+        }
+
+        void Server::ServerImpl::process_new_websocket_connection()
+        {
+            LOG(INFO) << "New websocket connection";
         }
 
         void Server::ServerImpl::process_receiving(const std::string &data)

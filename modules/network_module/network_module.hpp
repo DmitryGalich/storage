@@ -25,8 +25,12 @@ namespace network_module
                 struct Callbacks
                 {
                     SignalToStop signal_to_stop_;
-                    web_sockets::OnStartCallback on_start_;
-                    web_sockets::ReceivingCallback process_receiving_;
+
+                    struct WebSocketsCallbacks
+                    {
+                        web_sockets::OnStartCallback process_new_connection_;
+                        web_sockets::ReceivingCallback process_receiving_;
+                    } web_sockets_callbacks_;
 
                     std::map<Url, HttpCallback> http_callbacks_;
 

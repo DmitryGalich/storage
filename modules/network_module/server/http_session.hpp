@@ -24,7 +24,7 @@ public:
     HttpSession(boost::asio::ip::tcp::socket socket,
                 SessionsManager &session_manager,
                 boost::asio::io_context &io_context,
-                network_module::server::Server::Config::Callbacks callbacks);
+                const network_module::server::Server::Config::Callbacks callbacks);
     ~HttpSession();
 
     void start();
@@ -43,7 +43,7 @@ private:
     void check_deadline();
 
 private:
-    network_module::server::Server::Config::Callbacks callbacks_;
+    const network_module::server::Server::Config::Callbacks kCallbacks_;
 
     boost::asio::ip::tcp::socket socket_;
     boost::beast::flat_buffer buffer_{8192};

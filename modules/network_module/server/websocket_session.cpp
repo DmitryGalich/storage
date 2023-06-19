@@ -18,8 +18,8 @@ namespace
 WebSocketSession::WebSocketSession(boost::asio::ip::tcp::socket socket,
                                    SessionsManager &session_manager,
                                    boost::asio::io_context &io_context,
-                                   const ReceivingCallback callback)
-    : kReadingCallback_(callback),
+                                   const network_module::server::Server::Config::Callbacks::WebSocketsCallbacks callback)
+    : kCallbacks_(callback),
       session_manager_(session_manager),
       websocket_(std::move(socket)),
       io_context_(io_context),
@@ -60,6 +60,8 @@ void WebSocketSession::do_accept(boost::system::error_code error_code)
     itself_.reset();
 
     prepare_for_reading();
+
+    kCallbacks_.process_new_connection_();
 }
 
 void WebSocketSession::prepare_for_reading()
@@ -84,6 +86,8 @@ void WebSocketSession::on_read(boost::system::error_code error_code,
     }
 
     const std::string kDataString(boost::asio::buffer_cast<const char *>(buffer_.data()), buffer_.size());
+
+    kCallbacks_.process_receiving_(kDataString);
 
     buffer_.consume(buffer_.size()); // Clear buffer
 

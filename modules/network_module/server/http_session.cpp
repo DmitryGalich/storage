@@ -28,9 +28,9 @@ namespace
 HttpSession::HttpSession(boost::asio::ip::tcp::socket socket,
                          SessionsManager &session_manager,
                          boost::asio::io_context &io_context,
-                         network_module::server::Server::Config::Callbacks callbacks)
+                         const network_module::server::Server::Config::Callbacks callbacks)
     : socket_(std::move(socket)),
-      callbacks_(callbacks),
+      kCallbacks_(callbacks),
       deadline_(socket_.get_executor(),
                 std::chrono::seconds(60)),
       session_manager_(session_manager),
@@ -84,7 +84,7 @@ void HttpSession::on_read(boost::beast::error_code error_code,
         auto session = std::make_shared<WebSocketSession>(std::move(socket_),
                                                           session_manager_,
                                                           io_context_,
-                                                          [&](const std::string &data) {});
+                                                          kCallbacks_.web_sockets_callbacks_);
         session->start(std::move(request_), session);
 
         return;
@@ -127,14 +127,14 @@ void HttpSession::create_response()
 {
     response_.set(boost::beast::http::field::content_type, "text/html");
 
-    const auto kPosition = callbacks_.http_callbacks_.find(static_cast<network_module::Url>(request_.target()));
-    if (kPosition != callbacks_.http_callbacks_.end())
+    const auto kPosition = kCallbacks_.http_callbacks_.find(static_cast<network_module::Url>(request_.target()));
+    if (kPosition != kCallbacks_.http_callbacks_.end())
     {
         boost::beast::ostream(response_.body()) << kPosition->second();
     }
     else
     {
-        boost::beast::ostream(response_.body()) << callbacks_.http_callbacks_.at(network_module::Urls::kPageNotFound_)();
+        boost::beast::ostream(response_.body()) << kCallbacks_.http_callbacks_.at(network_module::Urls::kPageNotFound_)();
     }
 }
 
