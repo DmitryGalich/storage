@@ -9,13 +9,12 @@ FetchContent_Populate(
   SOURCE_DIR ${BOOST_LIB_DIR_NAME}
 )
 
-message("KEKKEL")
 execute_process(
-  COMMAND govno
+  COMMAND ./${BOOST_LIB_DIR_NAME}/bootstrap.sh
   WORKING_DIRECTORY ${BOOST_LIB_DIR_NAME}
 )
 
-# execute_process(
-#   COMMAND sudo ./b2 install
-#   WORKING_DIRECTORY ${BOOST_LIB_DIR_NAME}
-# )
+execute_process(
+  COMMAND sudo ./${BOOST_LIB_DIR_NAME}/b2 install
+  WORKING_DIRECTORY ${BOOST_LIB_DIR_NAME}
+)
