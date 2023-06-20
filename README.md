@@ -1,86 +1,34 @@
-# Cloud
+# Network dummy project
 
-Simple implementation of synchronized data storage
+Simple structured C++ project that uses HTTP and Websockets to communicate between async server and async clients.
 
-## General structure
+## Tech stack
 
-![general structure](/docs/general_structure.jpg)
+* CMake
+* C++20
+* Boost Asio Beast
+* NlohmannJson
+* Easylogging (Not the best choice)
+* GTests
 
-### Client
+Libs loads on stage of project configuring by CMake
 
-Handler of users data storage
+## Server
 
-### Server
+* Console interface
+* Starting number of threads that equals number of processors cores
+* Server address sets by config file
+* Has its own web-pages
+* Can send broadcast messages by keyboard to all websockets clients
+* Can receive all websockets clients messages
+* All logs storing in file
 
-Storage of all clients copied data. For each client server has independent substorage that synchronized with client. If client has files or folders that server substorage has not, server loading them. If client deleted some files or folders, server deleting them too.
+## Client
 
-## General structure of server or client
-
-![general structure of server or client](/docs/general_structure_of_server_or_client.jpg)
-
-### Server network module
-
-* Handle many clients at same time
-
-### Client network module
-
-* Provide permanent connection with server
-
-### Files handling module
-
-* Handle with OS filesystem
-
-### View module
-
-* UI
-
-### Client main logic module
-
-* Answer on servers requests
-
-### Server main logic module
-
-* Asking clients about any changes of users data
-* Provide ordered requesting of needed users data
-
-## Files handling module
-
-* Get list of folders and files
-* Create/Remove folder
-* Create file from receiver chunks
-* Get specific chunck of concrete file
-
-## Server network module
-
-* Run
-* Stop
-* Add client
-* Remove client
-* Ask clients about any changes of their local storages
-* Request specific chunck of concrete client file
-
-## Client network module
-
-* Connect to server
-* Receive servers requests
-* Send requests answers
-
-## Client main logic module
-
-* Produce stable renewal connection with server
-* Catching any changes in local file storage
-* Spliting files on chuncks
-
-## Server main logic module
-
-* Making ordered request of files chuncks
-
-## View module
-
-* UI
-
-## Support modules
-
-* Control summ computing module
-* Encrypting/Decrypting module
-* Logger
+* Console interface
+* Can handle server falling and reconnecting
+* Main thread works with user interaction, another - network interaction
+* Connecting address sets by config file
+* Can send messages by keyboard to websocket server
+* Can receive websocket server messages
+* All logs storing in file
