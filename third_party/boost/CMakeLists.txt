@@ -10,11 +10,11 @@ FetchContent_Populate(
 )
 
 execute_process(
-  COMMAND ./bootstrap.sh
+  COMMAND govno
   WORKING_DIRECTORY ${BOOST_LIB_DIR_NAME}
 )
 
-execute_process(
-  COMMAND sudo ./b2 install
-  WORKING_DIRECTORY ${BOOST_LIB_DIR_NAME}
-)
+# execute_process(
+#   COMMAND sudo ./b2 install
+#   WORKING_DIRECTORY ${BOOST_LIB_DIR_NAME}
+# )
