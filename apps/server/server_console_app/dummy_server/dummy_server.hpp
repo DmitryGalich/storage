@@ -3,7 +3,7 @@
 #include <memory>
 #include <future>
 
-namespace storage
+namespace dummy
 {
     namespace server
     {

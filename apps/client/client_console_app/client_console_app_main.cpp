@@ -7,7 +7,7 @@
 #include "easylogging++.h"
 #define ELPP_THREAD_SAFE
 
-#include "storage_client/storage_client.hpp"
+#include "dummy_client/dummy_client.hpp"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -17,7 +17,7 @@ void configure_logger()
     el::Loggers::reconfigureAllLoggers(config);
 }
 
-void wait_for_user_command(storage::client::Client &client)
+void wait_for_user_command(dummy::client::Client &client)
 {
     while (true)
     {
@@ -61,7 +61,7 @@ int main()
         std::promise<void> client_promise;
         auto client_future = client_promise.get_future();
 
-        storage::client::Client client(std::move(client_promise));
+        dummy::client::Client client(std::move(client_promise));
 
         try
         {

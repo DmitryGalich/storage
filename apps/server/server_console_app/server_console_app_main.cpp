@@ -3,7 +3,7 @@
 
 #include "configs/cmake_config.h"
 
-#include "storage_server/storage_server.hpp"
+#include "dummy_server/dummy_server.hpp"
 
 #include "easylogging++.h"
 #define ELPP_THREAD_SAFE
@@ -16,7 +16,7 @@ void configure_logger()
     el::Loggers::reconfigureAllLoggers(config);
 }
 
-void wait_for_user_command(storage::server::Server &server)
+void wait_for_user_command(dummy::server::Server &server)
 {
     while (true)
     {
@@ -63,7 +63,7 @@ int main()
         const auto kProcessorsCores = std::thread::hardware_concurrency();
         const auto kServerWorkersNumber = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
 
-        storage::server::Server server(std::move(server_promise));
+        dummy::server::Server server(std::move(server_promise));
 
         try
         {

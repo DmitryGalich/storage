@@ -1,11 +1,11 @@
-#include "storage_server.hpp"
+#include "dummy_server.hpp"
 
 #include "easylogging++.h"
 
 #include "network_module.hpp"
 #include "pages_manager/pages_manager.hpp"
 
-namespace storage
+namespace dummy
 {
     namespace server
     {
@@ -153,11 +153,11 @@ namespace storage
     }
 }
 
-namespace storage
+namespace dummy
 {
     namespace server
     {
-        Server::Server(std::promise<void> signal_to_stop) : server_impl_(std::make_unique<storage::server::Server::ServerImpl>(std::move(signal_to_stop))) {}
+        Server::Server(std::promise<void> signal_to_stop) : server_impl_(std::make_unique<dummy::server::Server::ServerImpl>(std::move(signal_to_stop))) {}
 
         Server::~Server() {}
 

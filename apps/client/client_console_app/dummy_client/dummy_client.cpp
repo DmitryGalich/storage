@@ -1,10 +1,10 @@
-#include "storage_client.hpp"
+#include "dummy_client.hpp"
 
 #include "easylogging++.h"
 
 #include "network_module.hpp"
 
-namespace storage
+namespace dummy
 {
     namespace client
     {
@@ -122,11 +122,11 @@ namespace storage
     }
 }
 
-namespace storage
+namespace dummy
 {
     namespace client
     {
-        Client::Client(std::promise<void> signal_to_stop) : client_impl_(std::make_unique<storage::client::Client::ClientImpl>(std::move(signal_to_stop))) {}
+        Client::Client(std::promise<void> signal_to_stop) : client_impl_(std::make_unique<dummy::client::Client::ClientImpl>(std::move(signal_to_stop))) {}
 
         Client::~Client() {}
 

@@ -20,7 +20,7 @@ namespace
     }
 }
 
-namespace storage
+namespace dummy
 {
     namespace server
     {
