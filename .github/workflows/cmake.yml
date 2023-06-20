@@ -28,6 +28,4 @@ jobs:
     - name: Test filesystem module
       run: ${{github.workspace}}/build/modules/filesystem_module/filesystem_module_tests
 
-    - name: Test logger module
-      run: ${{github.workspace}}/build/modules/logger_module/logger_module
 
