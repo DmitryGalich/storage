@@ -32,16 +32,3 @@ TEST_F(ServerTests, ConfigLoading)
     EXPECT_EQ(kLoadedConfig.host_, "123.456.789.0");
     EXPECT_EQ(kLoadedConfig.port_, 1234);
 }
-
-// TEST_F(ServerTests, SimpleTest)
-// {
-//     network_module::server::Server::Config server_config;
-
-//     const auto kProcessorsCores = std::thread::hardware_concurrency();
-//     const auto kProcessorsCoresForServer = (kProcessorsCores > 1) ? (kProcessorsCores - 1) : 1;
-//     const auto kConfig = network_module::server::Server::Config::load_config(kConfigPath);
-
-//     network_module::server::Server server(kProcessorsCoresForServer);
-//     EXPECT_TRUE(server.start(kConfig));
-//     server.stop();
-// }
