@@ -23,10 +23,10 @@ jobs:
       run: tar --gzip -xf boost_1_82_0.tar.gz -C ~/
 
     - name: Building Boost
-      run: cd ~/boost_1_82_0/ | ./bootstrap.sh
+      run: ./~/bootstrap.sh
 
     - name: Installing Boost
-      run: sudo ./b2 install
+      run: sudo ./~/b2 install
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
