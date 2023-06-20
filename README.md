@@ -10,8 +10,10 @@ Simple structured C++ project that uses HTTP and Websockets to communicate betwe
 * NlohmannJson
 * Easylogging (Not the best choice)
 * GTests
-
+* 
 Libs loads on stage of project configuring by CMake
+
+* Github Actions CI while merging to master
 
 ## Server
 
