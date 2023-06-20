@@ -9,6 +9,7 @@ FetchContent_Populate(
   SOURCE_DIR ${BOOST_LIB_DIR_NAME}
 )
 
+message("KEKKEL")
 execute_process(
   COMMAND govno
   WORKING_DIRECTORY ${BOOST_LIB_DIR_NAME}
