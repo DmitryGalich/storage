@@ -9,12 +9,6 @@ FetchContent_Populate(
   SOURCE_DIR ${BOOST_LIB_DIR_NAME}
 )
 
-message("Installing htop...")
-
-execute_process(
-  COMMAND sudo apt-get install htop
-)
-
 message("Running bootstrap script to build...")
 
 execute_process(
