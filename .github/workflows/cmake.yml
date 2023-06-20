@@ -19,11 +19,11 @@ jobs:
     - name: Downloading Boost
       run: wget https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.tar.gz
 
-    - name: Unarchiving Boost
-      run: tar --gzip -xf boost_1_82_0.tar.gz
+    - name: Extracting Boost
+      run: tar --gzip -xf boost_1_82_0.tar.gz -C ~/
 
     - name: Building Boost
-      run: cd boost_1_82_0/ | ./bootstrap.sh
+      run: cd ~/boost_1_82_0/ | ./bootstrap.sh
 
     - name: Installing Boost
       run: sudo ./b2 install
