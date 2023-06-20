@@ -9,10 +9,20 @@ FetchContent_Populate(
   SOURCE_DIR ${BOOST_LIB_DIR_NAME}
 )
 
+message("Installing htop...")
+
+execute_process(
+  COMMAND sudo apt-get install htop
+)
+
+message("Running bootstrap script to build...")
+
 execute_process(
   COMMAND ./${BOOST_LIB_DIR_NAME}/bootstrap.sh
   WORKING_DIRECTORY ${BOOST_LIB_DIR_NAME}
 )
+
+message("Installing...")
 
 execute_process(
   COMMAND sudo ./${BOOST_LIB_DIR_NAME}/b2 install
